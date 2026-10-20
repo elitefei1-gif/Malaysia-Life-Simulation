@@ -673,7 +673,7 @@ function drawModal(){const m=cur;const chs=(m.choices||[]).map((c,i)=>{const ok=
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
   $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});}
 function choose(i){const c=cur&&cur.choices&&cur.choices[i];if(!c){closeModal();return;}if(c[2]&&!c[2]())return;if(!c[1]){closeModal();return;}
-  const b=snap();const out=c[1]();if(out===false){cur=null;return;}
+  const b=snap();let out;try{out=c[1]();}catch(e){console.error(e);out='';}if(out===false){cur=null;return;}
   const d=S?diff(b):[];if(out||d.length){cur={title:cur.title,tag:cur.tag,icon:cur.icon,text:out||'Done.',delta:d,choices:null};drawModal();}else closeModal();}
 function closeModal(){cur=null;$('#modal').hidden=true;showNext();}
 
@@ -1189,8 +1189,8 @@ const EV=[
   {id:'grandkid',c:()=>S.retired&&S.kids.length>0&&S.money>a2c(25000),t:'Helping a grandchild',x:'Your grandchild needs help with university fees.',ch:[
     ['Pay RM 20,000 (scaled)',()=>{S.money-=a2c(20000);bump('hap',5);S.dyn.rep+=1;return 'They hug you so hard your glasses fall off.';}],['Say you can\'t',()=>'They understand, but you feel a bit guilty.']]},
   {id:'carried',c:a=>a>=16&&a<=28&&S.partner&&S.partner.alive!==false&&S.partner.status==='dating'&&!samePartner(),t:'Getting serious',x:()=>`You and ${esc(S.partner.name)} are spending a lot of time alone together.`,ch:[
-    ['Be responsible and take it slow',()=>{bump('dis',2);S.partner.rel=clamp(S.partner.rel+3);return 'You talk about the future and agree there is no rush.';}],
-    ['Throw caution to the wind',()=>{bump('hap',3);S.partner.rel=clamp(S.partner.rel+6);if(chance(.35)){q(pregModal({stats:S.partner.stats,name:S.partner.name}));return 'A few weeks later, something feels different…';}return 'Nothing comes of it. This time.';}]]},
+    ['Be responsible and take it slow',()=>{if(!S.partner)return 'That moment has passed. You are single again.';bump('dis',2);S.partner.rel=clamp(S.partner.rel+3);return 'You talk about the future and agree there is no rush.';}],
+    ['Throw caution to the wind',()=>{if(!S.partner)return 'That moment has passed. You are single again.';bump('hap',3);S.partner.rel=clamp(S.partner.rel+6);if(chance(.35)){q(pregModal({stats:S.partner.stats,name:S.partner.name}));return 'A few weeks later, something feels different…';}return 'Nothing comes of it. This time.';}]]},
 ];
 /* ================= stage events (primary → working adult) =================
    Drop-in additions for the random-event pool in malaysian-life-simulator.html.
@@ -1871,7 +1871,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.44';
+const GAME_VERSION='2026-10-20.45';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
