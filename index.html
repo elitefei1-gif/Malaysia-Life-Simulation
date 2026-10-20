@@ -696,6 +696,7 @@ const ACTS=[
   {id:'rest',ic:'😴',label:'Rest',sub:'Health, happiness',ok:a=>a>=4,run(){bump('hlt',2);bump('hap',3);return pick(['A lazy weekend with Netflix.','Long nap after lunch.','A day at the beach.']);}},
 ];
 ACTS.forEach(a=>{ICON_EMOJI['a_'+a.id]=a.ic;});
+Object.assign(ICON_EMOJI,{ev_lottery4d:'🎟️',ev_ramadan:'🌙'});
 Object.assign(ICON_EMOJI,{s_int:'🧠',s_hlt:'❤️',s_cha:'🗣️',s_look:'✨',s_cre:'🎨',s_ath:'💪',s_dis:'🎯',s_hap:'😊',s_luck:'🍀'});
 Object.assign(ICON_EMOJI,{m_adopt:'🤱',m_preg:'🤰',m_fling:'🍹',m_gold:'👜',m_cheat:'📱',ev_carried:'💞',ev_bigproject:'📊',ev_mistake:'😬',ev_workaccident:'🚑',ev_bossleaves:'🪑',ev_bribe:'💰',ev_award:'🏆',ev_collapse:'💔',ev_scandal:'📰',ev_kabel:'🔌',ev_openhouse:'🍛',ev_kpi:'📊',ev_flood:'🌊',ev_leave:'🗓️',ev_posting:'🛫',ev_raid:'🚨',ev_durian:'🍈',ev_startup:'🚀',ev_poach:'🚀',ev_politics:'🗣️'});
 function a2c(n){return n*infl()*(S.country==='MY'?1:ctry().col);}
@@ -1080,6 +1081,21 @@ function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
 
 /* ================= random events ================= */
 const EV=[
+  // 4D: legal age is 21, and Muslims are barred from buying, so Malay families never get it.
+  {id:'lottery4d',c:a=>a>=21&&S.country==='MY'&&S.culture!=='malay',t:'4D fever',x:'The jackpot is over RM 10 million this week and the queue at the 4D shop is out the door. Your aunt swears your IC number is lucky.',ch:[
+    ['Buy RM 10 on your IC number',()=>{const I=infl();S.money-=10*I;const r=Math.random();
+      if(r<.001){const w=25000*I;S.money+=w;bump('hap',10);log('Won first prize in 4D: '+fmt(w)+'.','big');return `First prize! Your RM 10 ticket wins ${fmt(w)}. Your aunt wants a cut.`;}
+      if(r<.023){const w=RI(50,600)*I;S.money+=w;bump('hap',3);return `A small prize: ${fmt(w)}. You buy kopi for everyone at the shop.`;}
+      return 'Not even close. Your aunt blames the date format.';}],
+    ['Go big: RM 500 on a "dream number"',()=>{const I=infl();S.money-=500*I;const r=Math.random();
+      if(r<.001){const w=1250000*I;S.money+=w;bump('hap',20);log('Won the 4D jackpot: '+fmt(w)+'.','big');return `Jackpot! ${fmt(w)}. Relatives you have never met start calling.`;}
+      if(r<.023){const w=RI(3000,30000)*I;S.money+=w;bump('hap',6);return `Your dream number comes in for a ${fmt(w)} prize.`;}
+      bump('hap',-3);return `${fmt(500*I)} gone. The dream was just a dream.`;},()=>S.money>500*infl(),'Needs cash'],
+    ['Skip it',()=>{bump('dis',1);return 'You keep your money. The house always wins.';}]]},
+  {id:'ramadan',c:a=>a>=6&&S.country==='MY',t:'Ramadan bazaar',x:()=>S.culture==='malay'?'It\'s the fasting month. By 6pm the bazaar near your house is packed with murtabak, ayam percik and air bandung stalls.':'The Ramadan bazaar near your house is open again. Your Muslim friends say the murtabak there is the best in town.',ch:[
+    ['Buy everything that looks good',()=>{S.money-=60*infl();bump('hap',4);bump('hlt',-1);return 'You come home with far too much food: murtabak, satay, kuih and three kinds of drinks. Worth it.';}],
+    ['Run a kuih stall for the month',()=>{const w=RI(800,3000)*infl();S.money+=w;bump('cha',2);bump('hlt',-1);log('Ran a Ramadan bazaar stall and made '+fmt(w)+'.');return `Long hot afternoons, but your kuih sells out most days. You make ${fmt(w)}.`;},()=>age()>=16,'Age 16+'],
+    ['Break fast with friends',()=>{bump('cha',2);bump('hap',3);S.friends++;return S.culture==='malay'?'You wait for the azan together, then everyone digs in at once.':'Your friends save you a seat. You learn it is rude to start eating before the azan.';}]]},
   {id:'bully',c:a=>a>=7&&a<=15,t:'Trouble at the canteen',x:'A classmate is being picked on near the canteen.',ch:[
     ['Step in',()=>{if(roll('cha')>.45){bump('cha',3);S.friends++;return 'You stood up for them. They become a loyal friend.';}bump('hlt',-2);bump('hap',-2);return 'The bullies turned on you too. You got a bruise, but your classmate is grateful.';}],
     ['Tell the cikgu',()=>{bump('dis',2);return 'The teacher sorts it out quickly.';}],['Walk away',()=>{bump('hap',-3);return 'It bothers you for days.';}]]},
@@ -1828,7 +1844,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.35';
+const GAME_VERSION='2026-10-20.36';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
