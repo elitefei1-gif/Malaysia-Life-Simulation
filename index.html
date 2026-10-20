@@ -330,6 +330,8 @@ const STAT_NAMES={int:'Smarts',hlt:'Health',cha:'Charisma',look:'Looks',cre:'Cre
 const LANG={ms:'Malay',en:'English',zh:'Mandarin',ta:'Tamil',ja:'Japanese',ko:'Korean',de:'German',ar:'Arabic'};
 // Only these family cultures can be played for now (they have portrait art). Others stay in the code for later.
 const PLAYABLE=['malay','chinese'];
+// Bumiputera families get the real-life priorities: Matrikulasi and MRSM quotas, MARA scholarships and a 7% discount on new homes.
+const BUMI=['malay','iban','kadazan'];
 const CULTURES={
   malay:{fest:'Hari Raya Aidilfitri',gift:'duit raya',langs:{ms:70,en:30},m:['Aiman','Hafiz','Irfan','Danial','Haziq','Amirul','Faris','Adam'],f:['Aisyah','Nurul Huda','Siti Sarah','Aina','Farah','Alya','Hana','Damia'],fam:['Ahmad','Ismail','Rahman','Hassan','Yusof','Othman'],famLabel:n=>'Keluarga '+n},
   chinese:{fest:'Chinese New Year',gift:'ang pow',langs:{zh:75,en:40,ms:40},m:['Wei Jie','Jun Hao','Kai Xuan','Zi Hao','Jia Le','Yi Xiang'],f:['Mei Ling','Xin Yi','Hui Min','Jia Yi','Pei Shan','Wen Qi'],fam:['Tan','Lim','Lee','Wong','Ng','Chong','Ong'],famLabel:n=>'The '+n+' family'},
@@ -558,6 +560,8 @@ let S=null, MQ=[], cur=null, tab='life', shopTab='houses', autoYears=0, setup={g
 const age=()=>S.year-S.birthYear;
 const infl=()=>Math.pow(1.03,S.year-2025);
 const cult=()=>CULTURES[S.culture];
+const isBumi=()=>BUMI.includes(S.culture);
+const bumiDisc=H=>isBumi()&&(H.country||'MY')==='MY'&&!H.resale?.93:1;
 const town=()=>TOWNS[S.town];
 const ctry=()=>COUNTRIES[S.country];
 const married=()=>S.partner&&S.partner.status==='married'&&S.partner.alive!==false;
@@ -615,6 +619,7 @@ function salaryBase(){if(!S.job)return 0;const J=JOBS[S.job.id];let m=J.base*J.g
   m*=1+abroadPrem(S.job.id);m*=1+(perfScore()-50)/200;return m;}
 function salary(fx){const J=JOBS[S.job.id];let m=salaryBase();if(S.country!=='MY')m*=fx.abroadSal||1;m*=(fx.sal&&fx.sal[J.sector])||1;
   if(S.job.id==='entrepreneur'&&S.pol&&S.pol.rank>=2)m*=1.3;
+  if(S.culture==='chinese'&&['entrepreneur','sales'].includes(S.job.id))m*=1.15; // family and clan business network
   if(J.volatile)m*=Math.max(.15,1+(Math.random()*2-1)*J.volatile+(S.stats.luck-50)/200+(S.stats[J.stat]-50)/150);return m;}
 function partnerMonthly(){return married()&&S.partner.age<62?S.partner.salary*infl()*(S.country==='MY'?1:ctry().sal):0;}
 function incomeMonthly(){return (S.job?(S.job.lastMonthly||salaryBase()):0)+partnerMonthly();}
@@ -813,7 +818,7 @@ function primaryModal(){const L=S.langs;return {title:'Primary school',icon:'m_p
   ['SJK (Tamil)',()=>{S.edu.primary='sjkt';return 'Tamil-medium vernacular school.';},null,'Tamil medium'],
   ['International school',()=>{S.edu.primary='intl';return 'English-medium, IGCSE syllabus, high fees.';},()=>S.group==='T20','T20 families only']]};}
 function secondaryModal(){const E=S.edu;const ch=[['Sekolah Menengah Kebangsaan (SMK)',()=>{E.secondary='smk';return 'Your local secondary school. Hello, Form 1!';}]];
-  ch.push(['Boarding school (MRSM / SBP)',()=>{E.secondary='board';bump('dis',4);bump('hap',-2);return 'You pack your bags for asrama life. Strict schedules, lifelong friends.';},()=>S.stats.int>=62,'Needs strong results (Smarts 62+)']);
+  ch.push(['Boarding school (MRSM / SBP)',()=>{E.secondary='board';bump('dis',4);bump('hap',-2);return 'You pack your bags for asrama life. Strict schedules, lifelong friends.';},()=>S.stats.int>=(isBumi()?62:72),isBumi()?'Needs strong results (Smarts 62+)':'MRSM is mostly for bumiputera. SBP needs Smarts 72+']);
   if(E.primary==='sjkc')ch.push(['Chinese independent school (UEC)',()=>{E.secondary='uec';E.exam='UEC';return 'You\'ll sit for the UEC instead of SPM. The UEC is a pre-university qualification: private and overseas universities accept it straight away, but public universities don\'t.';},()=>S.group!=='B40','Needs M40 or T20 income']);
   ch.push(['International school (IGCSE)',()=>{E.secondary='intl';E.exam='IGCSE';return 'English-medium IGCSE path.';},()=>S.group==='T20','T20 families only']);
   return {title:'Secondary school',icon:'m_secondary',tag:'Milestone',text:'Form 1 begins. Where will you go?',choices:ch};}
@@ -830,7 +835,7 @@ function uecModal(){const E=S.edu;return {title:'UEC done: what next?',icon:'m_s
 function preuModal(){const E=S.edu,n=E.spmA,local=E.exam==='SPM';
   const mk=(id,label,yrs,cost,txt)=>()=>{startTrack({kind:'preu',id,label,left:yrs,cost});log('Started '+label+'.');return txt;};
   const ch=[
-   ['Matrikulasi (1 year)',()=>{if(chance(.7)){return mk('matrik','Matrikulasi',1,1000,'Accepted into Matrikulasi. A fast, intense year.')();}return 'Rejected: Matrikulasi places are limited. Pick another path.'+(qFront(preuModal()),'');},()=>local&&n>=7,'Needs 7A+ in SPM. Cheap, fast route to public uni'],
+   ['Matrikulasi (1 year)',()=>{if(chance(isBumi()?.85:.2)){return mk('matrik','Matrikulasi',1,1000,'Accepted into Matrikulasi. A fast, intense year.')();}return (isBumi()?'Rejected: Matrikulasi places are limited.':'Rejected: about 90% of Matrikulasi places go to bumiputera students.')+' Pick another path.'+(qFront(preuModal()),'');},()=>local&&n>=7,'Needs 7A+ in SPM. Cheap, fast route to public uni'+(isBumi()?' · bumiputera priority':' · few places for non-bumiputera')],
    ['STPM / Form 6 (2 years)',mk('stpm','STPM (Form 6)',2,500,'Form 6 it is. Tough exams, but almost free.'),()=>local,'Cheap but tough. SPM students only'],
    ['A-Levels (2 years)',mk('alevel','A-Levels',2,30000,'A-Levels at a private college. Recognised worldwide.'),()=>n>=5,'Needs 5A+. About RM 30k a year'],
    ['Foundation programme (1 year)',mk('foundation','Foundation',1,25000,'A one-year foundation at a private university.'),()=>n>=3,'Needs 3A+. About RM 25k'],
@@ -838,8 +843,11 @@ function preuModal(){const E=S.edu,n=E.spmA,local=E.exam==='SPM';
    ['TVET skills institute (2 years)',mk('tvet','TVET (skills institute)',2,500,'Welding, electrical and mechatronics. Skilled trades are in demand.'),null,'Skilled trades certificate'],
    ['Start working now',()=>{qFront(jobModal());return 'Straight into the working world.';}]];
   return {title:'After '+E.exam+': what next?',icon:'m_spm',tag:'Milestone',text:`You scored ${n}A in ${E.exam}. Choose your next step.`,choices:ch};}
-function scholarModal(){return {title:'Scholarship offer!',icon:'m_scholar',tag:'Milestone',text:'Your results earn you a JPA scholarship covering all fees for pre-U and university.\nCatch: a bond to work in Malaysia for 5 years after graduating. Leave early and you repay about RM 150k (scaled).',
-  choices:[['Accept the scholarship',()=>{S.edu.scholar='JPA';addAch('scholar');log('Awarded a JPA scholarship.','big');return 'Your parents frame the offer letter.';}],['Decline',()=>'You keep your freedom.']]};}
+// Chinese families: clan associations and Chinese education foundations give bursaries with no bond.
+function clanModal(){const g=RI(6000,12000)*infl();return {title:'Clan association bursary',icon:'m_scholar',tag:'Milestone',text:`Your family's clan association gives bursaries to members' children with good results. You are offered ${fmt(g)} towards your studies, with no bond.`,
+  choices:[['Accept with thanks',()=>{S.money+=g;bump('cha',1);log('Received a clan association bursary of '+fmt(g)+'.','big');return 'The association president hands you the cheque at the annual dinner. Your grandparents beam.';}]]};}
+function scholarModal(k){k=k||'JPA';return {title:'Scholarship offer!',icon:'m_scholar',tag:'Milestone',text:(k==='MARA'?'As a bumiputera student with strong results, you are offered a MARA scholarship':'Your results earn you a JPA scholarship')+' covering all fees for pre-U and university.\nCatch: a bond to work in Malaysia for 5 years after graduating. Leave early and you repay about RM 150k (scaled).',
+  choices:[['Accept the scholarship',()=>{S.edu.scholar=k;addAch('scholar');log('Awarded a '+k+' scholarship.','big');return 'Your parents frame the offer letter.';}],['Decline',()=>'You keep your freedom.']]};}
 function payFees(){const E=S.edu,t=E.track,I=infl();let fee=t.cost*I;if(E.scholar&&!t.mature)return;
   const alive=S.parents.some(p=>p.alive)&&age()<26;const cap=!alive?0:S.group==='T20'?1e12:S.group==='M40'?25000*I:5000*I;let rem=Math.max(0,fee-cap);
   if(rem>0&&!t.abroad&&S.country==='MY'&&E.ptptnOn!==0){const l=Math.min(rem,20000*I);S.ptptn+=l;rem-=l;if(l>0)log('Took a PTPTN loan of '+fmt(l)+' for fees.');}
@@ -891,7 +899,7 @@ function placeModal(maj,db){const E=S.edu,M=MAJORS[maj],sc=E.preuScore??55,I=inf
     const fund=S.group==='T20'||E.scholar||S.money>=C.fee*I*2;
     ch.push([`${C.flag} ${C.uni} (${fmt(C.fee*I)}/yr incl. living)`,go(C.uni,3,C.fee,k),()=>sc>=65&&langOk&&fund,`Needs score 65+, ${LANG[C.lang]} ${C.need-10}+, and T20 family, a scholarship or 2 years of fees saved`]);}
   ch.push(['Choose a different degree',()=>{qFront(majorModal(db));return '';}],['Skip university and start working',()=>{qFront(jobModal());return 'You head straight into work.';}]);
-  return {title:'Where will you study '+M.name+'?',icon:'m_uni',tag:'Milestone',text:'Fees are covered by family first (T20: all, M40: up to RM 25k/yr, B40: up to RM 5k/yr), then PTPTN for local study, then your own money.'+(E.scholar?'\nYour JPA scholarship covers everything.':''),choices:ch};}
+  return {title:'Where will you study '+M.name+'?',icon:'m_uni',tag:'Milestone',text:'Fees are covered by family first (T20: all, M40: up to RM 25k/yr, B40: up to RM 5k/yr), then PTPTN for local study, then your own money.'+(E.scholar?'\nYour '+E.scholar+' scholarship covers everything.':''),choices:ch};}
 
 /* ================= careers ================= */
 function meets(o){for(const k in o)if(S.stats[k]<o[k])return false;return true;}
@@ -1045,7 +1053,7 @@ function milestones(){const a=age(),E=S.edu;
   if(a===13){log(`Finished primary school. Final report card: mostly ${gradeOf(S.know)}.`,'big');S.know*=.3;}
   if(a===16){log(`Finished ${E.exam==='UEC'?'junior middle':'Form 3'}. Overall grade: ${gradeOf(S.know)}.`,'big');S.know*=.4;}
   if(a>=7&&a<=17)S.know=clamp(S.know+30/stageInfo().L*passiveMult());
-  if(a===18&&E.level==='none'){spmResult();if(E.exam==='UEC')q(uecModal());else{if(E.spmA>=9&&E.exam==='SPM')q(scholarModal());q(preuModal());}}
+  if(a===18&&E.level==='none'){spmResult();if(S.culture==='chinese'&&(E.exam==='UEC'||E.spmA>=7)&&chance(.6))q(clanModal());if(E.exam==='UEC')q(uecModal());else{if(E.spmA>=9&&E.exam==='SPM')q(scholarModal());else if(E.spmA>=7&&E.exam==='SPM'&&isBumi()&&chance(.6))q(scholarModal('MARA'));q(preuModal());}}
   if(E.track&&a>18){payFees();S.know=clamp(S.know+30/(E.track.len||1)*passiveMult());E.track.left--;if(E.track.left<=0)finishTrack();}
   if(a===55&&S.epf>0&&!S.epfDone&&S.country==='MY'){S.epfDone=true;q({title:'EPF at 55',icon:'m_money',tag:'Money',text:`Your EPF balance is ${fmt(S.epf)}. You can now withdraw it.`,choices:[['Withdraw everything',()=>{S.money+=S.epf;S.epf=0;return 'The money lands in your bank account. Spend wisely!';}],['Keep it growing; draw it down after retiring',()=>'EPF keeps paying dividends and will fund your retirement.']]});}
   if(S.job&&a>=S.retireAsk&&!S.retired){S.retireAsk=a+5;q({title:'Time to retire?',icon:'m_retire',tag:'Career',text:`You're ${a}. Retire now, or keep working a few more years?`,choices:[['Retire',()=>{retire();return 'Pencen! No more alarm clocks.';}],['Keep working',()=>'You\'re not done yet.',()=>a<75]]});}
@@ -1673,7 +1681,7 @@ function doTrip(T,cost,withP){const p=S.partner;S.trips=(S.trips||0)+1;S.money-=
 
 /* ================= assets ================= */
 function addPet(P,name){S.assets.pets.push({id:P.id,kind:P.name.replace(/ \(.*\)/,''),name:name||pick(PET_NAMES),age:0,life:RI(P.life[0],P.life[1]),cost:P.cost,hap:P.hap});}
-function buyHouse(i){const list=houseList();const H=list[i];if(!H)return;const I=infl(),price=H.price*I*(S.pol&&S.pol.rank>=3&&!S.pol.jail?.9:1),a=age();
+function buyHouse(i){const list=houseList();const H=list[i];if(!H)return;const I=infl(),price=H.price*I*(S.pol&&S.pol.rank>=3&&!S.pol.jail?.9:1)*bumiDisc(H),a=age();
   const yrs=Math.min(35,70-a),r=rate(fxNow()),pay=amort(price*.9,r,Math.max(5,yrs));const annualInc=incomeMonthly()*12;
   const mk=(loan)=>()=>{const h={kind:H.id,name:H.name,where:H.where,price,value:price,loanLeft:loan?price*.9:0,pay:loan?pay:0,country:H.country||'MY',landed:!!H.landed,lux:!!H.lux};
     S.money-=loan?price*.13:price*1.03;S.assets.houses.push(h);
@@ -1801,7 +1809,7 @@ function panelAssets(){const I=infl(),fx=fxNow();
   const pets=S.assets.pets.map(p=>`<div class="item">${ico('p_'+p.id)}<div class="t"><b>${esc(p.name)}</b><small>${esc(p.kind)} · ${p.age} yr${p.age===1?'':'s'} old</small></div></div>`).join('');
   const homeStatus=homeOk()?`Living in your own ${esc(S.assets.houses[S.home].name.toLowerCase())}.`:S.withParents?'Living with your parents (rent-free).':S.country==='MY'?'Renting a place.':'Renting in '+esc(ctry().city)+'.';
   let shop='';
-  if(shopTab==='houses')shop=houseList().map((H,i)=>{const p=H.price*I;const blocked=H.cond&&!H.cond();return `<div class="item">${ico(houseKey(H))}<div class="t"><b>${esc(H.name)}${H.landed?' <span class="chip">Landed</span>':''}${H.lux?' <span class="chip gold">Luxury</span>':''}</b><small>${esc(H.where)} · <span class="mono">${fmt(p)}</span>${blocked?' · '+esc(H.why):''}</small></div><button class="btn small" data-act="buyhouse" data-arg="${i}" ${blocked||age()<18?'disabled':''}>View</button></div>`;}).join('');
+  if(shopTab==='houses')shop=houseList().map((H,i)=>{const p=H.price*I*bumiDisc(H);const blocked=H.cond&&!H.cond();return `<div class="item">${ico(houseKey(H))}<div class="t"><b>${esc(H.name)}${H.landed?' <span class="chip">Landed</span>':''}${H.lux?' <span class="chip gold">Luxury</span>':''}</b><small>${esc(H.where)} · <span class="mono">${fmt(p)}</span>${blocked?' · '+esc(H.why):''}</small></div><button class="btn small" data-act="buyhouse" data-arg="${i}" ${blocked||age()<18?'disabled':''}>View</button></div>`;}).join('');
   if(shopTab==='cars')shop=CARS.filter(c=>S.year>=c.from&&(!c.to||S.year<=c.to)).map(c=>{const p=c.price*I*(S.country==='MY'?1:ctry().col*.8);return `<div class="item">${ico(carKey(c.type,c.id))}<div class="t"><b>${esc(c.name)}</b><small>${c.type}${c.ev?' · electric':''} · <span class="mono">${fmt(p)}</span></small></div><button class="btn small" data-act="buycar" data-arg="${c.id}" ${age()<(c.minAge||18)?'disabled':''}>View</button></div>`;}).join('')+`<p class="muted" style="margin:0;font-size:12.5px">Models appear and disappear with real launch years. Prices are approximate and scale with inflation.</p>`;
   if(shopTab==='pets')shop=PETS.map(P=>`<div class="item">${ico('p_'+P.id)}<div class="t"><b>${esc(P.name)}</b><small>${P.price?'<span class="mono">'+fmt(P.price*I)+'</span>':'Free'} · upkeep <span class="mono">${fmt(P.cost*I)}</span>/yr${P.landed?' · needs a landed home':''}${P.id==='arowana'?' · said to bring luck':''}${P.id==='merbok'?' · singing contests':''}</small></div><button class="btn small" data-act="buypet" data-arg="${P.id}" ${age()<8?'disabled':''}>${P.price?'Buy':'Adopt'}</button></div>`).join('');
   return `<div class="panel"><h3>Balance sheet</h3><dl class="kv">
@@ -1877,7 +1885,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.49';
+const GAME_VERSION='2026-10-20.50';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
