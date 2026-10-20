@@ -198,6 +198,7 @@ img.ico{background:var(--surface)}
 .sheet .choices button::after{content:"›";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--muted)}
 .sheet .choices button:disabled::after{content:"🔒";font-size:13px}
 .mhead{display:flex;gap:14px;align-items:center}
+.hero-note{font-style:italic;color:var(--muted);border-left:3px solid var(--accent);padding-left:12px}
 /* big event pop-up */
 #modal .sheet .tag{align-self:flex-start}
 #modal .sheet{max-width:640px;min-height:min(88vh,760px);min-height:min(88dvh,760px);max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;gap:14px;padding:18px}
@@ -219,9 +220,10 @@ img.ico{background:var(--surface)}
   <!-- TITLE -->
   <section id="s-title" class="stack"><div class="muted ver-label" style="font-size:11px;opacity:.7;text-align:right"></div>
     <div class="hero">
-      <div class="eyebrow">A Malaysian life, one year at a time</div>
+      <div class="eyebrow">One life. No rewinds.</div>
       <h1>Malaysian <em>Life</em> Simulator</h1>
-      <p>Be born in a Malaysian family, sit for SPM, chase a career, fall in love, buy a Myvi or a bungalow, move abroad or balik kampung, and pass it all to the next generation.</p>
+      <p>You don't choose the family you're born into, or the year. Everything after that is yours: the late nights before SPM, the first crush, the job offer in KL, the Myvi you saved three years for, the day you finally balik kampung for good.</p>
+       <p class="hero-note">Some choices open doors. Others close them forever. There's no undo, and no two lives play out the same. When this one ends, all that remains is what you built and who you leave behind. Make it a life worth remembering.</p>
       <div class="lifeline"><span>Born</span><span>Tadika</span><span>Sekolah rendah</span><span>Sekolah menengah · SPM</span><span>Pre-U · Uni</span><span>Kerja</span><span>Pencen</span><span>Legacy</span></div>
     </div>
     <div class="row">
@@ -1805,7 +1807,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.22';
+const GAME_VERSION='2026-10-20.23';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
