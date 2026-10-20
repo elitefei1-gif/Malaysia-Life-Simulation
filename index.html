@@ -212,6 +212,7 @@ img.ico{background:var(--surface)}
 .btn.pulse{animation:pulse 1.4s ease-in-out infinite;transform-origin:left center;font-size:18px;padding:15px 28px;margin:6px 0}
 .btn.pulse:active{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){.btn.pulse{animation:glow 1.4s ease-in-out infinite}}
+.start-row{column-gap:36px;row-gap:22px}
 /* travel cards: same size whatever the name length */
 .stack>*,.panel>*,.list>*{min-width:0}
 .item.trip{flex-wrap:nowrap;height:96px;padding:12px;gap:12px}
@@ -250,7 +251,7 @@ img.ico{background:var(--surface)}
       <p>You don't choose the family you're born into, or the year. Everything after that is yours: the late nights before SPM, the first crush, the job offer in KL, the Myvi you saved three years for, the day you finally balik kampung for good.</p>
        <p class="hero-note">Some choices open doors. Others close them forever. There's no undo, and no two lives play out the same. When this one ends, all that remains is what you built and who you leave behind. Make it a life worth remembering.</p>
     </div>
-    <div class="row">
+    <div class="row start-row">
       <button class="btn primary pulse" data-act="toSetup">Start a new life</button>
       <button class="btn" data-act="continue" id="btn-continue" hidden>Continue saved life</button>
     </div>
@@ -979,7 +980,26 @@ function kidMoney(){const a=age(),I=infl(),BR=[],par=S.parents.some(p=>p.alive);
     BR.push(['Pocket money from your parents',pm],[a>=13?'Food with friends, phone top-ups and outings':'Snacks, stationery and toys',-sp]);}
   S.lastInc=BR.filter(x=>x[1]>0).reduce((t,x)=>t+x[1],0);S.lastExp=-BR.filter(x=>x[1]<0).reduce((t,x)=>t+x[1],0);S.lastBreak=BR;}
 function stmtLines(){return (S.lastBreak||[]).map(([l,v])=>`${v>=0?'+':'−'} ${fmt(Math.abs(v))}  ${l}`).join('\n');}
-function stmtModal(){const net=(S.lastInc||0)-(S.lastExp||0),kid=age()<18;return {title:'Money summary for '+S.year,icon:'m_money',tag:'Money',text:`${!kid&&!S.lastBreak.length?'No money came in or went out this year. Your family is still covering your living costs.\n\n':''}${kid?`Your ${S.parents.some(p=>p.alive)?'family spends':'relatives spend'} about ${fmt(S.famSpend||0)} on your food, ${age()<7?'nappies and check-ups':'school and clothes'} this year.${age()<7?' You are too young for pocket money.':''}\n\n`:''}Income ${fmt(S.lastInc||0)} · Spending ${fmt(S.lastExp||0)}${stmtLines()?'\n\n'+stmtLines():''}\n\nNet: ${net>=0?'+':'−'} ${fmt(Math.abs(net))}. Cash now: ${fmt(S.money)}.`,choices:[['Got it',null],['Stop showing this every year',()=>{S.showStmt=false;return 'You can still see it in the Assets tab.';}]]};}
+// What this year's world events mean for this player, shown in the yearly money summary.
+function worldLines(){const A=S.world.active;if(!A.length)return '';const pct=x=>Math.round(Math.abs(x)*100)+'%',out=[];
+  for(const e of A){const f=e.fx||{},L=[];
+    if(S.job&&age()>=18){const J=JOBS[S.job.id];let lp=(f.layoff&&((f.layoff.all||0)+(f.layoff[J.sector]||0)))||0;if(J.stable)lp*=.2;
+      if(lp>0)L.push(`${pct(lp)} chance you are retrenched${J.stable?' (your job is safer than most)':''}`);
+      const sm=f.sal&&f.sal[J.sector];if(sm&&sm!==1)L.push(`your pay ${sm>1?'up':'down'} ${pct(sm-1)}`);}
+    if(f.stock&&S.stocks>0)L.push(`your shares ${f.stock>0?'up':'down'} about ${pct(f.stock)}`);
+    if(f.prop&&S.assets.houses.length)L.push(`house values ${f.prop>0?'up':'down'} about ${pct(f.prop)}`);
+    if(f.col&&age()>=18)L.push(`living costs up ${pct(f.col-1)}`);
+    if(f.rate&&S.assets.houses.some(h=>h.loanLeft>0))L.push(`loan interest up ${Math.round(f.rate*100)} point${f.rate*100>1?'s':''}`);
+    if(f.fuel&&S.assets.cars.length)L.push(`petrol ${f.fuel>1?'up':'down'} ${pct(f.fuel-1)}`);
+    if(f.petrolCar&&S.assets.cars.some(c=>!c.ev))L.push('petrol cars lose value faster');
+    if(f.travel&&f.travel!==1)L.push(`trips ${f.travel>1?(f.travel>=2?f.travel+'× the price':'up '+pct(f.travel-1)):'down '+pct(f.travel-1)}`);
+    if(f.abroadSal&&S.country!=='MY')L.push(`overseas pay worth ${f.abroadSal>1?'more':'less'} in ringgit`);
+    if(f.hlt)L.push(`Health ${f.hlt} a year`);if(f.hap)L.push(`Happiness ${f.hap} a year`);
+    if(f.aid&&(S.group==='B40'||incomeMonthly()<5000*infl()))L.push(`${fmt(1200*infl())} cash aid for your household`);
+    if(e.onset==='flood'||/flood/i.test(e.title))L.push(`flood risk where you live: ${S.country==='MY'?(town().flood>=.2?'high':town().flood>=.08?'medium':'low'):'none (you are abroad)'}`);
+    out.push(`${e.good?'▲':'▼'} ${e.title}${e.end>S.year?' (until '+e.end+')':''}: ${L.length?L.join(', '):'little direct effect on you'}.`);}
+  return '<b>World events this year</b>\n'+out.join('\n');}
+function stmtModal(){const net=(S.lastInc||0)-(S.lastExp||0),kid=age()<18;return {title:'Money summary for '+S.year,icon:'m_money',tag:'Money',text:`${!kid&&!S.lastBreak.length?'No money came in or went out this year. Your family is still covering your living costs.\n\n':''}${kid?`Your ${S.parents.some(p=>p.alive)?'family spends':'relatives spend'} about ${fmt(S.famSpend||0)} on your food, ${age()<7?'nappies and check-ups':'school and clothes'} this year.${age()<7?' You are too young for pocket money.':''}\n\n`:''}Income ${fmt(S.lastInc||0)} · Spending ${fmt(S.lastExp||0)}${stmtLines()?'\n\n'+stmtLines():''}\n\nNet: ${net>=0?'+':'−'} ${fmt(Math.abs(net))}. Cash now: ${fmt(S.money)}.${worldLines()?'\n\n'+worldLines():''}`,choices:[['Got it',null],['Stop showing this every year',()=>{S.showStmt=false;return 'You can still see it in the Assets tab.';}]]};}
 function declareBankrupt(forced){let got=0;S.assets.houses.forEach(h=>got+=h.value*.7-h.loanLeft);S.assets.cars.forEach(c=>got+=c.value*.6-c.loanLeft);
   S.assets.houses=[];S.assets.cars=[];S.home=null;S.money=0;S.stocks=0;S.bankruptAsked=false;S.bankruptYears=5;bump('hap',-20);S.dyn.rep-=5;
   if(S.partner&&S.partner.gold){log(S.partner.name+' left when you went bankrupt.','big');S.partner=null;}
@@ -1851,7 +1871,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.42';
+const GAME_VERSION='2026-10-20.43';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
