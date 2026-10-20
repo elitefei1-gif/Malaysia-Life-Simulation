@@ -893,7 +893,7 @@ function placeModal(maj,db){const E=S.edu,M=MAJORS[maj],sc=E.preuScore??55,I=inf
 function meets(o){for(const k in o)if(S.stats[k]<o[k])return false;return true;}
 function eligible(id){const J=JOBS[id],r=J.req||{},a=age(),E=S.edu,why=[];
   if(r.edu){if(EDU_RANK[E.level]<EDU_RANK[r.edu]){if(!(r.orStat&&meets(r.orStat)))why.push(EDU_LABEL[r.edu]);}
-    else if(r.major&&E.level==='degree'&&!r.major.includes(E.major)){if(!(r.orStat&&meets(r.orStat)))why.push('Degree in '+r.major.map(m=>MAJORS[m].name).join(' / '));}}
+    else if(r.major&&E.level==='degree'&&!r.major.includes(E.major)&&['doctor','lawyer'].includes(id))why.push('Degree in '+r.major.map(m=>MAJORS[m].name).join(' / ')+' (licensed profession)');}
   if(r.stat)for(const k in r.stat)if(S.stats[k]<r.stat[k])why.push(STAT_NAMES[k]+' '+r.stat[k]+'+');
   if(r.car&&!S.assets.cars.length)why.push('A vehicle');
   if(J.startCost&&S.money<J.startCost*infl())why.push(fmt(J.startCost*infl())+' capital');
@@ -904,14 +904,16 @@ function eligible(id){const J=JOBS[id],r=J.req||{},a=age(),E=S.edu,why=[];
   else if(J.myOnly&&!S.myCitizen)why.push('Malaysian citizens only');
   if(['civil','police'].includes(id)&&E.exam!=='SPM'&&EDU_RANK[E.level]<3)why.push('SPM certificate');
   return why;}
+const OFF_FIELD_P=.03;
+function offField(id){const r=JOBS[id].req||{},E=S.edu;return !!r.major&&!(E.level==='degree'&&r.major.includes(E.major));}
 function jobModal(){const I=infl();const ids=Object.keys(JOBS).filter(id=>!S.job||S.job.id!==id);
   const rows=ids.map(id=>({id,why:eligible(id),J:JOBS[id]})).sort((a,b)=>(a.why.length?1:0)-(b.why.length?1:0)||b.J.base-a.J.base);
   const ch=rows.map(r=>{const pr=abroadPrem(r.id),m=r.J.base*I*(S.country==='MY'?1:ctry().sal)*(1+pr);
-    return [`${r.J.name} <span class="mono muted">~${fmt(m)}/mo${pr>.005?' (+'+Math.round(pr*100)+'% overseas degree)':''}</span>`,()=>applyJob(r.id),()=>!r.why.length&&S.applied<4,r.why.length?'Needs '+r.why.join(', '):S.applied>=4?'No more applications this year':r.J.levels[0]];});
+    return [`${r.J.name} <span class="mono muted">~${fmt(m)}/mo${pr>.005?' (+'+Math.round(pr*100)+'% overseas degree)':''}</span>`,()=>applyJob(r.id),()=>!r.why.length&&S.applied<4,r.why.length?'Needs '+r.why.join(', '):S.applied>=4?'No more applications this year':offField(r.id)?'Not your field of study: about '+Math.round(OFF_FIELD_P*100)+'% chance. Study a related degree to improve your odds':r.J.levels[0]];});
   ch.push(['Not now',null]);
-  return {icon:'m_job',title:'Job hunting'+(S.country!=='MY'?' in '+ctry().city:''),tag:'Career',text:`You can apply up to 4 times a year (${Math.max(0,4-S.applied)} left). Better stats, uni and reputation raise your odds.`,choices:ch};}
+  return {icon:'m_job',title:'Job hunting'+(S.country!=='MY'?' in '+ctry().city:''),tag:'Career',text:`You can apply up to 4 times a year (${Math.max(0,4-S.applied)} left). Better stats, uni and reputation raise your odds. Jobs outside your field of study rarely hire you.`,choices:ch};}
 function applyJob(id){const J=JOBS[id],E=S.edu;S.applied++;
-  let p=J.easy?.9:.45+(S.stats[J.stat]-50)/100+(E.uniTier||0)*.07+(S.intern?.1:0)+S.dyn.rep/300+(E.gpa?(E.gpa-3)*.15:0);if(S.pol&&!S.pol.jail)p+=.05;p=clamp(p,.1,.95);
+  let p=J.easy?.9:.45+(S.stats[J.stat]-50)/100+(E.uniTier||0)*.07+(S.intern?.1:0)+S.dyn.rep/300+(E.gpa?(E.gpa-3)*.15:0);if(S.pol&&!S.pol.jail)p+=.05;p=clamp(p,.1,.95);if(offField(id))p=OFF_FIELD_P;
   if(chance(p)){const prevLvl=S.job?S.job.level:0;S.job={id,level:0,years:0,lvl:0,bonus:1};
     if(J.startCost){S.money-=J.startCost*infl();}
     if(!S.ach.includes('firstJob'))addAch('firstJob');log(`Started work as ${J.levels[0]} (${J.name}).`,'big');bump('hap',4);
@@ -1871,7 +1873,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.46';
+const GAME_VERSION='2026-10-20.47';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
