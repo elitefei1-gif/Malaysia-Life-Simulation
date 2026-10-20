@@ -198,6 +198,19 @@ img.ico{background:var(--surface)}
 .sheet .choices button::after{content:"›";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--muted)}
 .sheet .choices button:disabled::after{content:"🔒";font-size:13px}
 .mhead{display:flex;gap:14px;align-items:center}
+/* big event pop-up */
+#modal .sheet .tag{align-self:flex-start}
+#modal .sheet{max-width:640px;min-height:min(88vh,760px);min-height:min(88dvh,760px);max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;gap:14px;padding:18px}
+.sheet h2{font-size:24px;line-height:1.2}
+.sheet .txt{font-size:17px;line-height:1.5}
+.m-art{flex:none;display:grid;place-items:center;width:100%;aspect-ratio:16/10;max-height:40vh;max-height:40dvh;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,var(--accent-soft),var(--surface2));border:1px solid var(--line)}
+.m-art>img.pic{width:100%;height:100%;object-fit:cover}
+.m-art .ico{width:min(46%,200px);height:auto;aspect-ratio:1;font-size:clamp(72px,22vw,120px);border-radius:24px;border:0;background:transparent}
+.m-art span.ico{display:grid;place-items:center}
+.sheet .choices{margin-top:auto;gap:10px}
+.sheet .choices button{min-height:58px;padding:15px 40px 15px 18px;font-size:17px;border-radius:14px}
+.sheet .choices button small{font-size:14px;margin-top:2px}
+.sheet .choices button::after{right:16px;font-size:24px}
 .pb-age{border-top-color:var(--line-strong)}
 @media (prefers-reduced-motion:reduce){.tabs button,.act{transition:none}}
 </style>
@@ -621,8 +634,11 @@ function diff(b){const out=[];for(const k in STAT_NAMES){if(k==='luck')continue;
 function showNext(){if(cur)return;const m=MQ.shift();
   if(!m){$('#modal').hidden=true;render();save();if(!S.alive){showEnd();return;}if(autoYears>0)setTimeout(runAuto,180);return;}
   cur=m;drawModal();}
+const TAG_ART={'Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'✈️','Money':'💰','Career':'💼','Family':'👨‍👩‍👧','World event':'🌏','Festive season':'🏮','Education':'🎓','Vehicle':'🚗','Property':'🏠'};
+// Illustration area: m.img (a picture URL) wins, then the event icon, then a tag emoji.
+function modalArt(m){if(m.img)return `<div class="m-art"><img class="pic" src="${m.img}" alt=""></div>`;if(m.icon&&hasIco(m.icon))return `<div class="m-art">${ico(m.icon)}</div>`;if(m.tag&&TAG_ART[m.tag])return `<div class="m-art"><span class="ico" aria-hidden="true">${TAG_ART[m.tag]}</span></div>`;return '';}
 function drawModal(){const m=cur;const chs=(m.choices||[]).map((c,i)=>{const ok=!c[2]||c[2]();return `<button data-act="choose" data-arg="${i}" ${ok?'':'disabled'}>${c[0]}${c[3]?`<small>${c[3]}</small>`:''}</button>`;}).join('');
-  $('#m-sheet').innerHTML=`${m.tag?`<span class="chip tag ${m.tag==='World event'?'warn':m.tag==='Festive season'?'gold':''}">${esc(m.tag)}</span>`:''}<div class="mhead">${m.icon&&hasIco(m.icon)?ico(m.icon,'lg'):''}<h2 id="m-title">${m.title}</h2></div><p class="txt">${m.text||''}</p>
+  $('#m-sheet').innerHTML=`${m.tag?`<span class="chip tag ${m.tag==='World event'?'warn':m.tag==='Festive season'?'gold':''}">${esc(m.tag)}</span>`:''}${modalArt(m)}<h2 id="m-title">${m.title}</h2><p class="txt">${m.text||''}</p>
    ${m.delta&&m.delta.length?`<div class="delta">${m.delta.map(d=>`<span class="${/^[+]/.test(d)?'pos':'neg'}">${esc(d)}</span>`).join('')}</div>`:''}
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
   $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});}
@@ -1789,7 +1805,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.21';
+const GAME_VERSION='2026-10-20.22';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
