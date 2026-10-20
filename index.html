@@ -871,7 +871,9 @@ function payFees(){const E=S.edu,t=E.track,I=infl();let fee=t.cost*I;if(E.schola
   if(rem>0&&!t.abroad&&S.country==='MY'&&E.ptptnOn!==0){const l=Math.min(rem,20000*I);S.ptptn+=l;rem-=l;if(l>0)log('Took a PTPTN loan of '+fmt(l)+' for fees.');}
   if(rem>0){S.money-=rem;log('Paid '+fmt(rem)+' towards fees yourself.');}}
 function finishTrack(){const E=S.edu,t=E.track;E.track=null;
-  if(t.kind==='master'){E.master=1;E.uniTier=Math.min(3,(E.uniTier||1)+1);if(S.job)S.job.bonus=(S.job.bonus||1)*1.15;addAch('grad');log("Graduated with a Master's degree from "+t.uni+'.','big');return;}
+  if(t.kind==='master'){E.master=1;E.uniTier=Math.min(3,(E.uniTier||1)+1);if(S.job)S.job.bonus=(S.job.bonus||1)*1.15;addAch('grad');log("Graduated with a Master's degree from "+t.uni+'.','big');
+    if(t.abroad){E.abroadDeg=t.abroad;qFront({title:'Graduation abroad',icon:'m_grad',tag:'Milestone',text:`You finished your Master's in ${COUNTRIES[t.abroad].name}. Malaysian employers pay more for an overseas qualification.`,choices:[['Fly home and start job hunting',()=>{moveTo('MY');qFront(jobModal());return 'Balik Malaysia! Your old colleagues want to hear everything.';}]]});}
+    return;}
   if(t.kind==='preu'){E.preu=t.label;E.preuScore=Math.round(clamp(S.know*.8+S.stats.int*.15+(E.spmA||0)*.5+R(-5,5)+(t.id==='matrik'?5:0)));
     if(t.id==='tvet'){E.level='tvet';log('Completed TVET with a skills certificate.','big');qFront(jobModal());return;}
     if(t.id==='diploma'){E.level='diploma';log('Graduated with a Diploma.','big');qFront({title:'Diploma done!',icon:'m_grad',tag:'Milestone',text:'Continue to a degree (enter year 2) or start working?',choices:[['Continue to a degree',()=>{qFront(majorModal(1));return 'Back to studying!';}],['Start working',()=>{qFront(jobModal());return 'Time to earn a living.';}]]});return;}
@@ -884,9 +886,22 @@ function finishTrack(){const E=S.edu,t=E.track;E.track=null;
 function restudyModal(){const E=S.edu,ch=[];
   if(EDU_RANK[E.level]<3)ch.push(['Study for a degree',()=>{qFront(restudyMajorModal());return '';},()=>EDU_RANK[E.level]>=1,'Needs at least SPM']);
   else{if(!E.master)ch.push(["Master's degree or MBA, part-time (2 years)",()=>{startTrack({kind:'master',id:'master',label:"Master's degree (part-time)",left:2,cost:15000,uni:pick(['Universiti Malaya','UKM','Sunway University','Asia School of Business']),parttime:1,mature:1});log("Started a part-time Master's degree.",'big');return 'Evening classes and weekend assignments. It will boost your career.';},()=>S.money>=a2c(15000),'About '+fmt(a2c(15000))+' a year']);
+    if(!E.master)ch.push(["Master's degree or MBA overseas (full-time)",()=>{qFront(abroadStudyModal('master'));return '';},()=>!S.travelBan,'Barred from leaving Malaysia']);
     ch.push(['A second degree in a new field',()=>{qFront(restudyMajorModal());return '';}]);}
   ch.push(['Not now',null]);
-  return {title:'Go back to study',icon:'m_uni',tag:'Education',text:'It is never too late. Study full-time, or part-time while you keep working.',choices:ch};}
+  return {title:'Go back to study',icon:'m_uni',tag:'Education',text:'It is never too late. Study full-time, or part-time while you keep working. You can also quit and go overseas to study, then come home with a foreign degree.',choices:ch};}
+// Working adults can quit and study overseas, for a Master's (kind 'master') or a new degree (a MAJORS key).
+function abroadStudyModal(k){const E=S.edu,I=a2c(1),mas=k==='master',M=mas?null:MAJORS[k],need=mas?55:(M.int||40)+10,ch=[];
+  for(const [c,C] of Object.entries(COUNTRIES)){if(c==='MY')continue;const langOk=(S.langs[C.lang]||0)>=C.need-10||((S.langs.en||0)>=70&&['JP','KR','DE','TW'].includes(c));
+    const yrs=mas?(['UK','AU'].includes(c)?1:2):M.yrs,fee=mas?Math.round(C.fee*1.15):C.fee;
+    ch.push([`${C.flag} ${C.uni} (${fmt(fee*I)}/yr incl. living, ${yrs} yr${yrs>1?'s':''})`,()=>{
+      if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;log('Quit work as '+JOBS[S.job.id].name+' to study in '+C.name+'.','big');S.job=null;}
+      startTrack(mas?{kind:'master',id:'master',label:"Master's degree · "+C.name,left:yrs,cost:fee,uni:C.uni,abroad:c,mature:1}:{kind:'uni',id:k,label:'University · '+M.name,left:yrs,cost:fee,uni:C.uni,tier:3,abroad:c,mature:1});
+      moveTo(c,true);S.residency='student';log(`Enrolled at ${C.uni} for ${mas?"a Master's degree":M.name}.`,'big');
+      return `You hand in your resignation, pack two suitcases and fly to ${C.name}. Back in the lecture hall at ${age()}!`;},
+      ()=>S.stats.int>=need&&langOk&&S.money>=fee*I*yrs&&!S.travelBan,`Needs Smarts ${need}+, ${LANG[C.lang]} ${C.need-10}+ and ${fmt(fee*I*yrs)} saved`]);}
+  ch.push(['Cancel',null]);
+  return {title:mas?"Master's degree overseas":'Study '+M.name+' overseas',icon:'m_abroad',tag:'Education',text:'Studying overseas full-time means quitting your job. You pay from your own savings, and a foreign degree raises your pay when you come home.',choices:ch};}
 function restudyMajorModal(){const ch=Object.entries(MAJORS).filter(([k])=>k!==S.edu.major).map(([k,m])=>{const why=[];if(m.int&&S.stats.int<m.int)why.push('Smarts '+m.int+'+');if(m.cre&&S.stats.cre<m.cre)why.push('Creativity '+m.cre+'+');if(m.ath&&S.stats.ath<m.ath)why.push('Fitness '+m.ath+'+');
     return [m.name,()=>{qFront(restudyModeModal(k));return '';},()=>!why.length,why.length?'Needs '+why.join(', '):m.yrs+' years full-time'];});ch.push(['Cancel',null]);
   return {title:'Choose a degree',icon:'m_uni',tag:'Education',text:'As a mature student, your Smarts matter more than old exam results.',choices:ch};}
@@ -898,6 +913,7 @@ function restudyModeModal(k){const M=MAJORS[k],I=a2c(1),need=(M.int||40)+10,pub=
     [`Full-time at ${pub} (${fmt(4000*I)}/yr)`,go(pub,2,4000,0),()=>S.stats.int>=need,'Needs Smarts '+need+'+'],
     [`Full-time at a private university (${fmt(35000*I)}/yr)`,go(pick(["Taylor's University",'Sunway University','UCSI University']),2,35000,0)],
     [`Part-time at Open University Malaysia (${fmt(8000*I)}/yr)`,go('Open University Malaysia',1,8000,1),()=>k!=='med','Medicine cannot be studied part-time'],
+    ['Study overseas instead',()=>{qFront(abroadStudyModal(k));return '';},()=>!S.travelBan,'Barred from leaving Malaysia'],
     ['Cancel',null]]};}
 function majorModal(diplomaBonus){const E=S.edu;const ch=Object.entries(MAJORS).map(([k,m])=>{const why=[];if(m.int&&S.stats.int<m.int)why.push('Smarts '+m.int+'+');if(m.cre&&S.stats.cre<m.cre)why.push('Creativity '+m.cre+'+');if(m.ath&&S.stats.ath<m.ath)why.push('Fitness '+m.ath+'+');if(m.sci&&E.stream!=='sci')why.push('Science stream');
     return [m.name,()=>{qFront(placeModal(k,diplomaBonus));return '';},()=>!why.length,why.length?'Needs '+why.join(', '):m.yrs+' years'];});
@@ -1855,7 +1871,7 @@ function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY
   return `<div class="panel"><h3>Where you live</h3>${here}</div>
    ${age()<18&&S.parents.some(x=>x.alive)?`<div class="panel"><h3>Family holiday</h3><p class="muted" style="margin:0;font-size:13px">Once a year your parents take you on a trip for free. Where you can go depends on what your family can afford.${S.famTripYear===S.year?' You have already been this year.':''}</p><div class="list">${TRIPS.filter(T=>T.cost<=famTripMax()).map(T=>`<div class="item trip${famTripOk()?' tap" data-act="famtrip" data-arg="'+T.id:''}">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small>Free · 😊 +${T.hap}</small></div><button class="btn small" data-act="famtrip" data-arg="${T.id}" ${famTripOk()?'':'disabled'}>Go</button></div>`).join('')}</div></div>`:''}
    <div class="panel"><h3>Holidays</h3><p class="muted" style="margin:0;font-size:13px">Up to 2 trips a year. Trips don't use actions. 😊 shows the happiness boost. ${fx.travel&&fx.travel!==1?'World events are changing travel prices right now.':''}</p><div class="list">${trips}</div></div>
-   <div class="panel"><h3>Studying abroad</h3><p class="muted" style="margin:0;font-size:13px">Careers in this game are in Malaysia. You can study overseas when you choose a university, and an overseas degree raises your starting pay back home. The boost is biggest for finance, law and tech, and for degrees from the US, UK and Singapore.</p></div>`;}
+   <div class="panel"><h3>Studying abroad</h3><p class="muted" style="margin:0;font-size:13px">Careers in this game are in Malaysia. You can study overseas when you choose a university, or later from Go back to study after you've started working. An overseas degree raises your starting pay back home. The boost is biggest for finance, law and tech, and for degrees from the US, UK and Singapore.</p></div>`;}
 function panelFamily(){const p=S.partner,a=age();
   const parents=S.parents.map(x=>`<div class="item">${ico(x.role==='Father'?'father':'mother')}<div class="t"><b>${esc(x.role)}: ${esc(x.name)}</b><small>${esc(x.job)} · ${x.alive?'age '+x.age:'passed away'}</small></div></div>`).join('');
   let love;
@@ -1903,7 +1919,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.55';
+const GAME_VERSION='2026-10-20.56';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
