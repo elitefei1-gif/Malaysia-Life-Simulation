@@ -203,7 +203,7 @@ img.ico{background:var(--surface)}
 
 <div id="app">
   <!-- TITLE -->
-  <section id="s-title" class="stack">
+  <section id="s-title" class="stack"><div class="muted ver-label" style="font-size:11px;opacity:.7;text-align:right"></div>
     <div class="hero">
       <div class="eyebrow">A Malaysian life, one year at a time</div>
       <h1>Malaysian <em>Life</em> Simulator</h1>
@@ -254,7 +254,7 @@ img.ico{background:var(--surface)}
     <nav class="tabs" role="tablist" id="g-tabs" aria-label="Sections"></nav>
     <div id="g-panel" class="stack"></div>
     <div class="yearbar"><div class="inner">
-      <div class="row"><span class="muted" style="font-size:13px">Actions left</span><div class="pips" id="g-pips"></div></div>
+      <div class="row"><span class="muted ver-label" style="font-size:11px;opacity:.7"></span><span class="muted" style="font-size:13px">Actions left</span><div class="pips" id="g-pips"></div></div>
       <div class="row">
         <button class="btn small" data-act="auto" title="Spend actions automatically for 5 years">Auto 5 years</button>
         <button class="nextbtn" data-act="next" id="btn-next">Next year ▸</button>
@@ -1787,7 +1787,9 @@ function epitaph(){const big=S.log.filter(e=>e.k==='big'&&!/Passed away/.test(e.
 let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600);}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.18';
+const GAME_VERSION='2026-10-20.19';
+const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
+document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
   fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=t.match(/const GAME_VERSION='([^']+)'/);
     if(!m||m[1]===GAME_VERSION)return;if(new URLSearchParams(location.search).get('v')===m[1])return;
