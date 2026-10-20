@@ -199,6 +199,11 @@ img.ico{background:var(--surface)}
 .sheet .choices button:disabled::after{content:"🔒";font-size:13px}
 .mhead{display:flex;gap:14px;align-items:center}
 .hero-note{font-style:italic;color:var(--muted);border-left:3px solid var(--accent);padding-left:12px}
+/* travel cards: same size whatever the name length */
+.item.trip{flex-wrap:nowrap;height:78px;padding:10px 12px}
+.item.trip>.ico{width:52px;height:52px}
+.item.trip .t b,.item.trip .t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item.trip>.btn{margin-left:0}
 /* big event pop-up */
 #modal .sheet .tag{align-self:flex-start}
 #modal .sheet{max-width:640px;min-height:min(88vh,760px);min-height:min(88dvh,760px);max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;gap:14px;padding:18px}
@@ -1748,7 +1753,7 @@ function panelAssets(){const I=infl(),fx=fxNow();
    ${age()<16?'<p class="muted" style="margin:0">You\'re too young to buy most things. Pets need your parents\' OK (age 8+).</p>':''}<div class="list">${shop}</div>
    <p class="muted" style="margin:0;font-size:12.5px">Loan rate: ${(rate(fx)*100).toFixed(1)}%. Property not lived in is rented out (~3.5% of value a year).</p></div>`;}
 function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY';
-  const trips=TRIPS.map(T=>`<div class="item">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)} ${S.visited.includes(T.id)?'<span class="chip">Visited</span>':''}</b><small><span class="mono">${fmt(T.cost*I*(fx.travel||1))}</span> · +${T.hap} happiness</small></div><button class="btn small" data-act="trip" data-arg="${T.id}" ${age()<16||(S.trips||0)>=2?'disabled':''}>Go</button></div>`).join('');
+  const trips=TRIPS.map(T=>`<div class="item trip">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small><span class="mono">${fmt(T.cost*I*(fx.travel||1))}</span> · +${T.hap} happiness${S.visited.includes(T.id)?' · ✓ Visited':''}</small></div><button class="btn small" data-act="trip" data-arg="${T.id}" ${age()<16||(S.trips||0)>=2?'disabled':''}>Go</button></div>`).join('');
   const moves=Object.entries(COUNTRIES).filter(([k])=>k!=='MY'&&k!==S.country).map(([k,X])=>{const why=moveCheck(k);return `<div class="item"><span class="ico" aria-hidden="true">${X.flag}</span><div class="t"><b>${X.flag} ${X.city}, ${X.name}</b><small>Pay ~${X.sal}× · cost of living ~${X.col}× · ${LANG[X.lang]} ${X.need}+${X.anyJob?' · any job':' · degree'}${X.maxAge?' · under '+X.maxAge:''}${X.lottery?' · visa lottery':''}${why.length?' · <span class="neg">Needs '+esc(why.join(', '))+'</span>':''}</small></div><button class="btn small" data-act="move" data-arg="${k}" ${why.length||S.ap<1||S.edu.track?'disabled':''}>Apply</button></div>`;}).join('');
   const here=abroad?`<dl class="kv"><dt>Living in</dt><dd>${C.flag} ${C.city}, ${C.name}</dd><dt>Status</dt><dd>${esc(S.residency)}${S.myCitizen?' · Malaysian citizen':' · renounced Malaysian citizenship'}</dd><dt>Years here</dt><dd>${S.yearsAbroad}</dd></dl>
      <div class="stat"><div class="lbl"><span>Homesickness</span><span>${Math.round(S.homesick)}</span></div><div class="bar blue"><i style="width:${S.homesick}%"></i></div></div>
@@ -1757,7 +1762,7 @@ function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY
        <button class="btn small" data-act="gohome" ${S.edu.track?'disabled':''}>Return to Malaysia</button></div>`
     :`<p style="margin:0">You live in ${esc(town().name)}, Malaysia.${S.myCitizen?'':' (on a long-term visit pass)'}</p>`;
   return `<div class="panel"><h3>Where you live</h3>${here}</div>
-   ${age()<18&&S.parents.some(x=>x.alive)?`<div class="panel"><h3>Family holiday</h3><p class="muted" style="margin:0;font-size:13px">Once a year your parents take you on a trip for free. Where you can go depends on what your family can afford.${S.famTripYear===S.year?' You have already been this year.':''}</p><div class="list">${TRIPS.filter(T=>T.cost<=famTripMax()).map(T=>`<div class="item">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small>Free · +${T.hap} happiness</small></div><button class="btn small" data-act="famtrip" data-arg="${T.id}" ${famTripOk()?'':'disabled'}>Go</button></div>`).join('')}</div></div>`:''}
+   ${age()<18&&S.parents.some(x=>x.alive)?`<div class="panel"><h3>Family holiday</h3><p class="muted" style="margin:0;font-size:13px">Once a year your parents take you on a trip for free. Where you can go depends on what your family can afford.${S.famTripYear===S.year?' You have already been this year.':''}</p><div class="list">${TRIPS.filter(T=>T.cost<=famTripMax()).map(T=>`<div class="item trip">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small>Free · +${T.hap} happiness</small></div><button class="btn small" data-act="famtrip" data-arg="${T.id}" ${famTripOk()?'':'disabled'}>Go</button></div>`).join('')}</div></div>`:''}
    <div class="panel"><h3>Holidays</h3><p class="muted" style="margin:0;font-size:13px">Up to 2 trips a year. Trips don't use actions. ${fx.travel&&fx.travel!==1?'World events are changing travel prices right now.':''}</p><div class="list">${trips}</div></div>
    <div class="panel"><h3>Studying abroad</h3><p class="muted" style="margin:0;font-size:13px">Careers in this game are in Malaysia. You can study overseas when you choose a university, and an overseas degree raises your starting pay back home. The boost is biggest for finance, law and tech, and for degrees from the US, UK and Singapore.</p></div>`;}
 function panelFamily(){const p=S.partner,a=age();
@@ -1807,7 +1812,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.27';
+const GAME_VERSION='2026-10-20.28';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
