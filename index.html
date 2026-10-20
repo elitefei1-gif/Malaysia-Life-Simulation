@@ -925,8 +925,13 @@ function finances(fx){const a=age(),I=infl(),E=S.edu,col=colNow(fx);let inc=0,ex
   if(S.bankruptYears)S.bankruptYears--;
   if(S.money<-250000*I){q(declareBankrupt(true));}
   else if(S.money<-120000*I&&!S.bankruptAsked){S.bankruptAsked=true;q(bankruptModal());}}
+function kidMoney(){const a=age(),I=infl(),BR=[],par=S.parents.some(p=>p.alive);
+  S.famSpend=({T20:40000,M40:15000,B40:6000}[S.group]||10000)*I*(a<7?.7:1);
+  if(a>=7&&par){const pm=({T20:4000,M40:1500,B40:600}[S.group]||1000)*I*(a>=13?1.6:1),sp=pm*R(.5,.9);S.money+=pm-sp;
+    BR.push(['Pocket money from your parents',pm],[a>=13?'Food with friends, phone top-ups and outings':'Snacks, stationery and toys',-sp]);}
+  S.lastInc=BR.filter(x=>x[1]>0).reduce((t,x)=>t+x[1],0);S.lastExp=-BR.filter(x=>x[1]<0).reduce((t,x)=>t+x[1],0);S.lastBreak=BR;}
 function stmtLines(){return (S.lastBreak||[]).map(([l,v])=>`${v>=0?'+':'−'} ${fmt(Math.abs(v))}  ${l}`).join('\n');}
-function stmtModal(){const net=(S.lastInc||0)-(S.lastExp||0);return {title:'Money summary for '+S.year,icon:'m_money',tag:'Money',text:`Income ${fmt(S.lastInc||0)} · Spending ${fmt(S.lastExp||0)}\n\n${stmtLines()}\n\nNet: ${net>=0?'+':'−'} ${fmt(Math.abs(net))}. Cash now: ${fmt(S.money)}.`,choices:[['Got it',null],['Stop showing this every year',()=>{S.showStmt=false;return 'You can still see it in the Assets tab.';}]]};}
+function stmtModal(){const net=(S.lastInc||0)-(S.lastExp||0),kid=age()<18;return {title:'Money summary for '+S.year,icon:'m_money',tag:'Money',text:`${!kid&&!S.lastBreak.length?'No money came in or went out this year. Your family is still covering your living costs.\n\n':''}${kid?`Your ${S.parents.some(p=>p.alive)?'family spends':'relatives spend'} about ${fmt(S.famSpend||0)} on your food, ${age()<7?'nappies and check-ups':'school and clothes'} this year.${age()<7?' You are too young for pocket money.':''}\n\n`:''}Income ${fmt(S.lastInc||0)} · Spending ${fmt(S.lastExp||0)}${stmtLines()?'\n\n'+stmtLines():''}\n\nNet: ${net>=0?'+':'−'} ${fmt(Math.abs(net))}. Cash now: ${fmt(S.money)}.`,choices:[['Got it',null],['Stop showing this every year',()=>{S.showStmt=false;return 'You can still see it in the Assets tab.';}]]};}
 function declareBankrupt(forced){let got=0;S.assets.houses.forEach(h=>got+=h.value*.7-h.loanLeft);S.assets.cars.forEach(c=>got+=c.value*.6-c.loanLeft);
   S.assets.houses=[];S.assets.cars=[];S.home=null;S.money=0;S.stocks=0;S.bankruptAsked=false;S.bankruptYears=5;bump('hap',-20);S.dyn.rep-=5;
   if(S.partner&&S.partner.gold){log(S.partner.name+' left when you went bankrupt.','big');S.partner=null;}
@@ -1510,13 +1515,13 @@ function polPanel(){const a=age();if(a<18||S.country!=='MY')return '';const P=S.
 function nextYear(){if(cur||!S.alive)return;
   S.year++;S.applied=0;
   worldTick();const fx=fxNow();
-  if(age()>=18)finances(fx);
+  if(age()>=18)finances(fx);else kidMoney();
   careerTick(fx);polTick();passive(fx);milestones();relationships();parentsTick();petsTick();kidsTick();
   if(age()>=2)festival();
   if(age()>=5&&chance(.55))randomEvent();
   if(S.job&&age()>=18&&chance(.4))workEvent();
   checkAch();S.hapSum+=S.stats.hap;S.hapN++;S.ot=0;S.trips=0;S.ap=apFor();
-  if(age()>=18&&!autoYears&&S.showStmt!==false&&S.lastBreak&&S.lastBreak.length&&!(S.pol&&S.pol.jail))qFront(stmtModal());
+  if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail))qFront(stmtModal());
   if(age()>=105||chance(deathChance()))die();
   render();save();showNext();}
 function autoSpend(){const a=age();let guard=10;while(S.ap>0&&guard--){let id;
