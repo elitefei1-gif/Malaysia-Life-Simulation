@@ -545,9 +545,9 @@ const ICON_EMOJI={
 };
 /* Culture-specific art: ICON_IMG['key@culture'] (e.g. 'father@chinese') wins over ICON_IMG['key'] for that family. */
 function icoCult(){return (birthDraft?birthDraft.culture:S&&S.culture)||'';}
-function icoSrc(k){return ICON_IMG[k+'@'+icoCult()]||ICON_IMG[k];}
+function icoSrc(k,c){if(c&&!CULTURES[c])return ICON_IMG[k+'@'+c];return (c&&ICON_IMG[k+'@'+c])||ICON_IMG[k+'@'+icoCult()]||ICON_IMG[k];}
 function hasIco(k){return !!(icoSrc(k)||ICON_EMOJI[k]);}
-function ico(k,cls){cls=cls||'';const src=icoSrc(k);return src?`<img class="ico ${cls}" src="${src}" alt="" loading="lazy">`:`<span class="ico ${cls}" aria-hidden="true">${ICON_EMOJI[k]||'•'}</span>`;}
+function ico(k,cls,c){cls=cls||'';const src=icoSrc(k,c);return src?`<img class="ico ${cls}" src="${src}" alt="" loading="lazy">`:`<span class="ico ${cls}" aria-hidden="true">${ICON_EMOJI[k]||'•'}</span>`;}
 const H_KEY={ppr:'h_flat',apt:'h_flat',abroad:'h_flat',afford:'h_terrace',terrace1:'h_terrace',terrace2:'h_terrace',jb:'h_terrace',condo:'h_condo',penang:'h_condo',luxcondo:'h_luxcondo',semid:'h_semid',bungalow:'h_bungalow',abroad2:'h_bungalow',kampung:'h_kampung'};
 // Each home and car uses its own picture ('h_'+id / 'c_'+id) when one exists, else its type picture.
 function houseKey(h){const k=h.kind||h.id;if(k&&icoSrc('h_'+k))return 'h_'+k;return H_KEY[k]||(/kampung|longhouse/i.test(h.name)?'h_kampung':/luxury/i.test(h.name)?'h_luxcondo':/condo/i.test(h.name)?'h_condo':/bungalow|garden/i.test(h.name)?'h_bungalow':/semi/i.test(h.name)?'h_semid':/terrace/i.test(h.name)?'h_terrace':'h_flat');}
@@ -560,7 +560,8 @@ let S=null, MQ=[], cur=null, tab='life', shopTab='houses', autoYears=0, setup={g
 const age=()=>S.year-S.birthYear;
 const infl=()=>Math.pow(1.03,S.year-2025);
 const cult=()=>CULTURES[S.culture];
-const isBumi=()=>BUMI.includes(S.culture);
+const isBumi=()=>BUMI.includes(S.origCulture||S.culture);
+const origCult=()=>S.origCulture||S.culture;
 const bumiDisc=H=>isBumi()&&(H.country||'MY')==='MY'&&!H.resale?.93:1;
 const town=()=>TOWNS[S.town];
 const ctry=()=>COUNTRIES[S.country];
@@ -619,7 +620,7 @@ function salaryBase(){if(!S.job)return 0;const J=JOBS[S.job.id];let m=J.base*J.g
   m*=1+abroadPrem(S.job.id);m*=1+(perfScore()-50)/200;return m;}
 function salary(fx){const J=JOBS[S.job.id];let m=salaryBase();if(S.country!=='MY')m*=fx.abroadSal||1;m*=(fx.sal&&fx.sal[J.sector])||1;
   if(S.job.id==='entrepreneur'&&S.pol&&S.pol.rank>=2)m*=1.3;
-  if(S.culture==='chinese'&&['entrepreneur','sales'].includes(S.job.id))m*=1.15; // family and clan business network
+  if(origCult()==='chinese'&&['entrepreneur','sales'].includes(S.job.id))m*=1.15; // family and clan business network
   if(J.volatile)m*=Math.max(.15,1+(Math.random()*2-1)*J.volatile+(S.stats.luck-50)/200+(S.stats[J.stat]-50)/150);return m;}
 function partnerMonthly(){return married()&&S.partner.age<62?S.partner.salary*infl()*(S.country==='MY'?1:ctry().sal):0;}
 function incomeMonthly(){return (S.job?(S.job.lastMonthly||salaryBase()):0)+partnerMonthly();}
@@ -717,7 +718,15 @@ Object.assign(ICON_EMOJI,{ev_lottery4d:'🎟️',ev_ramadan:'🌙'});
 Object.assign(ICON_EMOJI,{s_int:'🧠',s_hlt:'❤️',s_cha:'🗣️',s_look:'✨',s_cre:'🎨',s_ath:'💪',s_dis:'🎯',s_hap:'😊',s_luck:'🍀'});
 Object.assign(ICON_EMOJI,{m_adopt:'🤱',m_preg:'🤰',m_fling:'🍹',m_gold:'👜',m_cheat:'📱',ev_carried:'💞',ev_bigproject:'📊',ev_mistake:'😬',ev_workaccident:'🚑',ev_bossleaves:'🪑',ev_bribe:'💰',ev_award:'🏆',ev_collapse:'💔',ev_scandal:'📰',ev_kabel:'🔌',ev_openhouse:'🍛',ev_kpi:'📊',ev_flood:'🌊',ev_leave:'🗓️',ev_posting:'🛫',ev_raid:'🚨',ev_durian:'🍈',ev_startup:'🚀',ev_poach:'🚀',ev_politics:'🗣️'});
 function a2c(n){return n*infl()*(S.country==='MY'?1:ctry().col);}
+// Partners can be any race once its portraits exist (partner_f@indian and so on); until then Malay or Chinese.
+function partnerCults(){return Object.keys(CULTURES).filter(c=>PLAYABLE.includes(c)||ICON_IMG['partner_f@'+c]&&ICON_IMG['partner_m@'+c]);}
 function samePartner(){return S.partner&&S.partner.gender===S.gender;}
+// Malaysian law: a non-Muslim must convert to marry a Muslim, so a mixed marriage makes the household Malay.
+function marryConvert(p,quiet){if(!p||p.gender===S.gender||!p.culture)return;
+  if(S.culture==='malay'&&p.culture!=='malay'){p.origCulture=p.culture;if(CULTURES[p.culture])p.culture='malay';p.convert=1;
+    if(!quiet){log(p.name+' converted to Islam to marry you.');q({title:'A new chapter',icon:'spouse_'+(p.gender==='M'?'m':'f'),tag:'Love',text:`Under Malaysian law a non-Muslim must convert to Islam to marry a Muslim. ${esc(p.name)} converts before the nikah, and your household follows Malay customs from now on.`,choices:[['Continue',()=>'']]});}}
+  else if(S.culture!=='malay'&&p.culture==='malay'){S.origCulture=S.culture;S.culture='malay';S.convert=1;
+    if(!quiet){log('Converted to Islam to marry '+p.name+'.','big');q({title:'A new chapter',icon:'spouse_'+(p.gender==='M'?'m':'f'),tag:'Love',text:`Under Malaysian law a non-Muslim must convert to Islam to marry a Muslim, so you convert before the nikah. From now on you celebrate Hari Raya, fast during Ramadan and your children grow up Malay. Your own education and work perks stay as they were, and your children count as bumiputera.`,choices:[['Continue',()=>'']]});}}}
 function stageInfo(){const a=age(),t=S.edu.track;
   if(t)return {label:t.label,L:t.len||t.left||1,ap:3};
   if(a>=7&&a<=12)return {label:'Primary (Standard 1–6)',L:6,ap:2};
@@ -736,12 +745,12 @@ function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span clas
 
 /* ================= love & family ================= */
 function npc(minA,maxA){let g=S.pref==='opp'?(S.gender==='M'?'F':'M'):S.pref==='same'?S.gender:pick(['M','F']);
-  let name;const c=S.country;
-  if(c==='MY'||c==='SG')name=genName(pick(Object.keys(CULTURES)),g);
-  else{const P=FOREIGN_NAMES[c]||FOREIGN_NAMES.west;name=pick(g==='M'?P.m:P.f);}
+  let name,culture;const c=S.country;
+  if(c==='MY'||c==='SG'){culture=pick(partnerCults());name=genName(culture,g);}
+  else{culture={JP:'japanese',KR:'korean',CN:'chinese',TW:'chinese'}[c]||'western';const P=FOREIGN_NAMES[c]||FOREIGN_NAMES.west;name=pick(g==='M'?P.m:P.f);}
   const jobs=[['Teacher',3100],['Engineer',4500],['Nurse',3000],['Accountant',4000],['Designer',3200],['Sales executive',3200],['Software engineer',5500],['Doctor',7000],['Business owner',5000],['Civil servant',3200],['Chef',2800],['Pharmacist',4800]];
   const j=pick(jobs);const a=clamp(age()+RI(-4,4),minA||16,maxA||99);
-  return {name,gender:g,age:a,job:a<22?'Student':j[0],salary:a<22?0:j[1]*R(.8,1.4),rel:30,status:'dating',alive:true,stats:{int:RI(30,90),hlt:RI(40,90),cha:RI(30,90),look:RI(30,90),cre:RI(30,90),ath:RI(30,90)}};}
+  return {name,culture,gender:g,age:a,job:a<22?'Student':j[0],salary:a<22?0:j[1]*R(.8,1.4),rel:30,status:'dating',alive:true,stats:{int:RI(30,90),hlt:RI(40,90),cha:RI(30,90),look:RI(30,90),cre:RI(30,90),ath:RI(30,90)}};}
 function loveLevelModal(){const lv=(lbl,k,note)=>[lbl,()=>{if(S.ap<1)return '';S.ap--;if(chance(k==='high'?.55:k==='low'?.9:.75)){qFront(meetModal(false,k));return '';}return 'No sparks this time.';},()=>S.ap>0,note];
   return {title:'Look for love',icon:'m_love',tag:'Love',text:'What kind of partner are you looking for? (1 action)',choices:[
     lv('Someone like me','same','Similar looks, smarts and charm. Normal odds and normal loyalty.'),
@@ -778,7 +787,7 @@ function pregModal(o){const a=age(),p=S.partner,me=S.gender==='F',nm=o.name||'yo
   const ctx=a<18?' You are still in secondary school, and your parents will find out soon.':S.edu.track&&!S.job?' You are still studying.':'';
   const keep=marry=>()=>{const k=addKid(o.stats,{note:marry||married()?'':'born before marriage',hap:3});
     if(a<18){S.know=clamp((S.know||0)*.7);bump('dis',3);bump('hap',-4);}if(S.parenting==='Strict'&&a<25)bump('hap',-6);
-    if(marry&&p){p.status='married';S.money-=a2c(5000);addAch('married');log('Married '+p.name+' before the baby arrived.','big');}
+    if(marry&&p){p.status='married';marryConvert(p);S.money-=a2c(5000);addAch('married');log('Married '+p.name+' before the baby arrived.','big');}
     else if(p&&!o.fling)p.rel=clamp(p.rel+5);
     return (a<18?'Life changes overnight. ':'')+`${k.name} is born.`+(marry?' You marry in a small ceremony first.':a<18?' Your family helps raise the baby while you finish school.':'')+(o.fling?support():'');};
   const ch=[['Keep the baby',keep(false)]];
@@ -801,7 +810,7 @@ function cheatModal(){const p=S.partner;return {title:'Messages on their phone',
 function inheritBase(){return {int:50,hlt:60,cha:50,look:50,cre:50,ath:50};}
 function proposeModal(){const p=S.partner;const legal=!samePartner()||['UK','AU','US','CA','NZ','DE','TW'].includes(S.country);const I=a2c(1);
   const wed=(lbl,cost,txt)=>[`${lbl} (${fmt(cost*I)})`,()=>{if(!chance(p.rel/100+.15)){p.rel-=15;bump('hap',-6);return p.name+' says they\'re not ready yet. Ouch.';}
-    S.money-=cost*I;p.status='married';addAch('married');log('Married '+p.name+'! '+txt,'big');bump('hap',12);S.withParents=false;return 'They said yes! '+txt;}];
+    S.money-=cost*I;p.status='married';marryConvert(p);addAch('married');log('Married '+p.name+'! '+txt,'big');bump('hap',12);S.withParents=false;return 'They said yes! '+txt;}];
   if(!legal)return {title:'Pop the question?',icon:'m_ring',tag:'Love',text:`Same-sex marriage isn't legally recognised in Malaysia${S.country!=='MY'?' or here':''}. Many couples commit as life partners, or marry in a country that recognises it (Taiwan, the UK, Australia and others).`,
     choices:[wed('Commit as life partners with a small celebration',3000,'A celebration with close friends.'),wed('Marry abroad in Taiwan',15000,'You marry in Taipei and celebrate with a small group.'),['Not yet',null]]};
   return {title:'Pop the question?',icon:'m_ring',tag:'Love',text:`You and ${esc(p.name)} have been together a while. How do you want to celebrate if they say yes?`,
@@ -1053,7 +1062,7 @@ function milestones(){const a=age(),E=S.edu;
   if(a===13){log(`Finished primary school. Final report card: mostly ${gradeOf(S.know)}.`,'big');S.know*=.3;}
   if(a===16){log(`Finished ${E.exam==='UEC'?'junior middle':'Form 3'}. Overall grade: ${gradeOf(S.know)}.`,'big');S.know*=.4;}
   if(a>=7&&a<=17)S.know=clamp(S.know+30/stageInfo().L*passiveMult());
-  if(a===18&&E.level==='none'){spmResult();if(S.culture==='chinese'&&(E.exam==='UEC'||E.spmA>=7)&&chance(.6))q(clanModal());if(E.exam==='UEC')q(uecModal());else{if(E.spmA>=9&&E.exam==='SPM')q(scholarModal());else if(E.spmA>=7&&E.exam==='SPM'&&isBumi()&&chance(.6))q(scholarModal('MARA'));q(preuModal());}}
+  if(a===18&&E.level==='none'){spmResult();if(origCult()==='chinese'&&(E.exam==='UEC'||E.spmA>=7)&&chance(.6))q(clanModal());if(E.exam==='UEC')q(uecModal());else{if(E.spmA>=9&&E.exam==='SPM')q(scholarModal());else if(E.spmA>=7&&E.exam==='SPM'&&isBumi()&&chance(.6))q(scholarModal('MARA'));q(preuModal());}}
   if(E.track&&a>18){payFees();S.know=clamp(S.know+30/(E.track.len||1)*passiveMult());E.track.left--;if(E.track.left<=0)finishTrack();}
   if(a===55&&S.epf>0&&!S.epfDone&&S.country==='MY'){S.epfDone=true;q({title:'EPF at 55',icon:'m_money',tag:'Money',text:`Your EPF balance is ${fmt(S.epf)}. You can now withdraw it.`,choices:[['Withdraw everything',()=>{S.money+=S.epf;S.epf=0;return 'The money lands in your bank account. Spend wisely!';}],['Keep it growing; draw it down after retiring',()=>'EPF keeps paying dividends and will fund your retirement.']]});}
   if(S.job&&a>=S.retireAsk&&!S.retired){S.retireAsk=a+5;q({title:'Time to retire?',icon:'m_retire',tag:'Career',text:`You're ${a}. Retire now, or keep working a few more years?`,choices:[['Retire',()=>{retire();return 'Pencen! No more alarm clocks.';}],['Keep working',()=>'You\'re not done yet.',()=>a<75]]});}
@@ -1754,7 +1763,7 @@ function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.fil
   ns.know=clamp(st.int*.6);
   if(a>=19&&!E.track&&a<60){const opts=Object.keys(JOBS).filter(id=>!eligible(id).length&&!JOBS[id].startCost);if(opts.length){opts.sort((x,y)=>JOBS[y].base-JOBS[x].base);const id=opts[0];const J=JOBS[id];ns.job={id,level:Math.min(J.levels.length-1,Math.max(0,Math.floor((a-23)/6))),years:Math.max(0,a-23),lvl:0,bonus:1};}}
   if(a>=60)ns.retired=true;
-  if(a>=28&&chance(.55)){ns.partner=npc(25);ns.partner.age=clamp(a+RI(-3,3),20,99);ns.partner.status='married';ns.partner.rel=65;if(a>=32&&chance(.6)){const n=RI(1,2);for(let i=0;i<n;i++){const k=newKidSilent(ns,RI(1,Math.min(12,a-28)));}}}
+  if(a>=28&&chance(.55)){ns.partner=npc(25);ns.partner.age=clamp(a+RI(-3,3),20,99);ns.partner.status='married';ns.partner.rel=65;marryConvert(ns.partner,true);if(a>=32&&chance(.6)){const n=RI(1,2);for(let i=0;i<n;i++){const k=newKidSilent(ns,RI(1,Math.min(12,a-28)));}}}
   ns.ap=apFor();
   log(`${dyn.famLabel||CULTURES[prev.culture].famLabel(prev.famName)}: Generation ${dyn.gen} begins. ${kid.name} (${a}) inherits ${fmt(share)}${prev.will?'':' after '+fmt(es.legal)+' in legal fees and family disputes (no will)'}.`,'big');
   if(ns.assets.houses.length)log('Inherited '+ns.assets.houses.length+' propert'+(ns.assets.houses.length>1?'ies':'y')+'.');
@@ -1841,7 +1850,7 @@ function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY
 function panelFamily(){const p=S.partner,a=age();
   const parents=S.parents.map(x=>`<div class="item">${ico(x.role==='Father'?'father':'mother')}<div class="t"><b>${esc(x.role)}: ${esc(x.name)}</b><small>${esc(x.job)} · ${x.alive?'age '+x.age:'passed away'}</small></div></div>`).join('');
   let love;
-  if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl')?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'))}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
+  if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
     <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${barCls(p.rel)}" style="width:${p.rel}%"></i></div></div>
     <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button><button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
   else love=`<p style="margin:0">${p?'Widowed. ':''}You're single.</p><div class="row"><button class="btn small" data-act="findlove" ${a>=16&&S.ap>0?'':'disabled'}>Look for love (1 action)</button>${a>=18?`<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone (1 action)</button>`:''}${a>=28?`<button class="btn small" data-act="findyoung" ${S.ap>0?'':'disabled'}>Look for a younger partner (1 action)</button>`:''}</div>`;
@@ -1885,7 +1894,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.50';
+const GAME_VERSION='2026-10-20.51';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
