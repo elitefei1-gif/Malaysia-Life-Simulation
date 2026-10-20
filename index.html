@@ -2005,7 +2005,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.57';
+const GAME_VERSION='2026-10-20.58';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
@@ -2113,7 +2113,14 @@ const CUE_P={sad:9,wedding:8,baby:8,promo:7,bad:7,love:6,alert:6,milestone:5,fes
 function cue(k){if(!CUE||CUE_P[k]>CUE_P[CUE])CUE=k;}
 function cueLog(t){cue(/^Married|life partners/.test(t)?'wedding':/^Welcomed|^Adopted/.test(t)?'baby':/passed away/i.test(t)?'sad':/^Promoted|^Won|^Graduated|^Selected|^Received|Prime Minister|^Paid off/.test(t)?'promo':/Started dating|First relationship/.test(t)?'love':/Divorced|Dumped|bankrupt|failed|Sacked|raided|Investigated|retrench|Convicted|prison|jail|broke up|Broke up/i.test(t)?'bad':'milestone');}
 function sfx(k){if(MUTED||!SFX[k])return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();PITCH=Math.pow(2,(Math.random()-.5)*.9/12);SFX[k]();}catch(e){}}
-function toggleMute(){MUTED=!MUTED;try{localStorage.setItem('my-lifesim-mute',MUTED?'1':'0');}catch(e){}const m=$('#mute');if(m){m.textContent=MUTED?'🔇':'🔊';m.setAttribute('aria-label',MUTED?'Turn sound on':'Turn sound off');}if(!MUTED)sfx('tap');}
+function toggleMute(){MUTED=!MUTED;try{localStorage.setItem('my-lifesim-mute',MUTED?'1':'0');}catch(e){}bgm();const m=$('#mute');if(m){m.textContent=MUTED?'🔇':'🔊';m.setAttribute('aria-label',MUTED?'Turn sound on':'Turn sound off');}if(!MUTED)sfx('tap');}
+// Background music: one looping track, a file next to the page. It starts on the first tap (browsers block autoplay) and follows the mute button.
+let BGM=null;
+function bgm(){try{if(!BGM){BGM=new Audio('music/menu-hangat.mp3');BGM.loop=true;BGM.volume=.25;BGM.preload='auto';}
+  if(MUTED||document.hidden)BGM.pause();else{const p=BGM.play();if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+document.addEventListener('pointerdown',()=>{if(!BGM||BGM.paused)bgm();},{passive:true});
+document.addEventListener('keydown',()=>{if(!BGM)bgm();});
+document.addEventListener('visibilitychange',()=>{if(BGM)bgm();});
 {const nb=$('#btn-next');nb.insertAdjacentHTML('beforebegin',`<button class="btn small" id="mute" type="button" aria-label="${MUTED?'Turn sound on':'Turn sound off'}" title="Sound on/off">${MUTED?'🔇':'🔊'}</button>`);}
 $('#mute').addEventListener('click',toggleMute);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cur&&cur.choices===null)closeModal();});
