@@ -94,6 +94,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .bar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .4s}
 .bar i.lo{background:var(--hib)} .bar i.hi{background:var(--gold)}
 .bar.blue i{background:var(--sky)}
+.bar i.lv1{background:#d64545}.bar i.lv2{background:#f2a65a}.bar i.lv3{background:#8fd18a}.bar i.lv4{background:#2e9e5b}
 
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
 .tabs button{border:0;background:none;padding:10px 12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;flex:none}
@@ -1677,7 +1678,7 @@ function render(){if(!S)return;
     <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span></div></div>
     <div class="id-money"><span>Cash <b class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
-  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${STAT_NAMES[k]}</span><span>${v}</span></div><div class="bar"><i class="${v<30?'lo':v>=80?'hi':''}" style="width:${v}%"></i></div></div>`;}).join('');
+  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${STAT_NAMES[k]}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
   $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('')||'<span class="muted" style="font-size:13px">none yet</span>';
   $('#g-tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join('');
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
@@ -1745,7 +1746,7 @@ function panelFamily(){const p=S.partner,a=age();
   const parents=S.parents.map(x=>`<div class="item">${ico(x.role==='Father'?'father':'mother')}<div class="t"><b>${esc(x.role)}: ${esc(x.name)}</b><small>${esc(x.job)} · ${x.alive?'age '+x.age:'passed away'}</small></div></div>`).join('');
   let love;
   if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl')?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'))}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
-    <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${p.rel<30?'lo':''}" style="width:${p.rel}%"></i></div></div>
+    <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${barCls(p.rel)}" style="width:${p.rel}%"></i></div></div>
     <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button><button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
   else love=`<p style="margin:0">${p?'Widowed. ':''}You're single.</p><div class="row"><button class="btn small" data-act="findlove" ${a>=16&&S.ap>0?'':'disabled'}>Look for love (1 action)</button>${a>=18?`<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone (1 action)</button>`:''}${a>=28?`<button class="btn small" data-act="findyoung" ${S.ap>0?'':'disabled'}>Look for a younger partner (1 action)</button>`:''}</div>`;
   const kids=S.kids.map(k=>{const ka=S.year-k.born;return `<div class="item">${ico(ka<4?'baby':k.gender==='M'?'son':'daughter')}<div class="t"><b>${esc(k.name)}</b><small>${k.gender==='M'?'Son':'Daughter'}${k.adopted?' (adopted)':''} · ${ka<0?'—':ka+' yrs'}${k.note?' · '+esc(k.note):''}${k.spm!=null?' · SPM '+k.spm+'A':''}${k.job?' · '+esc(k.job):''} · Smarts ${Math.round(k.stats.int)}</small></div></div>`;}).join('');
@@ -1768,7 +1769,7 @@ function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
      <dl class="kv"><dt>Smarts</dt><dd class="mono">${p.stats.int}</dd><dt>Looks</dt><dd class="mono">${p.stats.look}</dd><dt>Health</dt><dd class="mono">${p.stats.hlt}</dd><dt>Charisma</dt><dd class="mono">${p.stats.cha}</dd></dl></div>`).join('')}</div>
    <div class="panel"><h3>Your start in life</h3><dl class="kv"><dt>Household</dt><dd>${d.group} ${d.group==='B40'?'(bottom 40% income)':d.group==='M40'?'(middle 40%)':'(top 20%)'}</dd><dt>Parenting</dt><dd>${d.parenting}</dd>
      <dt>Home languages</dt><dd>${Object.keys(C.langs).map(k=>LANG[k]).join(', ')}</dd><dt>Traits</dt><dd>${d.traits.length?d.traits.join(', '):'None'}</dd></dl>
-     <div class="stats">${['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>`<div class="stat"><div class="lbl"><span>${STAT_NAMES[k]}</span><span>${d.stats[k]}</span></div><div class="bar"><i class="${d.stats[k]<30?'lo':d.stats[k]>=80?'hi':''}" style="width:${d.stats[k]}%"></i></div></div>`).join('')}</div>
+     <div class="stats">${['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>`<div class="stat"><div class="lbl"><span>${STAT_NAMES[k]}</span><span>${d.stats[k]}</span></div><div class="bar"><i class="${barCls(d.stats[k])}" style="width:${d.stats[k]}%"></i></div></div>`).join('')}</div>
      <div class="row"><button class="btn primary" data-act="startLife">Start this life</button><button class="btn" data-act="reroll" ${setup.rerolls>0?'':'disabled'}>Reroll family (${setup.rerolls} left)</button></div></div>`;}
 function showEnd(){const s=lifeSummary();S.lastSummary=s;save();const kids=S.kids.filter(k=>k.alive!==false&&S.year-k.born>=0);const es=estate();
   $('#s-end').innerHTML=`<div class="hero" style="padding-top:8px"><div class="eyebrow">In loving memory · ${s.born}–${s.died}</div><h1 style="font-size:40px">${esc(S.name)}</h1><p>${esc(s.title)}</p></div>
@@ -1785,9 +1786,10 @@ function epitaph(){const big=S.log.filter(e=>e.k==='big'&&!/Passed away/.test(e.
 
 /* ================= toast & save ================= */
 let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600);}
+function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.20';
+const GAME_VERSION='2026-10-20.21';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
