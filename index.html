@@ -57,6 +57,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .form{display:grid;gap:14px}
 .field{display:grid;gap:6px}
 .field label{font-weight:600;font-size:13px}
+.name-in{display:block;width:100%;margin-top:14px;font:inherit;font-size:20px;font-weight:600;text-align:center;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--surface2);color:var(--ink)}
 .field input,.field select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);width:100%}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:7px 13px;font-size:14px}
@@ -683,7 +684,7 @@ function drawModal(){const m=cur;const chs=(m.choices||[]).map((c,i)=>{const ok=
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
   $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});}
 function choose(i){const c=cur&&cur.choices&&cur.choices[i];if(!c){closeModal();return;}if(c[2]&&!c[2]())return;if(!c[1]){closeModal();return;}
-  const b=snap();let out;try{out=c[1]();}catch(e){console.error(e);out='';}if(out===false){cur=null;return;}
+  const b=snap();let out;try{out=c[1]();}catch(e){console.error(e);out='';}if(out===false){cur=null;return;}if(out==='keep')return;
   const d=S?diff(b):[];if(out||d.length){cur={title:cur.title,tag:cur.tag,icon:cur.icon,text:out||'Done.',delta:d,choices:null};drawModal();}else closeModal();}
 function closeModal(){cur=null;$('#modal').hidden=true;showNext();}
 
@@ -771,7 +772,13 @@ function meetModal(young,lvl){const p=npc(young?18:16),nw=netWorth()/infl();
 function rndStats(){return {int:RI(30,85),hlt:RI(40,90),cha:RI(30,85),look:RI(30,85),cre:RI(30,85),ath:RI(30,85)};}
 function addKid(other,o){o=o||{};const st=o.adopted?inherit(rndStats(),rndStats()):inherit(S.stats,other||inheritBase());st.dis=RI(20,45);st.hap=RI(55,80);st.luck=RI(20,80);
   const g=pick(['M','F']);const k={name:genName(S.culture,g),gender:g,born:S.year-(o.ageBack||0),stats:st,alive:true,country:S.country,adopted:!!o.adopted,note:o.note||''};
-  S.kids.push(k);addAch('parent');log((o.adopted?'Adopted ':'Welcomed ')+k.name+' into the family'+(o.note?' ('+o.note+')':'')+'.','big');bump('hap',o.hap!=null?o.hap:8);return k;}
+  S.kids.push(k);addAch('parent');log((o.adopted?'Adopted ':'Welcomed ')+k.name+' into the family'+(o.note?' ('+o.note+')':'')+'.','big');bump('hap',o.hap!=null?o.hap:8);
+  if(!o.ageBack&&!autoYears)qFront(nameKidModal(k,S.log[S.log.length-1]));return k;}
+// The player names each newborn; the box starts with a suggested name.
+function nameKidModal(k,entry){const who=k.gender==='M'?'boy':'girl';
+  return {title:'Name your baby',icon:k.gender==='M'?'son':'daughter',tag:'Family',text:`It's a ${who}! Type a name, or keep the one suggested.<input id="kid-name" class="name-in" maxlength="24" value="${esc(k.name)}" autocomplete="off" onkeydown="if(event.key==='Enter')choose(0)">`,choices:[
+    ['Use this name',()=>{const el=$('#kid-name');const n=(el&&el.value||'').replace(/\s+/g,' ').trim().slice(0,24);if(n&&n!==k.name){if(entry)entry.t=entry.t.replace(k.name,n);k.name=n;}return '';}],
+    ['Suggest another name',()=>{const el=$('#kid-name');if(el){let n,t=0;do n=genName(S.culture,k.gender);while(n===el.value&&++t<8);el.value=n;el.focus();}return 'keep';}]]};}
 function newKid(){return addKid(S.partner&&S.partner.stats);}
 function adoptModal(){const ok=married()?.85:.55,I=a2c(1);
   const go=(lbl,ageBack,cost,txt)=>[`${lbl} (${fmt(cost*I)})`,()=>{S.money-=cost*I;if(!chance(ok+(S.stats.cha-50)/300))return 'The Social Welfare Department (JKM) says your application needs more time. You can try again next year.'+(married()?'':' Single applicants face extra checks.');
@@ -1895,7 +1902,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.52';
+const GAME_VERSION='2026-10-20.53';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
