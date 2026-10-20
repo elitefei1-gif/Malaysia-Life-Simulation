@@ -201,6 +201,10 @@ img.ico{background:var(--surface)}
 .hero-note{font-style:italic;color:var(--muted);border-left:3px solid var(--accent);padding-left:12px}
 .stat .lbl>span:first-child{display:inline-flex;align-items:center;gap:5px}
 .ico.st{width:18px;height:18px;font-size:14px;border:0;border-radius:5px;background:transparent}
+/* bigger Next year button */
+.yearbar .inner>.row:last-child{flex:1 1 300px;flex-wrap:nowrap}
+.yearbar .nextbtn{flex:1;min-height:58px;font-size:20px;padding:14px 22px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.yearbar .nextbtn:active:not(:disabled){transform:scale(.98)}
 /* travel cards: same size whatever the name length */
 .stack>*,.panel>*,.list>*{min-width:0}
 .item.trip{flex-wrap:nowrap;height:96px;padding:12px;gap:12px}
@@ -1822,7 +1826,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.31';
+const GAME_VERSION='2026-10-20.32';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
