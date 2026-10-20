@@ -206,6 +206,11 @@ img.ico{background:var(--surface)}
 .yearbar .nextbtn{flex:1;min-height:58px;font-size:20px;padding:14px 22px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .yearbar .nextbtn:active:not(:disabled){transform:scale(.98)}
 .title-banner{display:block;width:100%;height:auto;aspect-ratio:800/447;border-radius:18px;margin:4px 0 16px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+/* pulsing Start button on the title screen */
+@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 4px 12px rgba(0,0,0,.12)}50%{transform:scale(1.08);box-shadow:0 8px 22px rgba(0,0,0,.2)}}
+.btn.pulse{animation:pulse 1.6s ease-in-out infinite;transform-origin:left center;font-size:17px;padding:14px 24px}
+.btn.pulse:hover,.btn.pulse:active{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.btn.pulse{animation:none}}
 /* travel cards: same size whatever the name length */
 .stack>*,.panel>*,.list>*{min-width:0}
 .item.trip{flex-wrap:nowrap;height:96px;padding:12px;gap:12px}
@@ -245,7 +250,7 @@ img.ico{background:var(--surface)}
        <p class="hero-note">Some choices open doors. Others close them forever. There's no undo, and no two lives play out the same. When this one ends, all that remains is what you built and who you leave behind. Make it a life worth remembering.</p>
     </div>
     <div class="row">
-      <button class="btn primary" data-act="toSetup">Start a new life</button>
+      <button class="btn primary pulse" data-act="toSetup">Start a new life</button>
       <button class="btn" data-act="continue" id="btn-continue" hidden>Continue saved life</button>
     </div>
     <div class="panel">
@@ -1845,7 +1850,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.39';
+const GAME_VERSION='2026-10-20.40';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
