@@ -1513,7 +1513,7 @@ function polPanel(){const a=age();if(a<18||S.country!=='MY')return '';const P=S.
     <div class="row">${P.party!=='IND'?b('polwork','Party work (1 action)',S.ap>0):''}${P.rank>=1||P.party==='IND'?b('ceramah','Hold a ceramah (1 action)',S.ap>0):''}${P.rank>=2?b('deals','Back-room deals',S.ap>0):''}${P.dirty>0?b('hide','Hide the money',S.money>0):''}${P.rank>=6||P.mb?b('policy',P.rank===8?'Table the budget':'Choose a policy',P.policyYear!==S.year):''}${P.rank===8?b('callge','Call a snap election',!W.snap&&W.nextGE>S.year+1):''}${b('polquit','Retire from politics',true)}</div></div>`;}
 
 function nextYear(){if(cur||!S.alive)return;
-  S.year++;S.applied=0;
+  S.year++;tab='life';S.applied=0;
   worldTick();const fx=fxNow();
   if(age()>=18)finances(fx);else kidMoney();
   careerTick(fx);polTick();passive(fx);milestones();relationships();parentsTick();petsTick();kidsTick();
