@@ -207,9 +207,9 @@ img.ico{background:var(--surface)}
 .yearbar .nextbtn:active:not(:disabled){transform:scale(.98)}
 .title-banner{display:block;width:100%;height:auto;aspect-ratio:800/447;border-radius:18px;margin:4px 0 16px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
 /* pulsing Start button on the title screen */
-@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}50%{transform:scale(1.18);box-shadow:0 0 0 12px color-mix(in srgb,var(--accent) 0%,transparent)}}
+@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 35%,transparent)}50%{transform:scale(1.11);box-shadow:0 0 0 7px color-mix(in srgb,var(--accent) 0%,transparent)}}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)}50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--accent) 0%,transparent)}}
-.btn.pulse{animation:pulse 1.1s ease-in-out infinite;transform-origin:left center;font-size:18px;padding:15px 28px;margin:6px 0}
+.btn.pulse{animation:pulse 1.4s ease-in-out infinite;transform-origin:left center;font-size:18px;padding:15px 28px;margin:6px 0}
 .btn.pulse:active{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){.btn.pulse{animation:glow 1.4s ease-in-out infinite}}
 /* travel cards: same size whatever the name length */
@@ -1851,7 +1851,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.41';
+const GAME_VERSION='2026-10-20.42';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
