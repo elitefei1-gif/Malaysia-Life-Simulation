@@ -924,7 +924,7 @@ function careerTick(fx){if(!S.job)return;const J=JOBS[S.job.id],a=age();S.lastJo
   if(S.job.id==='entrepreneur'&&chance(Math.max(.02,.1-S.stats.cre/1500))){S.job=null;const l=RI(10000,60000)*infl();S.money-=l;log('Your business failed. Lost '+fmt(l)+'.','big');bump('hap',-10);return;}
   S.job.years++;S.job.lvl++;const sc=perfScore(),need=sc>=78?1:sc>=55?2:3;
   if(S.job.level<J.levels.length-1&&S.job.lvl>=need){if(chance(clamp((sc-25)/70+(S.ot>=2?.1:0)+S.dyn.rep/400+(S.stats.luck-50)/400,0,1)*.9+.05)){S.job.level++;S.job.lvl=0;log('Promoted to '+J.levels[S.job.level]+'!','big');bump('hap',5);if(S.job.level===J.levels.length-1){addAch('boss');S.dyn.rep+=3;}}}
-  if(sc>=70&&chance(.5))S.job.bonus=(S.job.bonus||1)*(1+(sc-65)/500);
+  if(sc>=70&&chance(.5)&&(S.job.bonus||1)<1.5)S.job.bonus=Math.min(1.5,(S.job.bonus||1)*(1+Math.min(.03,(sc-65)/500)));
   if(S.country==='MY'&&S.edu.bond>0)S.edu.bond--;}
 function canHop(){const J=S.job&&JOBS[S.job.id];return !!J&&S.country==='MY'&&!J.stable&&!J.noEpf&&S.job.years>=1;}
 function hopModal(){const J=JOBS[S.job.id],sc=perfScore(),recent=S.lastHop!=null&&S.year-S.lastHop<2;
@@ -948,7 +948,7 @@ function finances(fx){const a=age(),I=infl(),E=S.edu,col=colNow(fx);let inc=0,ex
   S.lastMonthly=0;
   if(S.job){const m=salary(fx);S.job.lastMonthly=m;let g=m*12*(1+.08*Math.min(S.ot,3));let tax;
     if(S.country==='MY'){const ch=Math.max(0,g-9000*I);tax=ch<50000*I?ch*.03:ch<100000*I?ch*.09:ch<250000*I?ch*.17:ch*.25;if(!JOBS[S.job.id].noEpf){S.epf+=g*.23;g*=.89;}}
-    else tax=S.country==='AE'?0:g*.18;if(S.taxCut===S.year)tax*=.8;IN('Salary after tax and EPF',g-tax);}
+    else tax=S.country==='AE'?0:g*.18;if(S.taxCut===S.year)tax*=.8;IN('Salary after tax and EPF',g-tax);S.takeHome=g-tax;}else S.takeHome=0;
   IN('Spouse\'s contribution',partnerMonthly()*12*.6);
   if(S.retired&&S.epf>0){const d=S.epf/Math.max(5,85-a);S.epf-=d;IN('EPF withdrawals',d);}
   if(S.pension)IN('Pension',S.pension*I*12);
@@ -960,7 +960,7 @@ function finances(fx){const a=age(),I=infl(),E=S.edu,col=colNow(fx);let inc=0,ex
   const student=!!E.track,mar=married();
   const kidsN=S.kids.filter(k=>k.alive!==false&&S.year-k.born<22).length;
   if(!(student&&a<26)&&!(S.withParents&&!S.job&&a<26&&!mar)){
-    let living=2200*I*col*(mar?1.7:1);if(S.withParents&&!mar)living*=.5;living+=kidsN*900*I*col;if(a>=65)living+=600*I*col;EX('Living costs'+(kidsN?' (incl. children)':''),living*12);
+    let living=2200*I*col*(mar?1.7:1);if(S.withParents&&!mar)living*=.5;living+=kidsN*900*I*col;if(a>=65)living+=600*I*col;const style=(S.takeHome||0)*.35;EX(style>living*12?'Living costs and lifestyle':'Living costs'+(kidsN?' (incl. children)':''),Math.max(living*12,style));
     if(!homeOk()&&!(S.withParents&&!mar)&&!(S.pol&&S.pol.rank>=6))EX('Rent',(S.country==='MY'?1100:1400)*I*col*(mar||kidsN?1.4:1)*12);}
   S.assets.cars.forEach(c=>{EX('Car running costs',((c.ev?2400:4200*(fx.fuel||1))*I+c.price*.02)*(S.pol&&S.pol.rank>=5&&!S.pol.jail?0:1));c.value*=.88+(!c.ev&&fx.petrolCar?fx.petrolCar:0);if(c.loanLeft>0){const p=Math.min(c.pay,c.loanLeft);c.loanLeft-=p;EX('Car loan',p);}});
   S.assets.pets.forEach(p=>EX('Pets',p.cost*I));
@@ -1871,7 +1871,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.45';
+const GAME_VERSION='2026-10-20.46';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
