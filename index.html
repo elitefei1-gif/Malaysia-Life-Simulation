@@ -199,6 +199,8 @@ img.ico{background:var(--surface)}
 .sheet .choices button:disabled::after{content:"🔒";font-size:13px}
 .mhead{display:flex;gap:14px;align-items:center}
 .hero-note{font-style:italic;color:var(--muted);border-left:3px solid var(--accent);padding-left:12px}
+.stat .lbl>span:first-child{display:inline-flex;align-items:center;gap:5px}
+.ico.st{width:18px;height:18px;font-size:14px;border:0;border-radius:5px;background:transparent}
 /* travel cards: same size whatever the name length */
 .stack>*,.panel>*,.list>*{min-width:0}
 .item.trip{flex-wrap:nowrap;height:96px;padding:12px;gap:12px}
@@ -688,6 +690,7 @@ const ACTS=[
   {id:'rest',ic:'😴',label:'Rest',sub:'Health, happiness',ok:a=>a>=4,run(){bump('hlt',2);bump('hap',3);return pick(['A lazy weekend with Netflix.','Long nap after lunch.','A day at the beach.']);}},
 ];
 ACTS.forEach(a=>{ICON_EMOJI['a_'+a.id]=a.ic;});
+Object.assign(ICON_EMOJI,{s_int:'🧠',s_hlt:'❤️',s_cha:'🗣️',s_look:'✨',s_cre:'🎨',s_ath:'💪',s_dis:'🎯',s_hap:'😊',s_luck:'🍀'});
 Object.assign(ICON_EMOJI,{m_adopt:'🤱',m_preg:'🤰',m_fling:'🍹',m_gold:'👜',m_cheat:'📱',ev_carried:'💞',ev_bigproject:'📊',ev_mistake:'😬',ev_workaccident:'🚑',ev_bossleaves:'🪑',ev_bribe:'💰',ev_award:'🏆',ev_collapse:'💔',ev_scandal:'📰',ev_kabel:'🔌',ev_openhouse:'🍛',ev_kpi:'📊',ev_flood:'🌊',ev_leave:'🗓️',ev_posting:'🛫',ev_raid:'🚨',ev_durian:'🍈',ev_startup:'🚀',ev_poach:'🚀',ev_politics:'🗣️'});
 function a2c(n){return n*infl()*(S.country==='MY'?1:ctry().col);}
 function samePartner(){return S.partner&&S.partner.gender===S.gender;}
@@ -1708,7 +1711,7 @@ function render(){if(!S)return;
     <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span></div></div>
     <div class="id-money"><span>Cash <b class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
-  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${STAT_NAMES[k]}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
+  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
   $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('')||'<span class="muted" style="font-size:13px">none yet</span>';
   $('#g-tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join('');
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
@@ -1799,7 +1802,7 @@ function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
      <dl class="kv"><dt>Smarts</dt><dd class="mono">${p.stats.int}</dd><dt>Looks</dt><dd class="mono">${p.stats.look}</dd><dt>Health</dt><dd class="mono">${p.stats.hlt}</dd><dt>Charisma</dt><dd class="mono">${p.stats.cha}</dd></dl></div>`).join('')}</div>
    <div class="panel"><h3>Your start in life</h3><dl class="kv"><dt>Household</dt><dd>${d.group} ${d.group==='B40'?'(bottom 40% income)':d.group==='M40'?'(middle 40%)':'(top 20%)'}</dd><dt>Parenting</dt><dd>${d.parenting}</dd>
      <dt>Home languages</dt><dd>${Object.keys(C.langs).map(k=>LANG[k]).join(', ')}</dd><dt>Traits</dt><dd>${d.traits.length?d.traits.join(', '):'None'}</dd></dl>
-     <div class="stats">${['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>`<div class="stat"><div class="lbl"><span>${STAT_NAMES[k]}</span><span>${d.stats[k]}</span></div><div class="bar"><i class="${barCls(d.stats[k])}" style="width:${d.stats[k]}%"></i></div></div>`).join('')}</div>
+     <div class="stats">${['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>`<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}</span><span>${d.stats[k]}</span></div><div class="bar"><i class="${barCls(d.stats[k])}" style="width:${d.stats[k]}%"></i></div></div>`).join('')}</div>
      <div class="row"><button class="btn primary" data-act="startLife">Start this life</button><button class="btn" data-act="reroll" ${setup.rerolls>0?'':'disabled'}>Reroll family (${setup.rerolls} left)</button></div></div>`;}
 function showEnd(){const s=lifeSummary();S.lastSummary=s;save();const kids=S.kids.filter(k=>k.alive!==false&&S.year-k.born>=0);const es=estate();
   $('#s-end').innerHTML=`<div class="hero" style="padding-top:8px"><div class="eyebrow">In loving memory · ${s.born}–${s.died}</div><h1 style="font-size:40px">${esc(S.name)}</h1><p>${esc(s.title)}</p></div>
@@ -1819,7 +1822,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-20.30';
+const GAME_VERSION='2026-10-20.31';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
