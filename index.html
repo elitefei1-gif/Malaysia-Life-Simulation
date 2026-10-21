@@ -764,7 +764,7 @@ function loveLevelModal(){const lv=(lbl,k,note)=>[lbl,()=>{if(S.ap<1)return '';S
     lv('Someone below my level','low','Easier to win over, and very loyal. Hard to lose them.'),
     lv('Someone above my level','high','Hard to win over. They are more likely to cheat or leave, though not always.'),
     ['Not now',null]]};}
-function meetModal(young,lvl){const p=npc(young?18:16),nw=netWorth()/infl();
+function meetModal(young,lvl){const adult=young||age()>=18,p=npc(adult?18:16,adult?99:17),nw=netWorth()/infl();
   if(lvl){const off=lvl==='low'?()=>-R(10,25):lvl==='high'?()=>R(10,25):()=>R(-8,8);for(const k of ['int','hlt','cha','look','cre','ath'])p.stats[k]=clamp(Math.round((S.stats[k]||50)+off()),5,99);
     p.loy=lvl==='low'?1:lvl==='high'?-1:0;p.lvl=lvl;}
   if(young){p.age=clamp(age()-RI(8,20),18,99);p.young=1;p.job=p.age<23?'Student':pick(['Model','Influencer','Flight attendant','Barista','Personal trainer','Sales assistant']);p.salary=p.age<23?0:2500*R(.8,1.3);p.stats.look=clamp(p.stats.look+20);
@@ -792,13 +792,15 @@ function adoptModal(){const ok=married()?.85:.55,I=a2c(1);
     choices:[go('A baby',0,8000,'Welcome home, #! The sleepless nights begin.'),go('A toddler (age 2 to 4)',RI(2,4),5000,'# holds your hand all the way home. A new chapter starts.'),go('An older child (age 6 to 12)',RI(6,12),3000,'# spent years in a children\'s home. Tonight they sleep in their own room.'),['Not now',null]]};}
 function pregModal(o){const a=age(),p=S.partner,me=S.gender==='F',nm=o.name||'your partner';
   const support=()=>{if(p&&p.alive!==false&&o.fling&&chance(.6)){p.rel=clamp(p.rel-40);log(p.name+' found out about the child from your fling.','big');return ' '+p.name+' finds out and is devastated.';}return '';};
-  if(o.fling&&!me)return {title:'A message from abroad',icon:'m_preg',tag:'Love',text:`Months after your trip, ${esc(nm)} messages you. She is pregnant, and she says it's yours.`,choices:[
-    ['Take responsibility and pay child support',()=>{const k=addKid(o.stats,{note:'from a holiday fling',hap:0});S.money-=a2c(10000);return `${k.name} is born. You send money every month and visit when you can.`+support();}],
-    ['Ask for a paternity test',()=>{if(chance(.6)){const k=addKid(o.stats,{note:'from a holiday fling',hap:0});S.money-=a2c(10000);return `The test says you are the father. ${k.name} joins your family tree.`+support();}return 'The test says you are not the father. You breathe again.';}],
+  // o.how says where the baby came from: a holiday fling (default), a one-night stand ('party') or a secret affair ('affair').
+  const note=o.how==='affair'?'from an affair':o.how==='party'?'from a one-night stand':'from a holiday fling';
+  if(o.fling&&!me)return {title:o.how==='affair'?'She is pregnant':o.how==='party'?'A message out of the blue':'A message from abroad',icon:'m_preg',tag:'Love',text:o.how==='affair'?`${esc(nm)} tells you she is pregnant, and the baby is yours.`:o.how==='party'?`Months after that party, ${esc(nm)} messages you. She is pregnant, and she says it's yours.`:`Months after your trip, ${esc(nm)} messages you. She is pregnant, and she says it's yours.`,choices:[
+    ['Take responsibility and pay child support',()=>{const k=addKid(o.stats,{note,hap:0});S.money-=a2c(10000);return `${k.name} is born. You send money every month and visit when you can.`+support();}],
+    ['Ask for a paternity test',()=>{if(chance(.6)){const k=addKid(o.stats,{note,hap:0});S.money-=a2c(10000);return `The test says you are the father. ${k.name} joins your family tree.`+support();}return 'The test says you are not the father. You breathe again.';}],
     ['Ignore the messages',()=>{bump('hap',-4);S.dyn.rep-=2;return 'You block the number. It does not stop you wondering.';}]]};
   const intro=me?'You find out you are pregnant.':`${esc(nm)} tells you she is pregnant, and the baby is yours.`;
   const ctx=a<18?' You are still in secondary school, and your parents will find out soon.':S.edu.track&&!S.job?' You are still studying.':'';
-  const keep=marry=>()=>{const k=addKid(o.stats,{note:marry||married()?'':'born before marriage',hap:3});
+  const keep=marry=>()=>{const k=addKid(o.stats,{note:o.how==='affair'?note:marry||married()?'':'born before marriage',hap:3});
     if(a<18){S.know=clamp((S.know||0)*.7);bump('dis',3);bump('hap',-4);}if(S.parenting==='Strict'&&a<25)bump('hap',-6);
     if(marry&&p){p.status='married';marryConvert(p);S.money-=a2c(5000);addAch('married');log('Married '+p.name+' before the baby arrived.','big');}
     else if(p&&!o.fling)p.rel=clamp(p.rel+5);
@@ -1323,7 +1325,7 @@ const EV=[
     ['Join them',()=>{bump('hap',5);bump('cha',2);bump('hlt',2);return 'You become the local orchid expert.';}],['Not for you',()=>'You prefer your morning kopi in peace.']]},
   {id:'grandkid',c:()=>S.retired&&S.kids.length>0&&S.money>a2c(25000),t:'Helping a grandchild',x:'Your grandchild needs help with university fees.',ch:[
     ['Pay RM 20,000 (scaled)',()=>{S.money-=a2c(20000);bump('hap',5);S.dyn.rep+=1;return 'They hug you so hard your glasses fall off.';}],['Say you can\'t',()=>'They understand, but you feel a bit guilty.']]},
-  {id:'carried',c:a=>a>=16&&a<=28&&S.partner&&S.partner.alive!==false&&S.partner.status==='dating'&&!samePartner(),t:'Getting serious',x:()=>`You and ${esc(S.partner.name)} are spending a lot of time alone together.`,ch:[
+  {id:'carried',c:a=>a>=18&&a<=28&&S.partner&&S.partner.alive!==false&&S.partner.age>=18&&S.partner.status==='dating'&&!samePartner(),t:'Getting serious',x:()=>`You and ${esc(S.partner.name)} are spending a lot of time alone together.`,ch:[
     ['Be responsible and take it slow',()=>{if(!S.partner)return 'That moment has passed. You are single again.';bump('dis',2);S.partner.rel=clamp(S.partner.rel+3);return 'You talk about the future and agree there is no rush.';}],
     ['Throw caution to the wind',()=>{if(!S.partner)return 'That moment has passed. You are single again.';bump('hap',3);S.partner.rel=clamp(S.partner.rel+6);if(chance(.35)){q(pregModal({stats:S.partner.stats,name:S.partner.name}));return 'A few weeks later, something feels different…';}return 'Nothing comes of it. This time.';}]]},
 ];
@@ -1849,7 +1851,7 @@ function hookupModal(){const o=npc(18),p=S.partner&&S.partner.alive!==false?S.pa
   const go=safe=>()=>{if(S.ap<1)return '';S.ap--;bump('hap',p?1:4);let t=`You and ${esc(o.name)} leave the party together. What happens next stays between you.`;
     if(!safe&&chance(.08)){bump('hlt',-8);t+=' A week later, a clinic visit and a course of antibiotics. Lesson learned.';}
     if(p){bump('hap',-4);if(chance(.3)){p.rel=clamp(p.rel-35);log(p.name+' found out you cheated with '+o.name+'.','big');t+=` ${esc(p.name)} finds the messages. They are furious.`;}else t+=' You feel guilty the next morning.';}
-    if(!safe&&canConceive(o)&&chance(.15))q(pregModal({stats:o.stats,name:o.name,fling:true}));
+    if(!safe&&canConceive(o)&&chance(.15))q(pregModal({stats:o.stats,name:o.name,fling:true,how:'party'}));
     log('One-night stand with '+o.name+'.');return t;};
   return {title:'A night out',icon:'m_fling',tag:'Love',text:`At a friend's party you hit it off with ${esc(o.name)}, ${o.age}.`+(p?`\nYou are with ${esc(p.name)}. Cheating has consequences.`:''),choices:[['Go home with them (use protection)',go(true)],['Go home with them (no protection)',go(false),null,'Risk of pregnancy and infection'],['Just exchange numbers',()=>{S.friends++;return 'You stay friends. Probably the wise choice.';}]]};}
 /* ================= more spouses, affairs, partner preference (v62) ================= */
@@ -1860,7 +1862,7 @@ function allSpouses(){return [...(married()?[S.partner]:[]),...spouses().filter(
 function jobTxt(p){return p.job.toLowerCase()==='student'?'a student':'a '+p.job.toLowerCase();}
 function fixPartners(){const L=spouses();for(let i=L.length-1;i>=0;i--)if(L[i].alive===false)L.splice(i,1);
   if(L.length&&(!S.partner||S.partner.alive===false))S.partner=L.shift();
-  if(!S.partner&&S.affair){const a=S.affair;S.affair=null;a.status='dating';delete a.sus;S.partner=a;log(a.name+' is no longer a secret. You are now openly together.','big');}}
+  if((!S.partner||S.partner.alive===false)&&S.affair){const a=S.affair;S.affair=null;a.status='dating';delete a.sus;S.partner=a;log(a.name+' is no longer a secret. You are now openly together.','big');}}
 function dropSpouse(s,keep){if(S.partner===s)S.partner=null;else{const L=spouses(),i=L.indexOf(s);if(i>=0)L.splice(i,1);}if(keep!=null&&S.money>0)S.money*=keep;fixPartners();}
 function wealthPull(){return clamp(Math.log10(Math.max(netWorth()/infl(),1))*5-20,0,20);}
 // How willing a current spouse is to share you with spouse number n, and how willing the newcomer is to join.
@@ -1928,13 +1930,13 @@ function affairStartModal(){const c=npc(18);c.age=Math.max(18,c.age);const p=S.p
   return {title:'A dangerous spark',icon:'m_fling',tag:'Love',text:`You keep running into ${esc(c.name)}, ${c.age}, ${jobTxt(c)}. The chemistry is obvious.\nYou are with ${esc(p.name)}. If you start something, they could find out.`+meter('Chance they say yes',compat),
     choices:[['Start seeing them in secret',()=>{if(!chance(compat/100)){bump('hap',-2);return `${esc(c.name)} says they don't date people who are taken. Fair.`;}c.secret=1;c.sus=10;c.rel=50;S.affair=c;log('Started a secret affair with '+c.name+'.');bump('hap',3);return `You start meeting ${esc(c.name)} in secret. Your phone now lives face down.`;}],
       ['Walk away',()=>'You go home to '+p.name+'. Nothing happened.']]};}
-function affairTick(){const f=S.affair;if(!f)return;f.age++;if(!S.partner){fixPartners();return;}
+function affairTick(){const f=S.affair;if(!f)return;f.age++;if(!S.partner||S.partner.alive===false){fixPartners();return;}
   f.rel=clamp(f.rel-5);f.sus=clamp((f.sus||0)+6-S.stats.dis/25);
   if(f.rel<20&&chance(.5)){S.affair=null;log(f.name+' ended the affair.');q({title:'It\'s over',icon:'m_fling',tag:'Love',text:`${esc(f.name)} is tired of being a secret and ends it.`,choices:[['Let them go',()=>'Nobody finds out. This time.']]});return;}
   if(chance(f.sus/100*.6)){q(caughtModal('You leave your phone unlocked on the table.'));return;}
   if(f.rel>=70&&!spouses().length&&chance(.3)){q(affairUltimatum());return;}
-  if(canConceive(f)&&chance(.06)){f.sus=clamp(f.sus+30);q(pregModal({stats:f.stats,name:f.name,fling:true}));}}
-function affairDate(){const f=S.affair;if(!f||S.ap<1)return;if(!S.partner){fixPartners();render();return;}S.ap--;f.rel=clamp(f.rel+10);f.sus=clamp(f.sus+12-S.stats.dis/10);bump('hap',3);
+  if(canConceive(f)&&chance(.06)){f.sus=clamp(f.sus+30);q(pregModal({stats:f.stats,name:f.name,fling:true,how:'affair'}));}}
+function affairDate(){const f=S.affair;if(!f||S.ap<1)return;if(!S.partner||S.partner.alive===false){fixPartners();render();return;}S.ap--;f.rel=clamp(f.rel+10);f.sus=clamp(f.sus+12-S.stats.dis/10);bump('hap',3);
   if(f.sus>=60&&chance(.35)){qFront(caughtModal('Someone spots you two at a hotel lobby in Bukit Bintang.'));showNext();return;}
   toast(pick(['A long lunch at a hotel across town.','Supper in a quiet corner of a kopitiam.','A "work trip" to Penang.'])+' Suspicion is rising.');render();save();}
 function caughtModal(how){const f=S.affair,L=allSpouses().length?allSpouses():[S.partner].filter(Boolean),F=esc(f.name),who=L.map(s=>esc(s.name)).join(' and ');
@@ -1969,7 +1971,9 @@ function pandemicNow(){return S.world.active.find(e=>['sars03','covid','pandemic
 function illChance(){const a=age();let p=.07+Math.max(0,a-35)/250+Math.max(0,55-S.stats.hlt)/250;if(S.traits.includes('Sickly'))p*=1.4;if(pandemicNow())p+=.25;return Math.min(p,.6);}
 function pickIll(){const a=age(),pd=pandemicNow();
   if(pd&&chance(.7)){const nm=pd.id==='sars03'?'SARS':pd.id==='covid'?'COVID-19':'the new virus';return {n:nm,sev:a>=60?pick([2,3]):a>=40?pick([1,2,2]):pick([1,1,2]),pand:1};}
-  const r=Math.random(),sev=r<(a<30?.04:a<50?.12:.25)?3:r<.4?2:1;return pick(ILLS.filter(x=>x.sev===sev&&a>=(x.minA||0)&&a<=(x.maxA||200)));}
+  const r=Math.random();let sev=r<(a<30?.04:a<50?.12:.25)?3:r<.4?2:1,L;
+  // Young children have no life-threatening illness on the list, so drop to the next severity down.
+  while(!(L=ILLS.filter(x=>x.sev===sev&&a>=(x.minA||0)&&a<=(x.maxA||200))).length&&sev>1)sev--;return pick(L);}
 function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
   const can=k=>!kid||k==='gov'||k==='clinic'||k==='none'||(k==='priv'&&S.birthGroup!=='B40')||(k==='abroad'&&S.birthGroup==='T20');
   const ch=['gov','clinic','priv','abroad','none'].filter(can).map(k=>{const C=CARE[k];
@@ -2010,7 +2014,7 @@ function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.fil
   ns.know=clamp(st.int*.6);
   if(a>=19&&!E.track&&a<60){const opts=Object.keys(JOBS).filter(id=>!eligible(id).length&&!JOBS[id].startCost);if(opts.length){opts.sort((x,y)=>JOBS[y].base-JOBS[x].base);const id=opts[0];const J=JOBS[id];ns.job={id,level:Math.min(J.levels.length-1,Math.max(0,Math.floor((a-23)/6))),years:Math.max(0,a-23),lvl:0,bonus:1};}}
   if(a>=60)ns.retired=true;
-  if(a>=28&&chance(.55)){ns.partner=npc(25);ns.partner.age=clamp(a+RI(-3,3),20,99);ns.partner.status='married';ns.partner.rel=65;marryConvert(ns.partner,true);if(a>=32&&chance(.6)){const n=RI(1,2);for(let i=0;i<n;i++){const k=newKidSilent(ns,RI(1,Math.min(12,a-28)));}}}
+  if(a>=28&&chance(.55)){ns.partner=npc(25);ns.partner.age=clamp(a+RI(-3,3),20,99);ns.partner.status='married';ns.partner.rel=65;marryConvert(ns.partner,true);if(a>=32&&chance(.6)){const n=RI(1,2),lo=Math.max(1,a-42),hi=Math.max(lo,a-26);for(let i=0;i<n;i++)newKidSilent(ns,RI(lo,hi));}}
   ns.ap=apFor();
   log(`${dyn.famLabel||CULTURES[prev.culture].famLabel(prev.famName)}: Generation ${dyn.gen} begins. ${kid.name} (${a}) inherits ${fmt(share)}${prev.will?'':' after '+fmt(es.legal)+' in legal fees and family disputes (no will)'}.`,'big');
   if(ns.assets.houses.length)log('Inherited '+ns.assets.houses.length+' propert'+(ns.assets.houses.length>1?'ies':'y')+'.');
@@ -2100,7 +2104,7 @@ function panelFamily(){const p=S.partner,a=age();
   let love;
   if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
     <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${barCls(p.rel)}" style="width:${p.rel}%"></i></div></div>
-    <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button><button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>${S.affair?'':`<button class="btn small" data-act="affair" ${S.ap>0?'':'disabled'}>Start a secret affair (1 action)</button>`}`:''}${married()&&allSpouses().length<MAX_SPOUSES&&a>=21?`<button class="btn small" data-act="findspouse" ${S.ap>0?'':'disabled'}>Marry another partner (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
+    <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`${p.age>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button>`:''}<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>${S.affair?'':`<button class="btn small" data-act="affair" ${S.ap>0?'':'disabled'}>Start a secret affair (1 action)</button>`}`:''}${married()&&allSpouses().length<MAX_SPOUSES&&a>=21?`<button class="btn small" data-act="findspouse" ${S.ap>0?'':'disabled'}>Marry another partner (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
   else love=`<p style="margin:0">${p?'Widowed. ':''}You're single.</p><div class="row"><button class="btn small" data-act="findlove" ${a>=16&&S.ap>0?'':'disabled'}>Look for love (1 action)</button>${a>=18?`<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone (1 action)</button>`:''}${a>=28?`<button class="btn small" data-act="findyoung" ${S.ap>0?'':'disabled'}>Look for a younger partner (1 action)</button>`:''}</div>`;
   love+=spouses().map((s,i)=>`<div class="item" style="margin-top:14px">${ico('spouse_'+(s.gender==='M'?'m':'f'),'',s.culture)}<div class="t"><b>${esc(s.name)} <span class="chip">Spouse ${i+2}</span></b><small>${s.age} · ${esc(s.job)}</small></div></div>
     <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(s.rel)}</span></div><div class="bar"><i class="${barCls(s.rel)}" style="width:${s.rel}%"></i></div></div>
@@ -2150,7 +2154,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-21.62';
+const GAME_VERSION='2026-10-21.63';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
@@ -2189,14 +2193,14 @@ const ACT={
   findspouse(){if(S.ap<1||!married()||allSpouses().length>=MAX_SPOUSES)return;S.ap--;qFront(spouseFindModal());showNext();},
   spdate(a){const s=spouses()[+a];if(!s||S.ap<1)return;S.ap--;s.rel=clamp(s.rel+10+S.stats.cha/12);bump('hap',2);toast(pick(['Dinner by the river with ','A long drive with ','Breakfast at the mamak with '])+s.name+'.');render();save();},
   spdiv(a){const s=spouses()[+a];if(!s)return;dropSpouse(s,.5);log('Divorced '+s.name+'.','big');bump('hap',-8);render();save();},
-  affair(){if(S.ap<1||!S.partner||S.affair||age()<18)return;S.ap--;qFront(affairStartModal());showNext();},
+  affair(){if(S.ap<1||!S.partner||S.partner.alive===false||S.affair||age()<18)return;S.ap--;qFront(affairStartModal());showNext();},
   affdate(){affairDate();},
-  affend(){const f=S.affair;if(!f)return;S.affair=null;bump('hap',-3);log('Ended the affair with '+f.name+'.');if(S.partner&&chance(.2)){S.affair=f;qFront(caughtModal(`Hurt and angry, ${esc(f.name)} tells ${esc(S.partner.name)} everything.`));showNext();return;}render();save();},
+  affend(){const f=S.affair;if(!f)return;S.affair=null;bump('hap',-3);log('Ended the affair with '+f.name+'.');if(S.partner&&S.partner.alive!==false&&chance(.2)){S.affair=f;qFront(caughtModal(`Hurt and angry, ${esc(f.name)} tells ${esc(S.partner.name)} everything.`));showNext();return;}render();save();},
   pref(){if(S.prefChanged)return;qFront(prefModal());showNext();},
   findyoung(){if(S.ap<1)return;S.ap--;if(chance(.8))qFront(meetModal(true));else toast('No luck this time.');render();showNext();},
   restudy(){qFront(restudyModal());showNext();},
   will(){S.money-=1500*infl();S.will=true;log('Wrote a will.');render();save();},
-  night(){if(S.ap<1||age()<18||!S.partner)return;qFront(nightModal());showNext();},hookup(){if(S.ap<1||age()<18)return;qFront(hookupModal());showNext();},
+  night(){if(S.ap<1||age()<18||!S.partner||S.partner.age<18)return;qFront(nightModal());showNext();},hookup(){if(S.ap<1||age()<18)return;qFront(hookupModal());showNext();},
   hop(){if(S.ap<1||!canHop()||S.hopYear===S.year)return;qFront(hopModal());showNext();},
   poljoin(){qFront(joinModal());showNext();},polwork(){if(S.ap<1||!S.pol)return;S.ap--;S.pol.loy=clamp(S.pol.loy+8);S.pol.sup=clamp(S.pol.sup+3);bump('hap',-1);toast('You give out flyers and fold chairs at the branch office. Party standing up.');render();save();},
   ceramah(){if(S.ap<1||!S.pol)return;S.ap--;bump('cha',1);S.pol.sup=clamp(S.pol.sup+8);if(chance(.1)){S.pol.sup=clamp(S.pol.sup-10);toast('Your joke falls flat and a clip goes viral. Support down.');}else toast('A big crowd under the tent. Charisma and local support up.');render();save();},
