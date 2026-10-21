@@ -753,20 +753,28 @@ function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span clas
   return {title:'Which language?',text:'Languages help with exams, jobs and moving abroad.',choices:opts};}
 
 /* ================= love & family ================= */
-function npc(minA,maxA){let g=S.pref==='opp'?(S.gender==='M'?'F':'M'):S.pref==='same'?S.gender:pick(['M','F']);
+// Chance that someone you meet at home is from another country: rare, higher at international and private schools.
+function intlChance(){const a=age(),E=S.edu,t=E.track;let p=S.country==='SG'?.15:['kl','pj','penang'].includes(S.town)?.04:.025;
+  if(a<=12&&E.primary==='intl'||a>=13&&a<=17&&E.secondary==='intl')p=.25;
+  else if(t&&t.kind==='uni'&&!t.abroad)p=t.cost>=35000?.15:.05;
+  return p;}
+const FOREIGN_FROM=['UK','US','AU','DE','KR','KR','JP','JP','CN'];
+function npc(minA,maxA,from){let g=S.pref==='opp'?(S.gender==='M'?'F':'M'):S.pref==='same'?S.gender:pick(['M','F']);
   let name,culture;const c=S.country;
-  if(c==='MY'||c==='SG'){culture=pick(partnerCults());name=genName(culture,g);}
-  else{culture={JP:'japanese',KR:'korean',CN:'chinese',TW:'chinese'}[c]||'western';const P=FOREIGN_NAMES[c]||FOREIGN_NAMES.west;name=pick(g==='M'?P.m:P.f);}
+  if((c==='MY'||c==='SG')&&!from&&chance(intlChance()))from=pick(FOREIGN_FROM);
+  if(from&&from!==c){culture={JP:'japanese',KR:'korean',CN:'chinese',TW:'chinese'}[from]||'western';const P=FOREIGN_NAMES[from]||FOREIGN_NAMES.west;name=pick(g==='M'?P.m:P.f);}
+  else if(c==='MY'||c==='SG'){from=null;culture=pick(partnerCults());name=genName(culture,g);}
+  else{from=null;culture={JP:'japanese',KR:'korean',CN:'chinese',TW:'chinese'}[c]||'western';const P=FOREIGN_NAMES[c]||FOREIGN_NAMES.west;name=pick(g==='M'?P.m:P.f);}
   const jobs=[['Teacher',3100],['Engineer',4500],['Nurse',3000],['Accountant',4000],['Designer',3200],['Sales executive',3200],['Software engineer',5500],['Doctor',7000],['Business owner',5000],['Civil servant',3200],['Chef',2800],['Pharmacist',4800]];
   const j=pick(jobs);const a=clamp(age()+RI(-4,4),minA||16,maxA||99);
-  return {name,culture,gender:g,age:a,job:a<22?'Student':j[0],salary:a<22?0:j[1]*R(.8,1.4),rel:30,status:'dating',alive:true,stats:{int:RI(30,90),hlt:RI(40,90),cha:RI(30,90),look:RI(30,90),cre:RI(30,90),ath:RI(30,90)}};}
+  return {name,culture,from:from||undefined,gender:g,age:a,job:a<22?'Student':j[0],salary:a<22?0:j[1]*R(.8,1.4),rel:30,status:'dating',alive:true,stats:{int:RI(30,90),hlt:RI(40,90),cha:RI(30,90),look:RI(30,90),cre:RI(30,90),ath:RI(30,90)}};}
 function loveLevelModal(){const lv=(lbl,k,note)=>[lbl,()=>{if(S.ap<1)return '';S.ap--;if(chance(k==='high'?.55:k==='low'?.9:.75)){qFront(meetModal(false,k));return '';}return 'No sparks this time.';},()=>S.ap>0,note];
   return {title:'Look for love',icon:'m_love',tag:'Love',text:'What kind of partner are you looking for? (1 action)',choices:[
     lv('Someone like me','same','Similar looks, smarts and charm. Normal odds and normal loyalty.'),
     lv('Someone below my level','low','Easier to win over, and very loyal. Hard to lose them.'),
     lv('Someone above my level','high','Hard to win over. They are more likely to cheat or leave, though not always.'),
     ['Not now',null]]};}
-function meetModal(young,lvl){const adult=young||age()>=18,p=npc(adult?18:16,adult?99:17),nw=netWorth()/infl();
+function meetModal(young,lvl,pre){const adult=young||age()>=18,p=pre||npc(adult?18:16,adult?99:17),nw=netWorth()/infl();
   if(lvl){const off=lvl==='low'?()=>-R(10,25):lvl==='high'?()=>R(10,25):()=>R(-8,8);for(const k of ['int','hlt','cha','look','cre','ath'])p.stats[k]=clamp(Math.round((S.stats[k]||50)+off()),5,99);
     p.loy=lvl==='low'?1:lvl==='high'?-1:0;p.lvl=lvl;}
   if(young){p.age=clamp(age()-RI(8,20),18,99);p.young=1;p.job=p.age<23?'Student':pick(['Model','Influencer','Flight attendant','Barista','Personal trainer','Sales assistant']);p.salary=p.age<23?0:2500*R(.8,1.3);p.stats.look=clamp(p.stats.look+20);
@@ -774,7 +782,7 @@ function meetModal(young,lvl){const adult=young||age()>=18,p=npc(adult?18:16,adu
   const rich=young?clamp(Math.log10(Math.max(nw,1))*4-12,0,25):0;
   const compat=clamp(50+(S.stats.cha-50)/2+(S.stats.look-50)/3+R(-20,20)-(p.stats.look-S.stats.look)/5+rich+(lvl==='low'?25:lvl==='high'?-25:0),5,95);
   const hint=(p.gold&&chance(.5)?'\nThey ask what car you drive. Twice.':'')+(lvl==='low'?'\nThey seem a little starstruck by you.':lvl==='high'?'\nHonestly, they are out of your league, and they know it.':'');
-  return {title:'Someone catches your eye',icon:'m_love',tag:'Love',text:`You meet ${esc(p.name)}, ${p.age}, ${p.job.toLowerCase()==='student'?'a student':'a '+p.job.toLowerCase()}.\nChemistry: ${Math.round(compat)}%.${hint}`,
+  return {title:'Someone catches your eye',icon:'m_love',tag:'Love',text:`You meet ${esc(p.name)}, ${p.age}${natTxt(p)?','+natTxt(p):''}, ${jobTxt(p)}.\nChemistry: ${Math.round(compat)}%.${hint}`,
    choices:[['Ask them out',()=>{if(chance(compat/100)){S.partner=p;log('Started dating '+p.name+'.','big');bump('hap',6);return p.name+' says yes! You\'re now dating.';}bump('hap',-3);return p.name+' politely says they\'re not interested.';}],['Stay friends',()=>{S.friends++;return 'You add '+p.name+' to your circle of friends.';}]]};}
 function rndStats(){return {int:RI(30,85),hlt:RI(40,90),cha:RI(30,85),look:RI(30,85),cre:RI(30,85),ath:RI(30,85)};}
 function addKid(other,o){o=o||{};const st=o.adopted?inherit(rndStats(),rndStats()):inherit(S.stats,other||inheritBase());st.dis=RI(20,45);st.hap=RI(55,80);st.luck=RI(20,80);
@@ -1246,6 +1254,25 @@ function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
   q({title:F,icon:'f_'+S.culture,tag:'Festive season',text:`It's ${F}! How will you celebrate this year?`,choices:ch});}
 
 /* ================= random events ================= */
+// Romance with people from other countries, at home (v66). fNpc makes someone from abroad around your age.
+function fNpc(k,minA,maxA){const p=npc(minA,maxA,k);p.age=clamp(age()+RI(-3,3),minA,maxA);if(p.age<22&&age()<23)p.job='Student';return p;}
+const fLang=k=>COUNTRIES[k].lang;
+const EV_FOREIGN=[
+  {id:'f_exchange',c:a=>a>=15&&a<=17&&S.country==='MY'&&!S.partner,t:'The new exchange student',x:()=>{const k=S._fx=pick(['JP','KR','UK','DE','US']);return `A student from ${COUNTRIES[k].name} joins your class for a term. Everyone wants to sit next to them, but the teacher asks you to show them around.`;},ch:[
+    ['Show them around school',()=>{const k=S._fx||'JP',o=fNpc(k,15,17);bump('cha',2);S.friends++;if(chance(.45+(S.stats.cha-50)/200)){qFront(meetModal(false,null,o));return `You take ${esc(o.name)} to the canteen for nasi lemak and teach them how to order teh ais. You have a lot in common.`;}return `${esc(o.name)} becomes a good friend. You promise to visit ${COUNTRIES[k].name} one day.`;}],
+    ['Swap language lessons',()=>{const k=S._fx||'JP',l=fLang(k);S.langs[l]=clamp((S.langs[l]||0)+RI(6,10));bump('int',1);return `You teach them "boleh" and "jom makan". They teach you some ${LANG[l]}.`;}],
+    ['Leave it to the class monitor',()=>'You stick with your usual group.']]},
+  {id:'f_tourist',c:a=>a>=18&&a<=40&&S.country==='MY'&&!S.partner,t:'Lost in Jonker Street',x:()=>{const k=S._fx=pick(['UK','AU','US','KR','JP','DE']);return `On a weekend in Melaka, a traveller from ${COUNTRIES[k].name} asks you for directions. Their map app has given up.`;},ch:[
+    ['Offer to show them around',()=>{const k=S._fx||'UK',o=fNpc(k,18,60);bump('hap',3);if(chance(.4+(S.stats.cha-50)/200+(S.langs.en||0)/400)){qFront(meetModal(false,null,o));return `Cendol, the Stadthuys and a river cruise at sunset. By the end of the day you and ${esc(o.name)} are still talking.`;}return `${esc(o.name)} thanks you with a selfie and flies home the next day.`;}],
+    ['Point the way and go',()=>{bump('cha',1);return 'They wave goodbye. Good deed for the day.';}]]},
+  {id:'f_langex',c:a=>a>=18&&a<=45&&S.country==='MY'&&!S.partner&&['kl','pj','penang','jb','shahalam'].includes(S.town),t:'Language exchange night',x:'A café near your place runs a language exchange every Thursday. Expats and locals swap languages over coffee.',ch:[
+    ['Practise Japanese',()=>fLangEx('JP')],['Practise Korean',()=>fLangEx('KR')],['Practise English',()=>fLangEx(pick(['UK','AU','US']))],['Stay home tonight',()=>'Maybe next week.']]},
+  {id:'f_expat',c:a=>office(a)&&a<=50&&S.country==='MY'&&!S.partner,t:'A new colleague from abroad',x:()=>{const k=S._fx=pick(['JP','KR','UK','DE','AU']);return `Your company transfers someone from its ${COUNTRIES[k].city} office to KL. They don't know anyone here yet.`;},ch:[
+    ['Take them out for makan',()=>{const k=S._fx||'JP',o=fNpc(k,23,60);o.job=pick(['Engineer','Manager','Consultant','Designer','Analyst']);o.salary=7000*R(.8,1.4);if(chance(.4+(S.stats.cha-50)/200)){qFront(meetModal(false,null,o));return `Roti canai, then durian, which ${esc(o.name)} bravely tries. You keep finding reasons to have lunch together.`;}S.friends++;return `${esc(o.name)} becomes a good friend at work.`;}],
+    ['Keep it professional',()=>'You help them with the printer and leave it there.']]},
+];
+function fLangEx(k){const l=fLang(k),o=fNpc(k,18,60);S.langs[l]=clamp((S.langs[l]||0)+RI(5,9));
+  if(chance(.35+(S.stats.cha-50)/200)){qFront(meetModal(false,null,o));return `You get paired with ${esc(o.name)} from ${COUNTRIES[k].name}. The hour flies by.`;}return `Your ${LANG[l]} improves a little. Everyone is friendly, but no sparks.`;}
 const EV=[
   // 4D: legal age is 21, and Muslims are barred from buying, so Malay families never get it.
   {id:'lottery4d',c:a=>a>=21&&S.country==='MY'&&S.culture!=='malay',t:'4D fever',x:'The jackpot is over RM 10 million this week and the queue at the 4D shop is out the door. Your aunt swears your IC number is lucky.',ch:[
@@ -1514,7 +1541,7 @@ const EV_STAGE_ICONS={
   ev_u_hostel:'🛏️',ev_u_parttime:'☕',ev_u_allnighter:'🌙',ev_u_club:'🗳️',ev_u_exchange:'✈️',ev_u_ptptn:'💳',ev_u_lecturer:'⏰',ev_u_hackathon:'💻',ev_u_fyp:'📑',ev_u_convo:'🎓',
   ev_w_firstpay:'💵',ev_w_jam:'🚗',ev_w_dinner:'🎤',ev_w_colleague:'😩',ev_w_course:'📈',ev_w_layoff:'📉',ev_w_raise:'💹',ev_w_house:'🏠',ev_w_wedding:'💒',ev_w_sidehustle:'🛵',
 };
-EV.push(...EV_STAGE);Object.assign(ICON_EMOJI,EV_STAGE_ICONS);
+EV.push(...EV_STAGE,...EV_FOREIGN);Object.assign(ICON_EMOJI,EV_STAGE_ICONS,{ev_f_exchange:'🎒',ev_f_tourist:'🗺️',ev_f_langex:'☕',ev_f_expat:'🧳'});
 // work events can resolve after the job is gone (e.g. retrenched earlier the same year)
 EV_STAGE.filter(e=>e.id.startsWith('w_')).forEach(e=>{e.ch=e.ch.map(c=>[c[0],()=>S.job?c[1]():'That no longer matters now.',c[2],c[3]]);});
 function promote(){const J=JOBS[S.job.id];if(S.job.level<J.levels.length-1){S.job.level++;S.job.lvl=0;log('Promoted to '+J.levels[S.job.level]+'!','big');bump('hap',5);if(S.job.level===J.levels.length-1){addAch('boss');S.dyn.rep+=3;}return 'Promoted to '+J.levels[S.job.level]+'!';}
@@ -1870,7 +1897,8 @@ const MAX_SPOUSES=4;
 function polyOK(){return S.polyRule==='fun'||S.culture==='malay'&&S.gender==='M'&&married()&&S.partner.gender==='F';}
 function spouses(){return (S.spouses=S.spouses||[]);}
 function allSpouses(){return [...(married()?[S.partner]:[]),...spouses().filter(x=>x.alive!==false)];}
-function jobTxt(p){return p.job.toLowerCase()==='student'?'a student':'a '+p.job.toLowerCase();}
+function natTxt(p){return p&&p.from&&p.from!==S.country&&COUNTRIES[p.from]?' from '+COUNTRIES[p.from].name:'';}
+function jobTxt(p){const j=p.job.toLowerCase();return (/^[aeiou]/.test(j)?'an ':'a ')+j;}
 function fixPartners(){const L=spouses();for(let i=L.length-1;i>=0;i--)if(L[i].alive===false)L.splice(i,1);
   if(L.length&&(!S.partner||S.partner.alive===false))S.partner=L.shift();
   if((!S.partner||S.partner.alive===false)&&S.affair){const a=S.affair;S.affair=null;a.status='dating';delete a.sus;S.partner=a;log(a.name+' is no longer a secret. You are now openly together.','big');}}
@@ -1885,7 +1913,7 @@ function spouseFindModal(){const pf=S.pref;if(S.polyRule!=='fun')S.pref='opp';co
   if(c.age>age()+8&&chance(.5))c.gold=chance(.3);return polyModal(c);}
 function polyModal(c){const L=allSpouses(),n=L.length+1,sw=L.map(s=>spouseOK(s,n,c.spBoost)),cw=candOK(c,n),gift=a2c(3000)*L.length,date=a2c(800);
   const names=L.map(s=>esc(s.name)).join(' and ');
-  return {title:'Another wedding?',icon:'m_ring',tag:'Love',text:`You grow close to ${esc(c.name)}, ${c.age}, ${jobTxt(c)}. Marrying them would make them spouse number ${n}.\nYou need ${L.length>2?'all your spouses':L.length>1?'both your spouses':esc(L[0].name)} to agree before you can propose.${S.polyRule==='fun'?'':' The Syariah court will also want to see that you can support another family.'}`+L.map((s,i)=>meter(esc(s.name)+' would accept it',sw[i])).join('')+meter(esc(c.name)+' would say yes',cw),
+  return {title:'Another wedding?',icon:'m_ring',tag:'Love',text:`You grow close to ${esc(c.name)}, ${c.age}${natTxt(c)?','+natTxt(c):''}, ${jobTxt(c)}. Marrying them would make them spouse number ${n}.\nYou need ${L.length>2?'all your spouses':L.length>1?'both your spouses':esc(L[0].name)} to agree before you can propose.${S.polyRule==='fun'?'':' The Syariah court will also want to see that you can support another family.'}`+L.map((s,i)=>meter(esc(s.name)+' would accept it',sw[i])).join('')+meter(esc(c.name)+' would say yes',cw),
     choices:[
       [`Ask ${names} for permission`,()=>{const no=L.filter((s,i)=>!chance(sw[i]/100));
         if(no.length){no.forEach(s=>s.rel=clamp(s.rel-12));bump('hap',-4);log(no.map(s=>s.name).join(' and ')+' refused to let you marry '+c.name+'.');return `${no.map(s=>esc(s.name)).join(' and ')} ${no.length>1?'refuse':'refuses'}. The house is very cold for a few weeks.`;}
@@ -1938,7 +1966,7 @@ function multiEvent(){const L=allSpouses(),a=pick(L),b=pick(L.filter(x=>x!==a)),
   const e=pick(E);return {title:e.t,icon:'t_family',tag:'Family',text:e.x,choices:e.ch};}
 // Secret partners
 function affairStartModal(){const c=npc(18);c.age=Math.max(18,c.age);const p=S.partner,compat=clamp(45+(S.stats.cha-50)/2+(S.stats.look-50)/3+R(-20,20),5,95);
-  return {title:'A dangerous spark',icon:'m_fling',tag:'Love',text:`You keep running into ${esc(c.name)}, ${c.age}, ${jobTxt(c)}. The chemistry is obvious.\nYou are with ${esc(p.name)}. If you start something, they could find out.`+meter('Chance they say yes',compat),
+  return {title:'A dangerous spark',icon:'m_fling',tag:'Love',text:`You keep running into ${esc(c.name)}, ${c.age}${natTxt(c)?','+natTxt(c):''}, ${jobTxt(c)}. The chemistry is obvious.\nYou are with ${esc(p.name)}. If you start something, they could find out.`+meter('Chance they say yes',compat),
     choices:[['Start seeing them in secret',()=>{if(!chance(compat/100)){bump('hap',-2);return `${esc(c.name)} says they don't date people who are taken. Fair.`;}c.secret=1;c.sus=10;c.rel=50;S.affair=c;log('Started a secret affair with '+c.name+'.');bump('hap',3);return `You start meeting ${esc(c.name)} in secret. Your phone now lives face down.`;}],
       ['Walk away',()=>'You go home to '+p.name+'. Nothing happened.']]};}
 function affairTick(){const f=S.affair;if(!f)return;f.age++;if(!S.partner||S.partner.alive===false){fixPartners();return;}
@@ -2113,7 +2141,7 @@ function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY
 function panelFamily(){const p=S.partner,a=age();
   const parents=S.parents.map(x=>`<div class="item">${ico(x.role==='Father'?'father':'mother')}<div class="t"><b>${esc(x.role)}: ${esc(x.name)}</b><small>${esc(x.job)} · ${x.alive?'age '+x.age:'passed away'}</small></div></div>`).join('');
   let love;
-  if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
+  if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${natTxt(p)?' · '+natTxt(p).trim():''}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
     <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${barCls(p.rel)}" style="width:${p.rel}%"></i></div></div>
     <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`${p.age>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button>`:''}<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>${S.affair?'':`<button class="btn small" data-act="affair" ${S.ap>0?'':'disabled'}>Start a secret affair (1 action)</button>`}`:''}${married()&&polyOK()&&allSpouses().length<MAX_SPOUSES&&a>=21?`<button class="btn small" data-act="findspouse" ${S.ap>0?'':'disabled'}>Marry another partner (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
   else love=`<p style="margin:0">${p?'Widowed. ':''}You're single.</p><div class="row"><button class="btn small" data-act="findlove" ${a>=16&&S.ap>0?'':'disabled'}>Look for love (1 action)</button>${a>=18?`<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone (1 action)</button>`:''}${a>=28?`<button class="btn small" data-act="findyoung" ${S.ap>0?'':'disabled'}>Look for a younger partner (1 action)</button>`:''}</div>`;
@@ -2165,7 +2193,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-21.65';
+const GAME_VERSION='2026-10-21.66';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
