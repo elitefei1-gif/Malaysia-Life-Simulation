@@ -626,7 +626,7 @@ function salary(fx){const J=JOBS[S.job.id];let m=salaryBase();if(S.country!=='MY
   if(S.job.id==='entrepreneur'&&S.pol&&S.pol.rank>=2)m*=1.3;
   if(origCult()==='chinese'&&['entrepreneur','sales'].includes(S.job.id))m*=1.15; // family and clan business network
   if(J.volatile)m*=Math.max(.15,1+(Math.random()*2-1)*J.volatile+(S.stats.luck-50)/200+(S.stats[J.stat]-50)/150);return m;}
-function partnerMonthly(){return married()&&S.partner.age<62?S.partner.salary*infl()*(S.country==='MY'?1:ctry().sal):0;}
+function partnerMonthly(){return allSpouses().reduce((t,p)=>t+(p.age<62?p.salary:0),0)*infl()*(S.country==='MY'?1:ctry().sal);}
 function incomeMonthly(){return (S.job?(S.job.lastMonthly||salaryBase()):0)+partnerMonthly();}
 const rate=fx=>.04+((fx&&fx.rate)||0);
 function amort(P,r,n){return P*r/(1-Math.pow(1+r,-n));}
@@ -678,7 +678,7 @@ function diff(b){const out=[];for(const k in STAT_NAMES){if(k==='luck')continue;
 function showNext(){if(cur)return;const m=MQ.shift();
   if(!m){$('#modal').hidden=true;render();save();if(!S.alive){showEnd();return;}if(autoYears>0)setTimeout(runAuto,180);return;}
   cur=m;drawModal();}
-const TAG_ART={'Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'✈️','Money':'💰','Career':'💼','Family':'👨‍👩‍👧','World event':'🌏','Festive season':'🏮','Education':'🎓','Vehicle':'🚗','Property':'🏠'};
+const TAG_ART={'Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'✈️','Money':'💰','Career':'💼','Family':'👨‍👩‍👧','World event':'🌏','Health':'🏥','Festive season':'🏮','Education':'🎓','Vehicle':'🚗','Property':'🏠'};
 // Illustration area: m.img (a picture URL) wins, then a full event picture (ev_ keys), then the event icon, then a tag emoji.
 // Politics pop-ups have no event id, so their pictures are matched by title.
 const POL_ART={'Late-night WhatsApp':'ev_pol_whatsapp','A fiery speech':'ev_pol_speech','Viral TikTok':'ev_pol_tiktok','Faction war':'ev_pol_faction','The "hotel move"':'ev_pol_hotel','General election':'ev_pol_ge','Party elections':'ev_pol_party','MACC raid':'ev_pol_raid','Prime Minister':'ev_pol_pm','Sacked':'ev_pol_sacked','Royal pardon':'ev_pol_pardon','Released':'ev_pol_released','Leaked files':'ev_pol_leak','Family betrayal':'ev_pol_betrayal'};
@@ -1188,7 +1188,7 @@ function relationships(){const p=S.partner;if(!p)return;p.age++;
     if(S.money<a2c(15000)&&chance(.5)){S.partner=null;bump('hap',-10);log(p.name+' left when the money ran out.','big');q({title:'Gone',icon:'m_gold',tag:'Love',text:`${esc(p.name)} packs up and leaves. Your bank balance was the main attraction.`,choices:[['Ouch',()=>'Lesson learned.']]});return;}
     if(chance(.45))q(goldDemandModal());if(chance(.22))q(cheatModal());}
   else if(p.loy===-1?chance(p.rel<50?.2:.1):p.loy!==1&&p.rel<35&&chance(.06))q(cheatModal());
-  p.rel=clamp(p.rel-(married()?3:6)+(p.loy||0)*2);
+  p.rel=clamp(p.rel-(married()?3:6)-spouses().length+(p.loy||0)*2);
   if(p.status==='dating'&&p.rel<(p.loy===1?10:p.loy===-1?35:25)&&chance(p.rel<(p.loy===1?5:12)?1:.5)){q(breakupModal(p));return;}
   if(married()&&p.rel<(p.loy===1?8:p.loy===-1?28:20)&&!S.divorceAsked&&chance(p.rel<(p.loy===1?4:10)?1:.5)){S.divorceAsked=true;q(divorceAskModal(p));return;}
   const a=age();if(p.alive!==false&&p.rel>=45&&a>=20&&a<46&&p.age<46&&S.kids.length<8&&!S.babyAsked&&chance(married()?(S.kids.length?.12:.3):.08)){S.babyAsked=true;q(babyAskModal(p));}}
@@ -1734,7 +1734,8 @@ function nextYear(){if(cur||!S.alive)return;
   S.year++;tab='life';S.applied=0;
   worldTick();const fx=fxNow();
   if(age()>=18)finances(fx);else kidMoney();
-  careerTick(fx);polTick();passive(fx);milestones();relationships();parentsTick();petsTick();kidsTick();
+  careerTick(fx);polTick();passive(fx);milestones();fixPartners();relationships();spousesTick();affairTick();parentsTick();petsTick();kidsTick();
+  if(age()>=3&&S.alive&&chance(illChance()))q(illModal(pickIll()));
   if(age()>=2)festival();
   if(age()>=5&&chance(.55))randomEvent();
   if(S.job&&age()>=18&&chance(.4))workEvent();
@@ -1851,7 +1852,141 @@ function hookupModal(){const o=npc(18),p=S.partner&&S.partner.alive!==false?S.pa
     if(!safe&&canConceive(o)&&chance(.15))q(pregModal({stats:o.stats,name:o.name,fling:true}));
     log('One-night stand with '+o.name+'.');return t;};
   return {title:'A night out',icon:'m_fling',tag:'Love',text:`At a friend's party you hit it off with ${esc(o.name)}, ${o.age}.`+(p?`\nYou are with ${esc(p.name)}. Cheating has consequences.`:''),choices:[['Go home with them (use protection)',go(true)],['Go home with them (no protection)',go(false),null,'Risk of pregnancy and infection'],['Just exchange numbers',()=>{S.friends++;return 'You stay friends. Probably the wise choice.';}]]};}
-function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.filter(k=>k.alive!==false);const n=Math.max(1,living.length+(married()?1:0));
+/* ================= more spouses, affairs, partner preference (v62) ================= */
+// S.partner stays the main partner; extra spouses (up to 3 in all) live in S.spouses, a secret partner in S.affair.
+const MAX_SPOUSES=3;
+function spouses(){return (S.spouses=S.spouses||[]);}
+function allSpouses(){return [...(married()?[S.partner]:[]),...spouses().filter(x=>x.alive!==false)];}
+function jobTxt(p){return p.job.toLowerCase()==='student'?'a student':'a '+p.job.toLowerCase();}
+function fixPartners(){const L=spouses();for(let i=L.length-1;i>=0;i--)if(L[i].alive===false)L.splice(i,1);
+  if(L.length&&(!S.partner||S.partner.alive===false))S.partner=L.shift();
+  if(!S.partner&&S.affair){const a=S.affair;S.affair=null;a.status='dating';delete a.sus;S.partner=a;log(a.name+' is no longer a secret. You are now openly together.','big');}}
+function dropSpouse(s,keep){if(S.partner===s)S.partner=null;else{const L=spouses(),i=L.indexOf(s);if(i>=0)L.splice(i,1);}if(keep!=null&&S.money>0)S.money*=keep;fixPartners();}
+function wealthPull(){return clamp(Math.log10(Math.max(netWorth()/infl(),1))*5-20,0,20);}
+// How willing a current spouse is to share you with spouse number n, and how willing the newcomer is to join.
+function spouseOK(s,n,boost){let w=12+(s.rel-50)*.6+(S.stats.cha-50)/3+wealthPull()-(n-2)*12+(s.loy===1?12:s.loy===-1?-8:0)+(s.gold?8:0)+(boost||0);
+  if(S.gender==='M'&&s.gender==='F'&&s.culture==='malay'&&S.culture==='malay')w+=10;return Math.round(clamp(w,2,95));}
+function candOK(c,n){return Math.round(clamp(28+(S.stats.cha-50)/2+(S.stats.look-c.stats.look)/4+wealthPull()*1.2-(n-2)*10+(c.gold?15:0)+(c.boost||0),2,95));}
+function meter(lbl,v,cls){return `<span class="stat" style="margin-top:10px"><span class="lbl"><span>${lbl}</span><span>${Math.round(v)}%</span></span><span class="bar" style="display:block"><i class="${cls||barCls(v)}" style="width:${v}%"></i></span></span>`;}
+function spouseFindModal(){const c=npc(18);c.age=Math.max(20,c.age);c.rel=45;
+  if(c.age>age()+8&&chance(.5))c.gold=chance(.3);return polyModal(c);}
+function polyModal(c){const L=allSpouses(),n=L.length+1,sw=L.map(s=>spouseOK(s,n,c.spBoost)),cw=candOK(c,n),gift=a2c(3000)*L.length,date=a2c(800);
+  const names=L.map(s=>esc(s.name)).join(' and ');
+  return {title:'Another wedding?',icon:'m_ring',tag:'Love',text:`You grow close to ${esc(c.name)}, ${c.age}, ${jobTxt(c)}. Marrying them would make them spouse number ${n}.\nYou need ${L.length>1?'both your spouses':esc(L[0].name)} to agree before you can propose.`+L.map((s,i)=>meter(esc(s.name)+' would accept it',sw[i])).join('')+meter(esc(c.name)+' would say yes',cw),
+    choices:[
+      [`Ask ${names} for permission`,()=>{const no=L.filter((s,i)=>!chance(sw[i]/100));
+        if(no.length){no.forEach(s=>s.rel=clamp(s.rel-12));bump('hap',-4);log(no.map(s=>s.name).join(' and ')+' refused to let you marry '+c.name+'.');return `${no.map(s=>esc(s.name)).join(' and ')} ${no.length>1?'refuse':'refuses'}. The house is very cold for a few weeks.`;}
+        L.forEach(s=>s.rel=clamp(s.rel-4));qFront(polyWedModal(c,n,cw));return '';}],
+      [`Shower ${names} with gifts first (${fmt(gift)})`,()=>{S.money-=gift;c.gifted=1;c.spBoost=(c.spBoost||0)+12;L.forEach(s=>s.rel=clamp(s.rel+3));qFront(polyModal(c));return '';},()=>S.money>=gift&&!c.gifted,'Raises their willingness. Once only'],
+      [`Take ${esc(c.name)} out a few more times (${fmt(date)})`,()=>{S.money-=date;c.dated=1;c.boost=(c.boost||0)+12;qFront(polyModal(c));return '';},()=>S.money>=date&&!c.dated,'Raises their willingness. Once only'],
+      ['Let it go',()=>'You stay friends with '+c.name+'. Probably simpler.']]};}
+function polyWedModal(c,n,cw){const I=a2c(1);
+  const wed=(lbl,cost,txt)=>[`${lbl} (${fmt(cost*I)})`,()=>{if(!chance(cw/100)){bump('hap',-5);return `Your family said yes, but ${esc(c.name)} doesn't want to be spouse number ${n}. Awkward.`;}
+    S.money-=cost*I;c.status='married';c.rel=clamp(c.rel+20);marryConvert(c);spouses().push(c);allSpouses().forEach(s=>{if(s!==c)s.rel=clamp(s.rel-6);});addAch('married');bump('hap',8);log(`Married ${c.name}, your spouse number ${n}. ${txt}`,'big');return `${esc(c.name)} says yes! ${txt}`;},()=>S.money>=cost*I,'Needs '+fmt(cost*I)];
+  return {title:'They said you can',icon:'m_ring',tag:'Love',text:`Your family has agreed, grudgingly. Now ask ${esc(c.name)}.`+meter(esc(c.name)+' would say yes',cw),
+    choices:[wed('Small ceremony with close family',8000,'A quiet ceremony. Not everyone is smiling in the photos.'),wed('Big wedding feast',30000,'A full kenduri. The relatives will talk about this for years.'),['Change your mind',()=>'You decide your household is full enough.']]};}
+function spousesTick(){const L=spouses(),n=allSpouses().length;
+  for(const s of [...L]){if(s.alive===false)continue;s.age++;
+    if(s.age>60&&chance(Math.pow((s.age-55)/45,3)*.45)){s.alive=false;bump('hap',-15);log(s.name+' passed away at '+s.age+'.','big');q({title:'Loss',icon:'m_rip',text:`${esc(s.name)} passed away at ${s.age}. The family grieves together.`,choices:[['Remember them',()=>'Their photo goes up in the living room.']]});continue;}
+    s.rel=clamp(s.rel-3-(n-2)+(s.loy||0)*2);
+    if(s.rel<15&&chance(.5)){dropSpouse(s,.7);bump('hap',-8);log(s.name+' divorced you.','big');q({title:'Divorce papers',icon:'m_love',tag:'Love',text:`${esc(s.name)} says sharing you was never going to work, and files for divorce. The settlement takes 30% of your cash.`,choices:[['Sign the papers',()=>'One fewer seat at the dinner table.']]});}}
+  if(allSpouses().length>=2&&chance(.5))q(multiEvent());}
+function multiEvent(){const L=allSpouses(),a=pick(L),b=pick(L.filter(x=>x!==a)),A=esc(a.name),B=esc(b.name),both=d=>{a.rel=clamp(a.rel+d);b.rel=clamp(b.rel+d);};
+  const fest=S.culture==='chinese'?'Chinese New Year reunion dinner':'first morning of Hari Raya';
+  const E=[
+    {t:'Whose family first?',x:`${A} and ${B} both want you at their family's ${fest}. Nobody will budge.`,ch:[
+      [`Go with ${A}`,()=>{a.rel=clamp(a.rel+10);b.rel=clamp(b.rel-12);return `${A} is delighted. ${B} spends the festival with their own family, and posts sad photos.`;}],
+      [`Go with ${B}`,()=>{b.rel=clamp(b.rel+10);a.rel=clamp(a.rel-12);return `${B} is delighted. ${A} is not.`;}],
+      ['Split the day between both families',()=>{if(roll('cha')>.55){both(4);return 'A long day of driving and two lunches, but everyone feels respected.';}both(-5);bump('hlt',-1);return 'You arrive late to both. Everyone is annoyed.';}]]},
+    {t:'A feast for the family',x:`${A} and ${B} spend the whole weekend cooking together. The kitchen smells amazing.`,ch:[
+      ['Thank them both',()=>{both(5);bump('hap',4);return 'Rendang, curry and three kinds of kuih. They are becoming real friends.';}],
+      ['Wash every dish yourself',()=>{both(8);bump('dis',2);return 'Two hours at the sink. Worth it for the smiles.';}]]},
+    {t:'The handbag incident',x:`${A} notices the expensive gift you bought ${B} last month. "Where is mine?"`,ch:[
+      [`Buy ${A} a matching one (${fmt(a2c(3000))})`,()=>{S.money-=a2c(3000);a.rel=clamp(a.rel+8);return 'Equal treatment, restored. Your bank account is less happy.';},()=>S.money>=a2c(3000)],
+      ['Explain it was a birthday present',()=>{if(roll('cha')>.5){return `${A} grudgingly accepts it.`;}a.rel=clamp(a.rel-10);return `${A} doesn't buy it. Fairness is everything in this house.`;}]]},
+    {t:'United front',x:`${A} and ${B} sit you down together. They agree you have been working too late and spending too much.`,ch:[
+      ['Promise to change',()=>{both(6);bump('dis',2);return 'You come home for dinner every night. They high-five behind your back.';}],
+      ['Stand your ground',()=>{both(-8);return 'Two against one. You lose the argument and the TV remote.';}]]},
+    {t:'Screaming match',x:`${A} and ${B} have a huge argument over chores. The neighbours hear everything.`,ch:[
+      [`Take ${A}'s side`,()=>{a.rel=clamp(a.rel+6);b.rel=clamp(b.rel-15);return `${B} feels betrayed.`;}],
+      [`Take ${B}'s side`,()=>{b.rel=clamp(b.rel+6);a.rel=clamp(a.rel-15);return `${A} feels betrayed.`;}],
+      [`Book family counselling (${fmt(a2c(2000))})`,()=>{S.money-=a2c(2000);both(6);return 'A counsellor draws up a chore rota. Peace returns, mostly.';},()=>S.money>=a2c(2000)]]},
+    {t:'Looking after you',x:`You come down with a bad fever. ${A} and ${B} take turns looking after you.`,ch:[
+      ['Rest and let them fuss',()=>{bump('hlt',4);both(3);return 'Porridge, cold towels and two people checking your temperature. You recover fast.';}]]},
+    {t:'A family business',x:`${A} and ${B} want to start a kuih and catering business together.`,ch:[
+      [`Back them (${fmt(a2c(8000))})`,()=>{S.money-=a2c(8000);if(roll('cre')>.45){const g=a2c(RI(12000,40000));S.money+=g;both(6);return 'Orders pour in for weddings and open houses. Profit: '+fmt(g)+'.';}both(-2);return 'The business folds after a year. At least they still like each other.';},()=>S.money>=a2c(8000)],
+      ['Say it is too risky',()=>{both(-4);return 'They are disappointed, and quietly start selling online anyway.';}]]}];
+  if(S.kids.some(k=>S.year-k.born<18))E.push({t:'Homework rota',x:`${A} and ${B} set up a homework timetable for the kids, one subject each.`,ch:[
+    ['Great teamwork',()=>{S.kids.forEach(k=>{if(S.year-k.born<18)k.stats.int=clamp(k.stats.int+3);});both(3);return 'The kids grumble, but their grades go up.';}]]});
+  const low=L.find(s=>s.rel<35);
+  if(low){const o=pick(L.filter(x=>x!==low)),LN=esc(low.name),ON=esc(o.name);E.push({t:'"It\'s me or them"',x:`${LN} gives you an ultimatum: divorce ${ON}, or ${LN} leaves.`,ch:[
+    [`Divorce ${ON}`,()=>{dropSpouse(o,.75);low.rel=clamp(low.rel+20);bump('hap',-8);log('Divorced '+o.name+' after an ultimatum.','big');return `You divorce ${ON}. ${LN} is calmer now, but the house feels emptier.`;}],
+    ['Refuse',()=>{low.rel=clamp(low.rel-15);return `${LN} goes very quiet. This isn't over.`;}]]});}
+  const e=pick(E);return {title:e.t,icon:'t_family',tag:'Family',text:e.x,choices:e.ch};}
+// Secret partners
+function affairStartModal(){const c=npc(18);c.age=Math.max(18,c.age);const p=S.partner,compat=clamp(45+(S.stats.cha-50)/2+(S.stats.look-50)/3+R(-20,20),5,95);
+  return {title:'A dangerous spark',icon:'m_fling',tag:'Love',text:`You keep running into ${esc(c.name)}, ${c.age}, ${jobTxt(c)}. The chemistry is obvious.\nYou are with ${esc(p.name)}. If you start something, they could find out.`+meter('Chance they say yes',compat),
+    choices:[['Start seeing them in secret',()=>{if(!chance(compat/100)){bump('hap',-2);return `${esc(c.name)} says they don't date people who are taken. Fair.`;}c.secret=1;c.sus=10;c.rel=50;S.affair=c;log('Started a secret affair with '+c.name+'.');bump('hap',3);return `You start meeting ${esc(c.name)} in secret. Your phone now lives face down.`;}],
+      ['Walk away',()=>'You go home to '+p.name+'. Nothing happened.']]};}
+function affairTick(){const f=S.affair;if(!f)return;f.age++;if(!S.partner){fixPartners();return;}
+  f.rel=clamp(f.rel-5);f.sus=clamp((f.sus||0)+6-S.stats.dis/25);
+  if(f.rel<20&&chance(.5)){S.affair=null;log(f.name+' ended the affair.');q({title:'It\'s over',icon:'m_fling',tag:'Love',text:`${esc(f.name)} is tired of being a secret and ends it.`,choices:[['Let them go',()=>'Nobody finds out. This time.']]});return;}
+  if(chance(f.sus/100*.6)){q(caughtModal('You leave your phone unlocked on the table.'));return;}
+  if(f.rel>=70&&!spouses().length&&chance(.3)){q(affairUltimatum());return;}
+  if(canConceive(f)&&chance(.06)){f.sus=clamp(f.sus+30);q(pregModal({stats:f.stats,name:f.name,fling:true}));}}
+function affairDate(){const f=S.affair;if(!f||S.ap<1)return;if(!S.partner){fixPartners();render();return;}S.ap--;f.rel=clamp(f.rel+10);f.sus=clamp(f.sus+12-S.stats.dis/10);bump('hap',3);
+  if(f.sus>=60&&chance(.35)){qFront(caughtModal('Someone spots you two at a hotel lobby in Bukit Bintang.'));showNext();return;}
+  toast(pick(['A long lunch at a hotel across town.','Supper in a quiet corner of a kopitiam.','A "work trip" to Penang.'])+' Suspicion is rising.');render();save();}
+function caughtModal(how){const f=S.affair,L=allSpouses().length?allSpouses():[S.partner].filter(Boolean),F=esc(f.name),who=L.map(s=>esc(s.name)).join(' and ');
+  const leave=s=>{dropSpouse(s,s.status==='married'?.5:null);log((s.status==='married'?'Divorced by ':'Dumped by ')+s.name+' over your affair with '+f.name+'.','big');};
+  return {title:'Caught',icon:'m_cheat',tag:'Love',text:`${how} ${who} ${L.length>1?'find':'finds'} out about ${F}.`,choices:[
+    ['Beg for forgiveness and end the affair',()=>{S.affair=null;const gone=[];for(const s of L){if(chance(clamp((s.rel-20)/100+(s.loy===1?.25:0)+(S.stats.cha-50)/300,.05,.85)))s.rel=clamp(s.rel-25);else{leave(s);gone.push(s.name);}}
+      bump('hap',-10);return gone.length?`${gone.join(' and ')} can't forgive you and ${gone.length>1?'leave':'leaves'}.`+(L.some(s=>s.status==='married'&&gone.includes(s.name))?' The divorce takes half your cash.':''):`${who} ${L.length>1?'take':'takes'} you back, barely. Trust will take years to rebuild.`;}],
+    [`Leave ${who} for ${F}`,()=>{L.forEach(leave);f.rel=clamp(f.rel+10);bump('hap',-6);fixPartners();return `You choose ${F}. It's messy and expensive, but you are finally out in the open.`;}],
+    ['Deny everything',()=>{if(roll('cha')>.7){f.sus=40;L.forEach(s=>s.rel=clamp(s.rel-10));return `Somehow, ${who} half-${L.length>1?'believe':'believes'} your story. You'd better be careful.`;}
+      S.affair=null;L.forEach(leave);bump('hap',-14);return 'The lies make it worse. You end up alone, and the settlement is brutal.';}]]};}
+function affairUltimatum(){const f=S.affair,p=S.partner,F=esc(f.name),P=esc(p.name);
+  return {title:'"Leave them for me"',icon:'m_fling',tag:'Love',text:`${F} is tired of hiding. They want you to leave ${P}.`,choices:[
+    [`Leave ${P}`,()=>{const was=p.status==='married';dropSpouse(p,was?.5:null);log((was?'Divorced ':'Left ')+p.name+' for '+f.name+'.','big');bump('hap',-4);return `You leave ${P}.`+(was?' The divorce takes half your cash.':'')+` ${F} moves in.`;}],
+    [`Stay with ${P}`,()=>{S.affair=null;if(chance(.3)){S.affair=f;qFront(caughtModal(`${F} sends ${P} every message you ever wrote.`));return '';}bump('hap',-4);return `${F} cries, then blocks your number.`;}]]};}
+function prefModal(){const N={opp:'the opposite gender',same:'the same gender',any:'anyone'};
+  return {title:'Who are you attracted to?',icon:'m_love',tag:'Love',text:`Right now you're interested in ${N[S.pref]}. You can change this once in your life.`,choices:[
+    ...Object.keys(N).filter(k=>k!==S.pref).map(k=>[`I'm interested in ${N[k]}`,()=>{S.pref=k;S.prefChanged=true;log('Realised you are interested in '+N[k]+'.','big');bump('hap',3);return 'You feel more like yourself. New people you meet will reflect this.';}]),
+    ['Keep things as they are',null]]};}
+
+/* ================= illness & hospitals (v62) ================= */
+const ILLS=[
+  {n:'a bad flu',sev:1},{n:'food poisoning after a dodgy nasi lemak',sev:1},{n:'a sprained ankle',sev:1},{n:'a nasty eye infection',sev:1},{n:'hand, foot and mouth disease',sev:1,maxA:10},{n:'a stomach bug',sev:1},
+  {n:'dengue fever',sev:2},{n:'appendicitis',sev:2},{n:'a broken arm',sev:2},{n:'kidney stones',sev:2,minA:25},{n:'a slipped disc',sev:2,minA:30},{n:'pneumonia',sev:2},{n:'diabetes complications',sev:2,minA:40},
+  {n:'a heart attack',sev:3,minA:40},{n:'a stroke',sev:3,minA:45},{n:'cancer',sev:3,minA:25},{n:'kidney failure',sev:3,minA:40},{n:'serious injuries from a road accident',sev:3,minA:16}];
+// Cost in RM by severity, and chance of a full recovery by severity.
+const CARE={gov:{n:'Government hospital',cost:[30,600,4000],ok:[.95,.78,.55],note:'Cheap, but long queues'},
+  clinic:{n:'Private clinic',cost:[90,2500,9000],ok:[.97,.55,.2],note:'Quick, best for small problems'},
+  priv:{n:'Private hospital',cost:[500,18000,90000],ok:[.99,.9,.72],note:'Fast and comfortable'},
+  abroad:{n:'Top hospital in Singapore',cost:[3000,45000,260000],ok:[.99,.94,.82],note:'The best care money can buy'},
+  none:{n:'Rest at home and self-medicate',cost:[0,0,0],ok:[.75,.3,.06],note:'Free, and risky'}};
+function pandemicNow(){return S.world.active.find(e=>['sars03','covid','pandemic'].includes(e.id));}
+function illChance(){const a=age();let p=.07+Math.max(0,a-35)/250+Math.max(0,55-S.stats.hlt)/250;if(S.traits.includes('Sickly'))p*=1.4;if(pandemicNow())p+=.25;return Math.min(p,.6);}
+function pickIll(){const a=age(),pd=pandemicNow();
+  if(pd&&chance(.7)){const nm=pd.id==='sars03'?'SARS':pd.id==='covid'?'COVID-19':'the new virus';return {n:nm,sev:a>=60?pick([2,3]):a>=40?pick([1,2,2]):pick([1,1,2]),pand:1};}
+  const r=Math.random(),sev=r<(a<30?.04:a<50?.12:.25)?3:r<.4?2:1;return pick(ILLS.filter(x=>x.sev===sev&&a>=(x.minA||0)&&a<=(x.maxA||200)));}
+function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
+  const can=k=>!kid||k==='gov'||k==='clinic'||k==='none'||(k==='priv'&&S.birthGroup!=='B40')||(k==='abroad'&&S.birthGroup==='T20');
+  const ch=['gov','clinic','priv','abroad','none'].filter(can).map(k=>{const C=CARE[k];
+    const cost=kid?0:a2c(C.cost[s])*(k==='gov'&&abroad&&S.residency!=='citizen'?3:1);
+    const ok=clamp(C.ok[s]+(S.stats.hlt-50)/400-(a>60?.05:0)-(il.pand&&k!=='none'?.03:0),.02,.995);
+    const nm=abroad&&k==='gov'?'Public hospital':abroad&&k==='abroad'?'World-class specialist hospital':C.n;
+    return [nm+(cost?` (${fmt(cost)})`:''),()=>treat(il,k,cost,ok,nm),()=>k==='gov'||k==='none'||S.money>=cost,`${Math.round(ok*100)}% chance of a full recovery · ${kid&&k!=='none'?'Your parents pay':C.note}`];});
+  const lvl=['Minor','Serious','Life-threatening'][s];
+  return {title:il.pand?'You caught '+il.n:'Feeling unwell',icon:'ev_checkup',tag:'Health',text:`You come down with ${il.n}.${il.pand?' The virus is spreading fast this year.':''}\nSeverity: ${lvl}. Where do you go for treatment?`,choices:ch};}
+function treat(il,k,cost,ok,nm){S.money-=cost;const s=il.sev,a=age();
+  if(chance(ok)){bump('hlt',-[1,3,6][s-1]);log(`Recovered from ${il.n}`+(k==='none'?' at home.':` (${nm}).`),s===3?'big':'');
+    return k==='none'?'You sleep it off with Panadol and plenty of water. You feel fine.':pick(['The treatment works. You are back on your feet.','The doctors sort it out. You make a full recovery.','A few days of rest, and you feel like yourself again.']);}
+  bump('hlt',-[6,14,25][s-1]);bump('hap',-[2,5,10][s-1]);
+  if(s===3&&chance(.25+Math.max(0,a-50)/150+(k==='none'?.35:0))){die();return `The treatment for ${il.n} doesn't work. You pass away.`;}
+  log(`${s===3?'Survived':'Struggled with'} ${il.n}; the treatment did not fully work.`,s>=2?'big':'');
+  return s===1?'It drags on for weeks before you finally recover.':s===2?'There are complications, and recovery takes months. Your health takes a hit.':'You survive, but only just. Your health may never be quite the same.';}
+function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.filter(k=>k.alive!==false);const n=Math.max(1,living.length+allSpouses().length);
   const share=prev.will?es.cash*.5+es.cash*.5/n:es.cash/n;const sum=lifeSummary();
   const dyn={...prev.dyn,gen:prev.dyn.gen+1,history:prev.dyn.history.concat([sum])};if(prev.honour)dyn.rep+=3;if(prev.pol&&prev.pol.dirty>=3)dyn.rep-=5;
   const a=prev.year-kid.born;
@@ -1888,7 +2023,7 @@ function relativeHeir(){const g=pick(['M','F']);const fake={name:genName(S.cultu
 function avatarKey(){const a=age(),m=S.gender==='M';if(!S.alive)return 'av_rip';if(a<4)return 'av_baby';if(a<13)return m?'av_boy':'av_girl';if(a<20)return m?'av_teen_m':'av_teen_f';if(a<60)return m?'av_man':'av_woman';return m?'av_old_m':'av_old_f';}
 function stageName(){const a=age(),E=S.edu;if(!S.alive)return 'Passed away';if(a<4)return 'Baby';if(a<7)return E.school||'Tadika';if(a<13)return 'Primary school';
   if(a<18)return {board:'Boarding school',uec:'Independent school',intl:'International school'}[E.secondary]||'Secondary school';if(E.track)return E.track.label;if(S.retired)return 'Retired';if(S.job)return JOBS[S.job.id].levels[S.job.level];return a<62?'Looking for work':'Retired';}
-function render(){if(!S)return;
+function render(){if(!S)return;fixPartners();
   const C=ctry(),loc=S.country==='MY'?town().name:C.city+', '+C.name;
   $('#g-head').innerHTML=`<div class="idcard"><div class="id-top"><span>Kad Pengenalan · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
     <div class="id-body">${ico(avatarKey(),'lg')}<div class="id-main"><div class="id-name">${esc(S.name)}</div><div class="id-no">${S.ic}</div><div class="id-meta">${esc(loc)} · ${esc(stageName())}</div></div>
@@ -1965,8 +2100,16 @@ function panelFamily(){const p=S.partner,a=age();
   let love;
   if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
     <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${barCls(p.rel)}" style="width:${p.rel}%"></i></div></div>
-    <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button><button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
+    <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button><button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>${S.affair?'':`<button class="btn small" data-act="affair" ${S.ap>0?'':'disabled'}>Start a secret affair (1 action)</button>`}`:''}${married()&&allSpouses().length<MAX_SPOUSES&&a>=21?`<button class="btn small" data-act="findspouse" ${S.ap>0?'':'disabled'}>Marry another partner (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
   else love=`<p style="margin:0">${p?'Widowed. ':''}You're single.</p><div class="row"><button class="btn small" data-act="findlove" ${a>=16&&S.ap>0?'':'disabled'}>Look for love (1 action)</button>${a>=18?`<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone (1 action)</button>`:''}${a>=28?`<button class="btn small" data-act="findyoung" ${S.ap>0?'':'disabled'}>Look for a younger partner (1 action)</button>`:''}</div>`;
+  love+=spouses().map((s,i)=>`<div class="item" style="margin-top:14px">${ico('spouse_'+(s.gender==='M'?'m':'f'),'',s.culture)}<div class="t"><b>${esc(s.name)} <span class="chip">Spouse ${i+2}</span></b><small>${s.age} · ${esc(s.job)}</small></div></div>
+    <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(s.rel)}</span></div><div class="bar"><i class="${barCls(s.rel)}" style="width:${s.rel}%"></i></div></div>
+    <div class="row"><button class="btn small" data-act="spdate" data-arg="${i}" ${S.ap>0?'':'disabled'}>Quality time (1 action)</button><button class="btn small danger" data-act="spdiv" data-arg="${i}">Divorce</button></div>`).join('');
+  if(S.affair){const f=S.affair,pk=f.gender==='M'?'playboy':'playgirl';love+=`<div class="item" style="margin-top:14px">${ico(icoSrc(pk,f.culture)?pk:'partner_'+(f.gender==='M'?'m':'f'),'',f.culture)}<div class="t"><b>${esc(f.name)} <span class="chip">Secret affair</span></b><small>${f.age} · ${esc(f.job)}</small></div></div>
+    <div class="stat"><div class="lbl"><span>Their feelings</span><span>${Math.round(f.rel)}</span></div><div class="bar"><i class="${barCls(f.rel)}" style="width:${f.rel}%"></i></div></div>
+    <div class="stat"><div class="lbl"><span>Suspicion at home</span><span>${Math.round(f.sus||0)}</span></div><div class="bar"><i class="${barCls(100-(f.sus||0))}" style="width:${f.sus||0}%"></i></div></div>
+    <div class="row"><button class="btn small" data-act="affdate" ${S.ap>0?'':'disabled'}>Secret date (1 action)</button><button class="btn small danger" data-act="affend">End the affair</button></div>`;}
+  if(a>=16&&!S.prefChanged)love+=`<div class="row"><button class="btn small" data-act="pref">Change who you're attracted to (once per life)</button></div>`;
   const kids=S.kids.map(k=>{const ka=S.year-k.born;return `<div class="item">${ico(ka<4?'baby':k.gender==='M'?'son':'daughter')}<div class="t"><b>${esc(k.name)}</b><small>${k.gender==='M'?'Son':'Daughter'}${k.adopted?' (adopted)':''} · ${ka<0?'—':ka+' yrs'}${k.note?' · '+esc(k.note):''}${k.spm!=null?' · SPM '+k.spm+'A':''}${k.job?' · '+esc(k.job):''} · Smarts ${Math.round(k.stats.int)}</small></div></div>`;}).join('');
   return `<div class="panel"><h3>Parents</h3><p class="muted" style="margin:0;font-size:13px">Household income group: ${S.birthGroup} at birth · Parenting style: ${S.parenting}</p><div class="list">${parents}</div></div>
    <div class="panel"><h3>Love life</h3>${love}</div>
@@ -2007,7 +2150,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-21.61';
+const GAME_VERSION='2026-10-21.62';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
@@ -2043,6 +2186,13 @@ const ACT={
   propose(){qFront(proposeModal());showNext();},
   breakup(){const p=S.partner;if(!p)return;if(p.status==='married'){S.money*=.5;log('Divorced '+p.name+'.','big');}else log('Broke up with '+p.name+'.');S.partner=null;bump('hap',-8);render();save();},
   findlove(){if(S.ap<1)return;qFront(loveLevelModal());showNext();},
+  findspouse(){if(S.ap<1||!married()||allSpouses().length>=MAX_SPOUSES)return;S.ap--;qFront(spouseFindModal());showNext();},
+  spdate(a){const s=spouses()[+a];if(!s||S.ap<1)return;S.ap--;s.rel=clamp(s.rel+10+S.stats.cha/12);bump('hap',2);toast(pick(['Dinner by the river with ','A long drive with ','Breakfast at the mamak with '])+s.name+'.');render();save();},
+  spdiv(a){const s=spouses()[+a];if(!s)return;dropSpouse(s,.5);log('Divorced '+s.name+'.','big');bump('hap',-8);render();save();},
+  affair(){if(S.ap<1||!S.partner||S.affair||age()<18)return;S.ap--;qFront(affairStartModal());showNext();},
+  affdate(){affairDate();},
+  affend(){const f=S.affair;if(!f)return;S.affair=null;bump('hap',-3);log('Ended the affair with '+f.name+'.');if(S.partner&&chance(.2)){S.affair=f;qFront(caughtModal(`Hurt and angry, ${esc(f.name)} tells ${esc(S.partner.name)} everything.`));showNext();return;}render();save();},
+  pref(){if(S.prefChanged)return;qFront(prefModal());showNext();},
   findyoung(){if(S.ap<1)return;S.ap--;if(chance(.8))qFront(meetModal(true));else toast('No luck this time.');render();showNext();},
   restudy(){qFront(restudyModal());showNext();},
   will(){S.money-=1500*infl();S.will=true;log('Wrote a will.');render();save();},
