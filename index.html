@@ -2,7 +2,7 @@
 <title>Malaysian Life Simulator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: one-column "life passbook" — an IC-card header, stat bars, tabbed panels, sticky year bar */
 :root{
@@ -286,6 +286,118 @@ img.ico{background:transparent!important;border-color:transparent!important}
 .sheet .choices button::after{right:16px;font-size:24px}
 .pb-age{border-top-color:var(--line-strong)}
 @media (prefers-reduced-motion:reduce){.tabs button,.act{transition:none}}
+/* ---- v81 Malaysian theme: songket header, gold-trimmed IC card, teal / gold / hibiscus, rounded font ---- */
+:root{--bg:#fbf6ea;--surface:#fff;--surface2:#fbf3df;--ink:#16302f;--muted:#6b6250;--line:#efe1bd;--line-strong:#e0c98a;
+  --accent:#0b6e66;--accent-ink:#fff;--accent-soft:#dff1ec;--hib:#c92c43;--gold:#a97a0c;--teal-d:#0d4a52;--songket:#e7b84a;
+  --t-life:#0d4a52;--t-assets:#0d4a52;--t-travel:#0d4a52;--t-family:#0d4a52;--t-dynasty:#0d4a52;
+  --f-display:'Nunito',system-ui,sans-serif;--f-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --songket-bg:radial-gradient(circle at 50% 50%,#e7b84a 0 2.5px,transparent 3px) 0 0/22px 22px,
+    linear-gradient(45deg,transparent 46%,rgba(231,184,74,.55) 47% 53%,transparent 54%) 0 0/22px 22px,
+    linear-gradient(-45deg,transparent 46%,rgba(231,184,74,.55) 47% 53%,transparent 54%) 0 0/22px 22px,
+    linear-gradient(160deg,#0b5f5a,#0d4a52 60%,#123a46)}
+html,body{overflow-x:clip}
+h1,h2,h3{font-weight:900}
+.hero h1{font-weight:900;color:var(--teal-d)}
+.hero h1 em{color:var(--hib)}
+/* songket band behind the top of the IC card */
+#g-head{position:relative;z-index:0}
+#g-head::before,#g-head::after{content:"";position:absolute;z-index:-1;left:50%;width:100vw;transform:translateX(-50%)}
+#g-head::before{top:calc(-16px - env(safe-area-inset-top,0px));height:calc(16px + env(safe-area-inset-top,0px) + 86px);background:var(--songket-bg)}
+#g-head::after{top:86px;height:12px;background:linear-gradient(135deg,var(--songket) 25%,transparent 25%) -6px 0/12px 12px,linear-gradient(225deg,var(--songket) 25%,transparent 25%) -6px 0/12px 12px}
+.idcard:not(.hon){background:#fff;border:2px solid var(--songket);border-radius:22px;box-shadow:0 10px 30px rgba(13,74,82,.18)}
+.idcard:not(.hon)::after{right:-36px;top:auto;bottom:-36px;width:150px;height:150px;opacity:.12;
+  background:conic-gradient(var(--hib) 0 10%,transparent 10% 20%,var(--hib) 20% 30%,transparent 30% 40%,var(--hib) 40% 50%,transparent 50% 60%,var(--hib) 60% 70%,transparent 70% 80%,var(--hib) 80% 90%,transparent 90%)}
+.idcard:not(.hon) .id-top{color:var(--teal-d);font-weight:800}
+.idcard:not(.hon) .ico.lg{background:linear-gradient(#fdebc4,#f7d58b)!important;border:2px solid var(--songket)!important}
+.id-name{font-weight:900;color:var(--teal-d)}
+.hon4 .id-name{color:inherit}
+.idcard:not(.hon) .id-age{background:var(--hib);color:#fff;border-radius:16px;padding:7px 10px;text-align:center;min-width:62px}
+.idcard:not(.hon) .id-age span{color:#fff;font-weight:700}
+.id-age b{font-weight:900}
+.id-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.id-money>span{background:var(--surface2);border-radius:12px;padding:5px 9px;font-size:11.5px;font-weight:700;min-width:0;transition:box-shadow .3s,background .3s}
+.idcard.hon .id-money>span{background:rgba(255,255,255,.2)}
+.id-money b{display:block;font-size:14px;color:var(--teal-d);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hon4 .id-money b{color:#f6ecd2}
+/* stats */
+.stat{border-radius:10px}
+.stat .lbl{font-size:13px;font-weight:700}
+.bar{height:8px;background:#efe6d0}
+.bar i,.bar i.lv4{background:linear-gradient(90deg,#0b8a7d,#2fb39f)}
+.bar i.lv3{background:linear-gradient(90deg,#3aa897,#6cc9b8)}
+.bar i.lv2{background:linear-gradient(90deg,#d79a17,#e7b84a)}
+.bar i.lv1{background:linear-gradient(90deg,#c92c43,#e8677a)}
+.bar.blue i{background:linear-gradient(90deg,#2766a6,#4f8fd0)}
+.rusty-tag,.weak-tag{display:inline-block;font:900 9px/1.5 var(--f-body);letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:0 6px;background:#f6e3c8;color:#9a5a11}
+.weak-tag{background:#fde7ea;color:var(--hib)}
+/* tabs, panels, actions */
+.tabs button{border:2px solid var(--line);background:#fff;color:var(--muted);font-weight:800}
+.tabs button:hover{border-color:var(--songket)}
+.tabs button[aria-selected="true"]{background:var(--teal-d);color:#fff;border-color:var(--songket);box-shadow:0 3px 0 #08343a}
+.tabs button .ico{width:34px;height:34px}
+.panel{border:2px solid var(--line);border-radius:20px}
+#g-panel>.panel{border-top:2px solid var(--line)}
+#g-panel h3,.panel h3{color:var(--teal-d);font-weight:900;font-size:18px}
+.ap-pill{font:800 12px var(--f-body);color:var(--hib);background:#fde7ea;border-radius:99px;padding:3px 10px}
+.act{background:var(--bg);border:1.5px dashed var(--line-strong);border-radius:14px}
+.act:hover:not(:disabled){border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+.act b{font-weight:800}
+.item{border-color:var(--line-strong)}
+.pips i{border-color:var(--hib)}.pips i.on{background:var(--hib)}
+.passbook{border-color:var(--line-strong)}
+.pb-age .when{background:var(--surface2)}
+.yearbar .nextbtn{position:relative;overflow:hidden;background:linear-gradient(90deg,#c92c43,#e04a5f);border:2px solid var(--songket);font-weight:900;box-shadow:0 8px 20px rgba(201,44,67,.3)}
+.yearbar .nextbtn::after{content:"";position:absolute;top:0;bottom:0;width:70px;left:-100px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:fxShine 3.2s 1s ease-in-out infinite}
+.yearbar .nextbtn:disabled::after{display:none}
+@keyframes fxShine{0%{left:-100px}40%,100%{left:110%}}
+/* pop-ups: songket band, gold frame, bouncy entrance */
+#modal{background:rgba(13,74,82,.5)}
+#modal .sheet{border:3px solid var(--songket);border-radius:26px;padding-top:40px;animation:fxPop .5s cubic-bezier(.2,1.4,.4,1);
+  background:radial-gradient(circle at 50% 50%,#e7b84a 0 2.5px,transparent 3px) 0 0/22px 22px repeat-x,
+    linear-gradient(45deg,transparent 46%,rgba(231,184,74,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,
+    linear-gradient(-45deg,transparent 46%,rgba(231,184,74,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,
+    linear-gradient(var(--teal-d),var(--teal-d)) 0 0/100% 22px no-repeat,#fffaf0}
+@keyframes fxPop{0%{transform:translateY(60px) scale(.9);opacity:0}100%{transform:none;opacity:1}}
+.sheet h2{color:var(--teal-d);font-weight:900}
+.sheet .chip.tag{background:var(--hib);color:#fff;font:900 11px/1.6 var(--f-body);letter-spacing:.1em;text-transform:uppercase;padding:2px 10px}
+.sheet .chip.tag.gold{background:var(--gold)}
+.m-art{border:2px solid var(--line)}
+.delta span{font-weight:700;animation:fxRise .45s both}
+.delta span.pos{background:#e6f4ef;border-color:#bfe3d8}
+.delta span.neg{background:#fde7ea;border-color:#f5c3cb}
+.delta span:nth-child(1){animation-delay:.3s}.delta span:nth-child(2){animation-delay:.4s}.delta span:nth-child(3){animation-delay:.5s}.delta span:nth-child(4){animation-delay:.6s}.delta span:nth-child(n+5){animation-delay:.7s}
+@keyframes fxRise{0%{transform:translateY(10px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+.sheet .choices button{border-color:var(--line-strong);font-weight:800}
+.sheet .choices button:hover:not(:disabled){border-color:var(--accent)}
+#toast{background:var(--teal-d);color:#fff;border:2px solid var(--songket);border-radius:16px}
+/* motion layer (v81): particles, coins, labels, petals, new-year banner, wallet */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+#fx .fx-p{position:fixed;left:0;top:0;font-style:normal;line-height:1;will-change:transform}
+#fx .fx-emo{font-size:24px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+#fx .fx-coin{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:900 9px var(--f-body);color:#7a5600;
+  background:radial-gradient(circle at 35% 35%,#fff0b3,#e7b84a 55%,#a97a0c);border:2px solid #fff3c4;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+#fx .fx-lbl{position:fixed;font:900 16px var(--f-body);color:var(--accent);background:#fffaf0;border:2px solid var(--songket);border-radius:99px;padding:2px 10px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+#fx .fx-lbl.neg{color:var(--hib)}
+#fx .fx-fall{position:fixed}
+#fx .fx-petal{position:fixed;top:-30px}
+#fx .fx-petal.h{width:16px;height:12px;border-radius:12px 0 12px 0}
+#fx .fx-petal.g{width:7px;height:12px;border-radius:2px}
+#fx .fx-petal.f{font-size:20px;line-height:1}
+.fx-glow{animation:fxGlow 1.1s both}
+@keyframes fxGlow{35%{background:#fff1c9;box-shadow:0 0 0 4px #fff1c9}}
+.fx-tick{display:inline-block;animation:fxTick .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes fxTick{0%{transform:translateY(8px);opacity:0}100%{transform:none;opacity:1}}
+.act.fx-picked{animation:fxTap .5s cubic-bezier(.2,1.6,.4,1);border:2px solid var(--accent)!important;background:var(--accent-soft)!important}
+@keyframes fxTap{40%{transform:scale(.93)}}
+#fx .fx-wallet{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:8px;background:#fffaf0;border:2px solid var(--songket);border-radius:99px;padding:6px 14px;font:800 13px var(--f-body);color:var(--muted);white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+#fx .fx-wallet b{font:600 15px var(--f-mono);color:var(--teal-d)}
+#fx .fx-banner{position:fixed;left:0;right:0;top:calc(70px + env(safe-area-inset-top,0px));height:104px;display:flex;align-items:center;justify-content:center;gap:16px;color:#fff;
+  background:var(--songket-bg);border-block:3px solid var(--songket);box-shadow:0 10px 30px rgba(13,74,82,.3)}
+#fx .fx-age{width:78px;height:78px;border-radius:20px;background:var(--hib);border:3px solid var(--songket);position:relative;perspective:400px;font:900 40px var(--f-body)}
+#fx .fx-age span{position:absolute;inset:0;display:grid;place-items:center;backface-visibility:hidden}
+#fx .fx-btxt{font:900 26px/1.05 var(--f-body);text-shadow:0 2px 8px rgba(0,0,0,.3)}
+#fx .fx-btxt small{display:block;font:800 13px var(--f-body);color:#f5d78a;letter-spacing:.14em;text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){#modal .sheet,.delta span,.yearbar .nextbtn::after{animation:none}}
 </style>
 
 <div id="app">
@@ -379,7 +491,7 @@ const PLAYABLE=['malay','chinese'];
 // Bumiputera families get the real-life priorities: Matrikulasi and MRSM quotas, MARA scholarships and a 7% discount on new homes.
 const BUMI=['malay','iban','kadazan'];
 const CULTURES={
-  malay:{fest:'Hari Raya Aidilfitri',gift:'duit raya',langs:{ms:70,en:30},m:['Aiman','Hafiz','Irfan','Danial','Haziq','Amirul','Faris','Adam','Muhammad Afiq','Ahmad Zaki','Syafiq','Harith','Luqman','Iskandar','Zulkifli','Hakim','Ariff','Firdaus','Rizal','Azman','Khairul','Shahrul','Nazrin','Taufiq','Ikmal','Fakhrul','Hazwan','Izzat','Aqil','Rayyan','Umar','Hadif','Ammar','Danish','Syahmi','Badrul','Kamal','Rashid','Azlan','Hisham','Najib','Zainal','Fadzil','Imran','Aidil','Qayyum'],f:['Aisyah','Nurul Huda','Siti Sarah','Aina','Farah','Alya','Hana','Damia','Nur Aina','Nurul Izzah','Siti Aishah','Sofea','Balqis','Qistina','Hannah','Insyirah','Maisarah','Syafiqah','Nadia','Farhana','Izzati','Atiqah','Amira','Liyana','Syazwani','Fatin','Hidayah','Zulaikha','Khadijah','Rosnah','Zarina','Noraini','Haslinda','Rohani','Salmah','Wardah','Adriana','Humaira','Dayang','Mardhiah','Aleesya','Iman','Raihana','Suraya'],fam:['Ahmad','Ismail','Rahman','Hassan','Yusof','Othman','Abdullah','Ibrahim','Ali','Hamid','Mohamad','Aziz','Salleh','Zakaria','Mahmud','Hussein','Kassim','Latif','Bakar','Jaafar','Musa','Ramli','Sulaiman','Hashim'],famLabel:n=>'Keluarga '+n},
+  malay:{fest:'Hari Raya Aidilfitri',gift:'duit raya',langs:{ms:70,en:30},m:['Aiman','Hafiz','Irfan','Danial','Haziq','Amirul','Faris','Adam','Muhammad Afiq','Ahmad Zaki','Syafiq','Harith','Luqman','Iskandar','Zulkifli','Hakim','Ariff','Firdaus','Rizal','Azman','Khairul','Shahrul','Nazrin','Taufiq','Ikmal','Fakhrul','Hazwan','Izzat','Aqil','Rayyan','Umar','Hadif','Ammar','Danish','Syahmi','Badrul','Kamal','Rashid','Azlan','Hisham','Najib','Zainal','Fadzil','Imran','Aidil','Qayyum'],f:['Aisyah','Nurul Huda','Siti Sarah','Aina','Farah','Alya','Hana','Damia','Nur Aina','Nurul Izzah','Siti Aishah','Sofea','Balqis','Qistina','Hannah','Insyirah','Maisarah','Syafiqah','Nadia','Farhana','Izzati','Atiqah','Amira','Liyana','Syazwani','Fatin','Hidayah','Zulaikha','Khadijah','Rosnah','Zarina','Noraini','Haslinda','Rohani','Salmah','Wardah','Adriana','Humaira','Dayang','Mardhiah','Aleesya','Iman','Raihana','Suraya'],fam:['Ahmad','Ismail','Rahman','Hassan','Yusof','Othman','Abdullah','Ibrahim','Ali','Hamid','Mohamad','Aziz','Salleh','Zakaria','Mahmud','Hussein','Kassim','Latif','Bakar','Jaafar','Musa','Ramli','Sulaiman','Hashim'],famLabel:n=>'The '+n+' family'},
   chinese:{fest:'Chinese New Year',gift:'ang pow',langs:{zh:75,en:40,ms:40},m:['Wei Jie','Jun Hao','Kai Xuan','Zi Hao','Jia Le','Yi Xiang','Jun Wei','Zhi Hao','Wei Ming','Kah Wai','Chee Keong','Boon Hock','Yong Sheng','Jia Hao','Zhen Yu','Hao Ran','Kok Leong','Wai Kit','Ming Hui','Yi Fan','Jian Wen','Zi Xuan','Shao Wei','Chun Kit','Hong Wei','Ka Hou','Darren','Marcus','Jason','Ryan','Kelvin','Jonathan','Ethan','Bryan','Vincent','Alvin','Ivan','Nicholas'],f:['Mei Ling','Xin Yi','Hui Min','Jia Yi','Pei Shan','Wen Qi','Xin Hui','Li Ting','Jia Xin','Yu Xuan','Wei Ling','Siew Mei','Pei Ling','Hui Wen','Zi Ying','Shu Ting','Kai Xin','Yee Ling','Mun Yee','Ai Lin','Li Ying','Qian Yi','Yan Ni','Sze Ying','Michelle','Jasmine','Joanne','Rachel','Vivian','Cheryl','Amanda','Crystal','Natalie','Elaine','Sharon','Chloe','Evelyn','Fiona'],fam:['Tan','Lim','Lee','Wong','Ng','Chong','Ong','Tay','Teo','Goh','Yap','Chan','Leong','Lau','Cheah','Khoo','Low','Foo','Ho','Chua','Yeoh','Liew','Loh','Kok','Choo','Gan','Soh'],famLabel:n=>'The '+n+' family'},
   indian:{fest:'Deepavali',gift:'Deepavali ang pow',langs:{ta:70,en:55,ms:40},m:['Arjun','Vikram','Darshan','Kavin','Suresh','Pravin','Ganesh','Ravi','Kumar','Rajesh','Prakash','Hari','Naveen','Thinesh','Sanjay','Kishore','Mugilan','Sharvin','Tharun','Yuvan','Kavinesh','Logesh','Saravanan','Vinod','Ashwin','Dinesh','Rohan','Gopal','Bala','Karthik','Selvam','Arun'],f:['Priya','Kavitha','Divya','Shalini','Anusha','Thivya','Lakshmi','Meena','Revathi','Deepa','Nisha','Sangeetha','Yamini','Kirthana','Pooja','Harini','Sharmila','Malini','Vasanthi','Jeevitha','Tharshini','Nithya','Keerthana','Shanthi','Sarojini','Anitha','Durga','Pavithra','Logeswari','Vanitha'],fam:['Subramaniam','Krishnan','Muthu','Rajan','Pillai','Ramasamy','Govindasamy','Nair','Menon','Arumugam','Raju','Maniam','Pillay','Sivalingam','Chandran','Ponnusamy','Veerappan','Kannan','Selvaraj'],famLabel:n=>'The '+n+' family'},
   iban:{fest:'Gawai Dayak',gift:'Gawai gifts',langs:{ms:60,en:40},m:['Jerry','Melvin','Ryan','Nicholas','Alvin','Jugah','Linggi','Nyalau','Kenny','Dominic','Jimbun','Andrew','Gerald','Masing','Unggat','Sebastian','Edmund','Bujang','Enchana','Rentap','Peter','Joshua','Daniel','Kelly','Banyang','Lawrence','Rayner','Jackson'],f:['Jessica','Monica','Grace','Sharon','Valerie','Sandra','Ulai','Inja','Mazlin','Christina','Sendi','Nancy','Emily','Dayang','Rosalind','Bibiana','Patricia','Lucy','Jenny','Rachel','Suri','Endu','Clara','Stephanie','Angela','Melissa','Doris','Agatha'],fam:['Jugah','Ngelai','Anyi','Empawi','Sandai','Nanta','Masing','Dundang','Langgu','Unggang','Sengalang','Bangga'],famLabel:n=>'The '+n+' family',towns:['kuching','sarawak']},
@@ -811,7 +923,7 @@ function drawModal(){const m=cur;if(m.choices&&m.choices.length)cue(m.tag==='Wor
   $('#m-sheet').innerHTML=`${m.tag?`<span class="chip tag ${m.tag==='World event'?'warn':m.tag==='Festive season'?'gold':''}">${esc(m.tag)}</span>`:''}${modalArt(m)}<h2 id="m-title">${m.title}</h2><p class="txt">${m.text||''}</p>
    ${m.delta&&m.delta.length?`<div class="delta">${m.delta.map(d=>`<span class="${/^[+]/.test(d)?'pos':'neg'}">${esc(d)}</span>`).join('')}</div>`:''}
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
-  $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});}
+  $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});modalFx(m);}
 function choose(i){const c=cur&&cur.choices&&cur.choices[i];if(!c){closeModal();return;}if(c[2]&&!c[2]())return;if(!c[1]){closeModal();return;}
   const b=snap();let out;try{out=c[1]();}catch(e){console.error(e);out='';}if(out===false){cur=null;return;}if(out==='keep')return;
   const d=S?diff(b):[];if(out||d.length){cur={title:cur.title,tag:cur.tag,icon:cur.icon,text:out||'Done.',delta:d,choices:null};drawModal();}else closeModal();}
@@ -879,7 +991,8 @@ const gradeOf=k=>k>=88?'A+':k>=75?'A':k>=62?'B':k>=50?'C':k>=38?'D':'E';
 function startTrack(t){t.len=t.left;S.edu.track=t;S.know=(S.know||0)*.25;}
 function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail||inHosp())return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
 function doAct(id){if(cur)return;const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(age()))return;if(S.ap<=0){toast('No actions left this year. Press Next year.');return;}
-  S.ap--;const b=snap();const out=A.run();practise(id);if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();save();showNext();}
+  const tile=$(`.act[data-arg="${id}"]`),src=tile&&tile.getBoundingClientRect(),pre=fxRusty();
+  S.ap--;const b=snap();const out=A.run();practise(id);if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();actFx(id,src,b,pre);save();showNext();}
 function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span class="mono muted">${Math.round(S.langs[k]||0)}</span>`,()=>{const g=(6+R(0,4))*(.6+S.stats.dis/100);S.langs[k]=clamp((S.langs[k]||0)+g);return 'You practise '+LANG[k]+' with apps and conversation classes.';}]);
   return {title:'Which language?',text:'Languages help with exams, jobs and moving abroad.',choices:opts};}
 
@@ -2073,7 +2186,7 @@ function titlePanel(){const a=age();if(a<21||(S.country!=='MY'&&!S.honour))retur
   else if(!g)out+=`<p class="muted" style="margin:0;font-size:12.5px">Tan Sri and Tun only come through politics.</p>`;
   if(buyOk())out+=`<div class="row"><button class="btn small" data-act="buytitle" ${S.ap>0&&buyRich()&&T.buyYear!==S.year?'':'disabled'}>Find someone who can "arrange" a title (1 action)</button></div>${buyRich()?'':`<p class="muted" style="margin:0;font-size:12.5px">The fixers only talk to people worth ${fmt(2e6*infl())} or more.</p>`}`;
   return out+'</div>';}
-function nextYear(){if(cur||!S.alive)return;const yb=S.yStart||snap();
+function nextYear(){if(cur||!S.alive)return;const yb=S.yStart||snap(),a0=age();
   S.year++;tab='life';S.applied=0;
   worldTick();const fx=fxNow();
   if(age()>=18)finances(fx);else kidMoney();
@@ -2087,7 +2200,7 @@ function nextYear(){if(cur||!S.alive)return;const yb=S.yStart||snap();
   checkAch();S.hapSum+=S.stats.hap;S.hapN++;S.ot=0;S.trips=0;S.ap=apFor();
   if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail)&&!S.jail)qFront(stmtModal());
   if(age()>=105||chance(deathChance()))die();
-  render();save();showNext();}
+  render();save();yearFx(a0);showNext();}
 function autoSpend(){const a=age();let guard=10;while(S.ap>0&&guard--){let id;
   if(a<7)id=pick(['play','study']);else if(a<=17||S.edu.track)id=pick(['study','study','social','exercise']);
   else if(S.retired)id=pick(['hobby','exercise','rest']);else id=pick(['exercise','social','rest',S.partner?'date':'hobby']);
@@ -2396,12 +2509,12 @@ function stageName(){const a=age(),E=S.edu;if(!S.alive)return 'Passed away';if(a
   if(a<18)return {board:'Boarding school',uec:'Independent school',intl:'International school'}[E.secondary]||'Secondary school';if(E.track)return E.track.label;if(S.retired)return 'Retired';if(S.job)return JOBS[S.job.id].levels[S.job.level];return a<62?'Looking for work':'Retired';}
 function render(){if(!S)return;fixPartners();
   const C=ctry(),loc=S.country==='MY'?town().name:C.city+', '+C.name;
-  $('#g-head').innerHTML=`<div class="idcard${honTier()?' hon hon'+honTier():''}">${honTier()?`<i class="hon-em" aria-hidden="true">${['','✦','✶','✷','❂'][honTier()]}</i>`:''}<div class="id-top"><span>Kad Pengenalan · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
+  $('#g-head').innerHTML=`<div class="idcard${honTier()?' hon hon'+honTier():''}">${honTier()?`<i class="hon-em" aria-hidden="true">${['','✦','✶','✷','❂'][honTier()]}</i>`:''}<div class="id-top"><span>Identity card · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
     <div class="id-body">${ico(avatarKey(),'lg')}<div class="id-main"><div class="id-name">${S.honour?`<span class="id-hon">${esc(S.honour)}</span> `+esc(S.name):esc(dispName())}</div><div class="id-no">${S.ic}</div><div class="id-meta">${esc(loc)} · ${esc(stageName())}</div></div>
     <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
-    <div class="id-money"><span>Cash <b class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
+    <div class="id-money"><span>Cash <b id="id-cash" class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
-  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}${rusty(k)?' <small class="muted" title="Fading: try '+FADE_HOW[k]+'">· rusty</small>':''}${k==='hlt'&&v<HLT_WEAK?` <small class="muted" title="You get sick more often and are at higher risk of dying. Below ${HLT_CRIT} you go to hospital.">· ${inHosp()?'in hospital':v<HLT_CRIT?'critical':'weak'}</small>`:''}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
+  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat" data-k="${k}"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}${rusty(k)?' <small class="rusty-tag" title="Fading: try '+FADE_HOW[k]+'">rusty</small>':''}${k==='hlt'&&v<HLT_WEAK?` <small class="weak-tag" title="You get sick more often and are at higher risk of dying. Below ${HLT_CRIT} you go to hospital.">${inHosp()?'in hospital':v<HLT_CRIT?'critical':'weak'}</small>`:''}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
   $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('')||'<span class="muted" style="font-size:13px">none yet</span>';
   $('#g-tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join('');
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
@@ -2422,10 +2535,10 @@ function panelLife(){const a=age();const acts=ACTS.filter(x=>x.ok(a));
     else if(E.track&&E.track.kind==='preu')fc=`Projected pre-U score: about ${Math.round(clamp(S.know*.8+S.stats.int*.15+(E.spmA||0)*.5))}/100.`;
     else if(E.track)fc=`Projected CGPA: about ${clamp(2+(S.know*.8+S.stats.int*.2-40)/28,2,4).toFixed(2)}.`;
     else fc=`Current grade: ${gradeOf(S.know)}.`;}
-  const knowHtml=si?`<div class="stat"><div class="lbl"><span>Knowledge · ${esc(si.label)}</span><span>${Math.round(S.know)}</span></div><div class="bar blue"><i style="width:${S.know}%"></i></div></div>
+  const knowHtml=si?`<div class="stat" data-k="know"><div class="lbl"><span>Knowledge · ${esc(si.label)}</span><span>${Math.round(S.know)}</span></div><div class="bar blue"><i style="width:${S.know}%"></i></div></div>
     <p class="muted" style="margin:0;font-size:12.5px">${fc} Each new stage starts with new material. Your Smarts and Discipline make studying ×${studyMult().toFixed(2)} as effective.</p>`:'';
   const eduLine=knowHtml+`<dl class="kv"><dt>Education</dt><dd>${E.level==='none'?(a<4?'—':'In school'):EDU_LABEL[E.level]}${E.spmA!=null?` · ${E.exam} ${E.spmA}A`:''}${E.uni?` · ${esc(E.uni)} (${MAJORS[E.major].name}, CGPA ${E.gpa.toFixed(2)})`:''}${E.master?" · Master's":''}</dd>${E.scholar?`<dt>Scholarship</dt><dd>${E.scholar}${E.bond>0?` · bond ${E.bond} yrs left`:''}</dd>`:''}</dl>`;
-  return `<div class="panel"><div class="row" style="justify-content:space-between"><h3>This year · age ${a}</h3><span class="muted" style="font-size:13px">${S.ap} action${S.ap===1?'':'s'} left</span></div>${actHtml}</div>
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><h3>This year · age ${a}</h3><span class="ap-pill">${S.ap} action${S.ap===1?'':'s'} left</span></div>${actHtml}</div>
    <div class="panel"><h3>${S.job||S.retired?'Career':'School & career'}</h3>${eduLine}${career}</div>${polPanel()}${titlePanel()}
    <div class="panel"><h3>Life record</h3>${logHtml()}</div>`;}
 function logHtml(){const groups=[];for(let i=S.log.length-1;i>=0&&groups.length<40;i--){const e=S.log[i];let g=groups[groups.length-1];if(!g||g.a!==e.a){g={a:e.a,y:e.y,items:[]};groups.push(g);}g.items.push(e);}
@@ -2517,11 +2630,69 @@ function showEnd(){const s=lifeSummary();S.lastSummary=s;save();const kids=S.kid
 function epitaph(){const big=S.log.filter(e=>e.k==='big'&&!/Passed away/.test(e.t));const pickd=[big[Math.floor(big.length*.3)],big[Math.floor(big.length*.6)],big[big.length-1]].filter(Boolean).map(e=>e.t.replace(/\.$/,''));return [...new Set(pickd)].join('. ')+'.';}
 
 /* ================= toast & save ================= */
+/* ---- v81 motion: action icons fly into the stats they raise, coins into Cash, celebrations, new-year banner ---- */
+const RM_MOTION=matchMedia('(prefers-reduced-motion: reduce)');
+// Skipped for reduced motion, auto years, hidden tabs, and when effects pile up faster than they finish (scripted play).
+const noFx=()=>RM_MOTION.matches||autoYears>0||document.hidden||typeof Element.prototype.animate!=='function'||($('#fx')&&$('#fx').childElementCount>120);
+const ACT_FX={play:['🧸','✨','😄'],study:['📚','✏️','💡'],exercise:['💪','💦','❤️'],social:['💬','😄','🧋'],hobby:['🎨','✨','🖌️'],lang:['💬','🔤','🗣️'],
+  routine:['📅','✅','⏰'],groom:['✨','💇','🪞'],volunteer:['🤝','⭐','🌟'],parttime:['💵','✨'],overtime:['💼','✨'],date:['💕','❤️','🌹'],kids:['🧸','❤️','🎈'],
+  baby:['🍼','💕','✨'],adopt:['🍼','💕','✨'],nation:['🇲🇾','⭐','✨'],invest:['📈','✨'],rest:['😴','☁️','✨']};
+const FX_KEYS=['int','hlt','cha','look','cre','ath','dis','hap','know'];
+const fxVal=(o,k)=>Math.round(k==='know'?(o.know||0):o.stats?o.stats[k]:o[k]);
+function fxLayer(){let l=$('#fx');if(!l){l=document.createElement('div');l.id='fx';l.setAttribute('aria-hidden','true');document.body.appendChild(l);}return l;}
+function fxCtr(r){return [r.left+r.width/2,r.top+r.height/2];}
+function fxEl(tag,cls,html){const e=document.createElement(tag);e.className=cls;if(html!=null)e.innerHTML=html;fxLayer().appendChild(e);return e;}
+// One particle: pops up near the source, then arcs into the target and fades.
+function fxFly(html,cls,from,to,delay){const e=fxEl('i','fx-p '+cls,html),[x0,y0]=from,dx=to[0]-x0,dy=to[1]-y0,sx=(Math.random()-.5)*70,up=30+Math.random()*30;
+  const at=(x,y,s)=>`translate(${x0+x}px,${y0+y}px) translate(-50%,-50%) scale(${s})`;
+  e.animate([{transform:at(0,0,.3),opacity:0},{transform:at(sx,-up,1.1),opacity:1,offset:.2},{transform:at(dx,dy,.6),opacity:.9,offset:.92},{transform:at(dx,dy,.4),opacity:0}],
+    {duration:850,delay,easing:'cubic-bezier(.5,0,.6,1)',fill:'both'}).onfinish=()=>e.remove();}
+function fxLabel(txt,at,neg){const e=fxEl('b','fx-lbl'+(neg?' neg':''));e.textContent=txt;const [x,y]=at,p=(dy,s)=>`translate(${x}px,${y+dy}px) translate(-50%,-50%) scale(${s})`;
+  e.animate([{transform:p(10,.6),opacity:0},{transform:p(0,1.1),opacity:1,offset:.2},{transform:p(0,1),opacity:1,offset:.7},{transform:p(-40,1),opacity:0}],{duration:1500,delay:350,fill:'both',easing:'ease-out'}).onfinish=()=>e.remove();}
+function fxPulse(el,cls){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),1200);}
+function fxRusty(){return [...document.querySelectorAll('#g-stats .rusty-tag')].map(e=>[e.closest('.stat').dataset.k,e.getBoundingClientRect()]);}
+function actFx(id,src,b,pre){if(noFx()||!src)return;const LAND=750,from=fxCtr(src),parts=ACT_FX[id]||['✨'];let n=0;const ups=[];
+  fxPulse($(`.act[data-arg="${id}"]`),'fx-picked');
+  for(const k of FX_KEYS){const v0=fxVal(b,k),v1=fxVal(S,k);if(v0===v1)continue;
+    const st=$(`.stat[data-k="${k}"]`);if(!st)continue;const bar=st.querySelector('.bar i'),num=st.querySelector('.lbl>span:last-child');
+    bar.style.transition='none';bar.style.width=Math.max(0,v0)+'%';num.textContent=v0;void bar.offsetWidth;
+    setTimeout(()=>{bar.style.transition='width .7s cubic-bezier(.2,1.3,.4,1)';bar.style.width=v1+'%';num.textContent=v1;fxPulse(num,'fx-tick');fxPulse(st,'fx-glow');},v1>v0?LAND:250);
+    if(v1>v0)ups.push([k,v1-v0,st]);}
+  for(const [,,st] of ups){const to=fxCtr(st.querySelector('.bar').getBoundingClientRect());for(let j=0;j<3;j++){fxFly(parts[n%parts.length],'fx-emo',from,to,120+n*70);n++;}}
+  const dm=S.money-b.money,cash=$('#id-cash');
+  if(dm>=1&&cash){const to=fxCtr(cash.getBoundingClientRect());for(let j=0;j<6;j++)fxFly('RM','fx-coin',from,to,120+j*80);
+    cash.textContent=fmt(b.money);setTimeout(()=>{cash.textContent=fmt(S.money);fxPulse(cash,'fx-tick');fxPulse(cash.parentElement,'fx-glow');},LAND+300);}
+  const lab=dm>=1?'+'+fmt(dm):ups.slice(0,2).map(([k,d])=>'+'+d+' '+(k==='know'?'Knowledge':STAT_NAMES[k])).join(' · ');
+  if(lab)fxLabel(lab,[from[0],src.top]);
+  // A "rusty" tag that this action cleared falls off its stat.
+  for(const [k,r] of pre)if(!$(`#g-stats .stat[data-k="${k}"] .rusty-tag`)){const e=fxEl('small','rusty-tag fx-fall','rusty');
+    e.animate([{transform:`translate(${r.left}px,${r.top}px)`,opacity:1},{transform:`translate(${r.left}px,${r.top}px) rotate(-12deg)`,offset:.3},{transform:`translate(${r.left}px,${r.top+40}px) rotate(30deg)`,opacity:0}],
+      {duration:700,delay:LAND+200,easing:'ease-in',fill:'both'}).onfinish=()=>e.remove();}}
+// Hibiscus petals and gold confetti for big moments.
+function fxCelebrate(){const H=innerHeight,W=innerWidth;for(let i=0;i<42;i++){const k=['h','h','g','g','f'][i%5],e=fxEl('i','fx-p fx-petal '+k,k==='f'?'🌺':'');
+  if(k!=='f')e.style.background=k==='h'?['#c92c43','#e04a5f','#ff8fa3'][i%3]:['#e7b84a','#0b8a7d','#f5d78a'][i%3];
+  const x=Math.random()*W,sw=(Math.random()-.5)*120,r=360+Math.random()*360;
+  e.animate([{transform:`translate(${x}px,-30px) rotate(0)`},{transform:`translate(${x+sw}px,${H+40}px) rotate(${r}deg)`}],{duration:2400+Math.random()*1800,delay:Math.random()*900,easing:'linear',fill:'both'}).onfinish=()=>e.remove();}}
+const FX_BIG=/\b(married|marry|wedding|graduat|convocation|diploma done|promoted|promotion|scholarship|bursary|newborn|it's a (boy|girl)|jackpot|you won|award|dato'?|datuk|tan sri|tun|prime minister|elected|first pay)/i,
+  FX_SAD=/\b(died|death|dies|passed away|funeral|divorce|bankrupt|jail|prison|sacked|retrench|arrest|raid|lost|fail|rejected|dumped|break ?up)/i;
+function modalFx(m){if(noFx()||m._fx)return;m._fx=1;const d=m.delta||[],pos=d.filter(x=>/^[+]/.test(x)).length,txt=m.title+' '+(m.text||'');
+  if(pos>=d.length-pos&&FX_BIG.test(txt)&&!FX_SAD.test(txt))fxCelebrate();
+  const mm=d.find(x=>/^\+RM/.test(x));if(!mm||!S)return;const amt=+mm.replace(/[^\d.]/g,'')*(/M$/.test(mm)?1e6:1);
+  const w=fxEl('div','fx-wallet',`${ico('m_money','st')}Cash <b>${fmt(S.money-amt)}</b>`),wb=w.querySelector('b');
+  w.animate([{transform:'translate(-50%,-60px)',opacity:0},{transform:'translate(-50%,0)',opacity:1,offset:.12},{transform:'translate(-50%,0)',opacity:1,offset:.88},{transform:'translate(-50%,-60px)',opacity:0}],{duration:3200,delay:200,fill:'both',easing:'ease-out'}).onfinish=()=>w.remove();
+  setTimeout(()=>{const s=$('#m-sheet');if(!s||!w.isConnected)return;const from=fxCtr(s.getBoundingClientRect()),to=fxCtr(w.getBoundingClientRect());
+    for(let j=0;j<8;j++)fxFly('RM','fx-coin',from,to,j*80);setTimeout(()=>{wb.textContent=fmt(S.money);fxPulse(wb,'fx-tick');fxPulse(w,'fx-glow');},950);},500);}
+// New year: a songket banner sweeps in and the age flips over.
+function yearFx(a0){if(noFx()||!S||!S.alive||age()===a0)return;
+  const e=fxEl('div','fx-banner',`<div class="fx-age"><span>${a0}</span><span>${age()}</span></div><div class="fx-btxt"><small>Happy new year</small>Year ${S.year}</div>`),[o,nw]=e.querySelectorAll('.fx-age span');
+  e.animate([{transform:'translateX(-100%)',easing:'cubic-bezier(.2,1,.3,1)'},{transform:'none',offset:.2},{transform:'none',offset:.85,easing:'ease-in'},{transform:'translateX(100%)'}],{duration:2600,fill:'both'}).onfinish=()=>e.remove();
+  o.animate([{transform:'none',opacity:1},{transform:'rotateX(90deg)',opacity:0}],{duration:400,delay:650,fill:'both'});
+  nw.animate([{transform:'rotateX(-90deg)',opacity:0},{transform:'none',opacity:1}],{duration:400,delay:1000,fill:'both'});}
 let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600);}
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-22.80';
+const GAME_VERSION='2026-10-22.81';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
