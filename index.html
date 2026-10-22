@@ -877,7 +877,7 @@ function studyMult(){return (S.dyn.leg&&S.dyn.leg.school&&S.country==='MY'?1.05:
 const passiveMult=()=>.4+S.stats.int/80;
 const gradeOf=k=>k>=88?'A+':k>=75?'A':k>=62?'B':k>=50?'C':k>=38?'D':'E';
 function startTrack(t){t.len=t.left;S.edu.track=t;S.know=(S.know||0)*.25;}
-function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail)return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
+function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail||inHosp())return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
 function doAct(id){if(cur)return;const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(age()))return;if(S.ap<=0){toast('No actions left this year. Press Next year.');return;}
   S.ap--;const b=snap();const out=A.run();practise(id);if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();save();showNext();}
 function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span class="mono muted">${Math.round(S.langs[k]||0)}</span>`,()=>{const g=(6+R(0,4))*(.6+S.stats.dis/100);S.langs[k]=clamp((S.langs[k]||0)+g);return 'You practise '+LANG[k]+' with apps and conversation classes.';}]);
@@ -1304,7 +1304,7 @@ function passive(fx){const a=age(),st=S.stats,dm=S.statDm=decayMult(),why=S.stat
   if(a<18){if(S.parenting==='Strict')st.dis+=1;if(S.parenting==='Loving')st.hap+=.6;if(S.parenting==='Distant'||S.parenting==='Divorced')st.hap-=.6;}
   st.hap+=(55-st.hap)*.12;
   if(a>45)fall('hlt',a>65?2:.8,'ageing');if(a>40)fall('look',.4,'ageing');if(a>60)fall('ath',1,'ageing');
-  if(a>=18){const u=S.used||(S.used={}),J=S.job&&JOBS[S.job.id],jailed=S.jail||(S.pol&&S.pol.jail);
+  if(a>=18){const u=S.used||(S.used={}),J=S.job&&JOBS[S.job.id],jailed=S.jail||(S.pol&&S.pol.jail)||S.hosp===S.year-1;
     // A job keeps its main stat and Discipline in practice, studying keeps Smarts. Nothing fades in prison, where there are no actions.
     if(J){u[J.stat]=S.year;u.dis=S.year;}if(S.edu.track){u.int=S.year;u.dis=S.year;}
     for(const k of FADE_STATS){if(jailed){u[k]=S.year;continue;}const n=idleYrs(k);if(n<=3||st[k]<=20)continue;
@@ -1764,7 +1764,7 @@ function checkAch(){const nw=netWorth();if(nw>=1e6)addAch('millionaire');if(S.bi
   if(age()>=100)addAch('centenarian');if(S.assets.pets.length>=3)addAch('petLover');if(S.assets.cars.length>=3)addAch('carCollector');
   if(Object.values(S.langs).filter(v=>v>=60).length>=4)addAch('polyglot');if(S.assets.houses.length)addAch('homeowner');if(S.dyn.gen>=3)addAch('dynasty3');
   if(S.group!=='T20'&&nw>2e6)S.group='T20';else if(S.group==='B40'&&nw>3e5&&age()>=25)S.group='M40';}
-function deathChance(){const a=age();if(a<18)return 0;let p=.0004;if(a>=50)p+=Math.pow((a-50)/45,3)*.5;p*=(1.6-S.stats.hlt/100);if(S.traits.includes('Sickly'))p*=1.3;return Math.min(p,.95);}
+function deathChance(){const a=age();if(a<18)return 0;let p=.0004;if(a>=50)p+=Math.pow((a-50)/45,3)*.5;p*=(1.6-S.stats.hlt/100);if(S.stats.hlt<HLT_WEAK)p+=(HLT_WEAK-S.stats.hlt)/HLT_WEAK*.04;if(S.traits.includes('Sickly'))p*=1.3;return Math.min(p,.95);}
 function die(){sfx('sad');if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;}S.alive=false;MQ=[];autoYears=0;const a=age();log(`Passed away at ${a}.`,'big');if(S.honour==='Tun')log('Given a state funeral. Flags fly at half-mast across the country.','big');
   q({title:'Rest in peace',icon:'m_rip',text:`${esc(dispName())} passed away at the age of ${a} in ${S.year}${S.country==='MY'?'':', in '+ctry().name}.`,choices:[['See life summary',null]]});}
 
@@ -2078,10 +2078,11 @@ function nextYear(){if(cur||!S.alive)return;const yb=S.yStart||snap();
   worldTick();const fx=fxNow();
   if(age()>=18)finances(fx);else kidMoney();
   careerTick(fx);polTick();titleTick();passive(fx);milestones();fixPartners();relationships();spousesTick();affairTick();parentsTick();petsTick();kidsTick();birthsTick();
-  if(age()>=3&&S.alive&&chance(illChance()))q(illModal(pickIll()));
+  if(S.alive&&S.stats.hlt<HLT_CRIT&&!S.jail&&!(S.pol&&S.pol.jail)){S.hosp=S.year;q(hospModal());}
+  else{if(age()>=3&&S.alive&&chance(illChance()))q(illModal(pickIll()));
   if(age()>=2)festival();
   if(age()>=5&&chance(.55))randomEvent();
-  if(S.job&&age()>=18&&chance(.4))workEvent();
+  if(S.job&&age()>=18&&chance(.4))workEvent();}
   S.yDelta=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>[k,S.stats[k]-(yb[k]??S.stats[k])]).filter(x=>Math.abs(x[1])>=.05);S.yStart=snap();
   checkAch();S.hapSum+=S.stats.hap;S.hapN++;S.ot=0;S.trips=0;S.ap=apFor();
   if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail)&&!S.jail)qFront(stmtModal());
@@ -2124,7 +2125,7 @@ function famTrip(id){const T=TRIPS.find(t=>t.id===id);if(!T||!famTripOk()||T.cos
     log(txt);checkAch();return txt;}],['Maybe another time',null]]});showNext();}
 function bookTrip(id){const T=TRIPS.find(t=>t.id===id),cost=T.cost*infl()*(fxNow().travel||1),p=S.partner;
   if(S.travelBan&&!['cameron','langkawi'].includes(T.id))return toast('You are barred from leaving Malaysia until you pay your PTPTN loan again.');
-  if(age()<16)return toast('You need to be 16+ to travel on your own.');if((S.trips||0)>=2)return toast('You have already taken 2 trips this year.');
+  if(age()<16)return toast('You need to be 16+ to travel on your own.');if((S.trips||0)>=2)return toast('You have already taken 2 trips this year.');if(inHosp())return toast('You are in hospital this year.');
   if(p&&p.alive!==false&&age()>=18){qFront({title:T.name,icon:'d_'+T.id,tag:'Travel',text:'Who is coming along?',choices:[
     [`Go with ${esc(p.name)} (${fmt(cost*2)})`,()=>doTrip(T,cost,true),()=>S.money>=cost*2,'Needs '+fmt(cost*2)],
     [`Go alone (${fmt(cost)})`,()=>doTrip(T,cost,false),()=>S.money>=cost,'Needs '+fmt(cost)],['Cancel',null]]});showNext();return;}
@@ -2318,10 +2319,12 @@ const CARE={gov:{n:'Government hospital',cost:[30,600,4000],ok:[.95,.78,.55],not
   abroad:{n:'Top hospital in Singapore',cost:[3000,45000,260000],ok:[.99,.94,.82],note:'The best care money can buy'},
   none:{n:'Rest at home and self-medicate',cost:[0,0,0],ok:[.75,.3,.06],note:'Free, and risky'}};
 function pandemicNow(){return S.world.active.find(e=>['sars03','covid','pandemic'].includes(e.id));}
-function illChance(){const a=age();let p=.07+Math.max(0,a-35)/250+Math.max(0,55-S.stats.hlt)/250;if(S.traits.includes('Sickly'))p*=1.4;if(pandemicNow())p+=.25;return Math.min(p,.6);}
+// Health below HLT_WEAK makes you sick more often, with worse illnesses and a higher yearly death risk. Below HLT_CRIT you are admitted to hospital for a year.
+const HLT_WEAK=35,HLT_CRIT=15,inHosp=()=>S.hosp===S.year;
+function illChance(){const a=age();let p=.07+Math.max(0,a-35)/250+Math.max(0,55-S.stats.hlt)/250+(S.stats.hlt<HLT_WEAK?.12:0);if(S.traits.includes('Sickly'))p*=1.4;if(pandemicNow())p+=.25;return Math.min(p,.6);}
 function pickIll(){const a=age(),pd=pandemicNow();
   if(pd&&chance(.7)){const nm=pd.id==='sars03'?'SARS':pd.id==='covid'?'COVID-19':'the new virus';return {n:nm,sev:a>=60?pick([2,3]):a>=40?pick([1,2,2]):pick([1,1,2]),pand:1};}
-  const r=Math.random();let sev=r<(a<30?.04:a<50?.12:.25)?3:r<.4?2:1,L;
+  const w=S.stats.hlt<HLT_WEAK?.15:0,r=Math.random();let sev=r<(a<30?.04:a<50?.12:.25)+w?3:r<.4+w?2:1,L;
   // Young children have no life-threatening illness on the list, so drop to the next severity down.
   while(!(L=ILLS.filter(x=>x.sev===sev&&a>=(x.minA||0)&&a<=(x.maxA||200))).length&&sev>1)sev--;return pick(L);}
 function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
@@ -2336,6 +2339,17 @@ function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
   // Own picture per severity (and for outbreaks) once the art exists; until then the health-screening picture.
   const art=il.pand?'ev_ill_virus':['ev_ill_minor','ev_ill_serious','ev_ill_critical'][s];
   return {title:il.pand?'You caught '+il.n:'Feeling unwell',icon:ICON_IMG[art]?art:'ev_checkup',tag:'Health',text:`You come down with ${il.n}.${il.pand?' The virus is spreading fast this year.':''}\nSeverity: ${lvl}. Where do you go for treatment?`,choices:ch};}
+function hospModal(){const a=age(),kid=a<18,abroad=S.country!=='MY',doc=S.ttl&&S.ttl.freeDoc&&!abroad;
+  const opts=[['gov',R(40,50),.1],['priv',R(50,62),.06],['abroad',R(58,70),.035]].filter(([k])=>!kid||k==='gov'||(k==='priv'&&S.birthGroup!=='B40')||(k==='abroad'&&S.birthGroup==='T20'));
+  const ch=opts.map(([k,to,risk])=>{const C=CARE[k],cost=kid||doc?0:a2c(C.cost[2])*(k==='gov'&&abroad&&S.residency!=='citizen'?3:1);
+    const die_=clamp(risk+Math.max(0,a-60)/200,.02,.4),nm=abroad&&k==='gov'?'Public hospital':abroad&&k==='abroad'?'World-class specialist hospital':C.n;
+    return [nm+(cost?` (${fmt(cost)})`:''),()=>{S.money-=cost;if(doc&&k!=='gov')S.ttl.freeDoc=0;bump('hap',-6);
+      if(chance(die_)){die();return 'Your body is too weak to pull through. You pass away in hospital.';}
+      S.stats.hlt=Math.max(S.stats.hlt,to);log(`Spent the year in hospital (${nm}) and recovered.`,'big');
+      return pick(['Months of drips, scans and hospital food. Slowly, you get your strength back.','The nurses become your friends. By the end of the year you can walk out on your own.'])+' Look after yourself this time.';},
+      ()=>k==='gov'||S.money>=cost,`${Math.round((1-die_)*100)}% chance you pull through · ${kid&&k!=='gov'?'Your parents pay':C.note}`];});
+  return {title:'Admitted to hospital',icon:ICON_IMG.ev_ill_critical?'ev_ill_critical':'ev_checkup',tag:'Health',
+    text:`Your health has fallen to ${Math.round(S.stats.hlt)}. You collapse and are rushed to hospital. The doctors say you must stay for treatment, so you lose this whole year: no actions and no trips.${S.job?' Your employer puts you on medical leave.':''}\nWhere are you treated?`,choices:ch};}
 function treat(il,k,cost,ok,nm){S.money-=cost;const s=il.sev,a=age();if(k!=='none'&&S.ttl&&S.ttl.freeDoc){S.ttl.freeDoc=0;ok=Math.min(.995,ok+.05);}
   if(chance(ok)){bump('hlt',-[1,3,6][s-1]);log(`Recovered from ${il.n}`+(k==='none'?' at home.':` (${nm}).`),s===3?'big':'');
     return k==='none'?'You sleep it off with Panadol and plenty of water. You feel fine.':pick(['The treatment works. You are back on your feet.','The doctors sort it out. You make a full recovery.','A few days of rest, and you feel like yourself again.']);}
@@ -2387,7 +2401,7 @@ function render(){if(!S)return;fixPartners();
     <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
     <div class="id-money"><span>Cash <b class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
-  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}${rusty(k)?' <small class="muted" title="Fading: try '+FADE_HOW[k]+'">· rusty</small>':''}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
+  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}${rusty(k)?' <small class="muted" title="Fading: try '+FADE_HOW[k]+'">· rusty</small>':''}${k==='hlt'&&v<HLT_WEAK?` <small class="muted" title="You get sick more often and are at higher risk of dying. Below ${HLT_CRIT} you go to hospital.">· ${inHosp()?'in hospital':v<HLT_CRIT?'critical':'weak'}</small>`:''}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
   $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('')||'<span class="muted" style="font-size:13px">none yet</span>';
   $('#g-tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join('');
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
@@ -2440,7 +2454,7 @@ function panelAssets(){const I=infl(),fx=fxNow();wealthInit();
    ${age()<16?'<p class="muted" style="margin:0">You\'re too young to buy most things. Pets need your parents\' OK (age 8+).</p>':''}<div class="list">${shop}</div>
    <p class="muted" style="margin:0;font-size:12.5px">Loan rate: ${(rate(fx)*100).toFixed(1)}%. Property not lived in is rented out (~3.5% of value a year).</p></div>`;}
 function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY';
-  const tripOk=!(age()<16||(S.trips||0)>=2);const trips=TRIPS.map(T=>`<div class="item trip${tripOk?' tap" data-act="trip" data-arg="'+T.id:''}">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small>${fmt(T.cost*I*(fx.travel||1))} · 😊 +${T.hap}${S.visited.includes(T.id)?' · ✓ Visited':''}</small></div><button class="btn small" data-act="trip" data-arg="${T.id}" ${age()<16||(S.trips||0)>=2?'disabled':''}>Go</button></div>`).join('');
+  const tripOk=!(age()<16||(S.trips||0)>=2||inHosp());const trips=TRIPS.map(T=>`<div class="item trip${tripOk?' tap" data-act="trip" data-arg="'+T.id:''}">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small>${fmt(T.cost*I*(fx.travel||1))} · 😊 +${T.hap}${S.visited.includes(T.id)?' · ✓ Visited':''}</small></div><button class="btn small" data-act="trip" data-arg="${T.id}" ${age()<16||(S.trips||0)>=2?'disabled':''}>Go</button></div>`).join('');
   const moves=Object.entries(COUNTRIES).filter(([k])=>k!=='MY'&&k!==S.country).map(([k,X])=>{const why=moveCheck(k);return `<div class="item"><span class="ico" aria-hidden="true">${X.flag}</span><div class="t"><b>${X.flag} ${X.city}, ${X.name}</b><small>Pay ~${X.sal}× · cost of living ~${X.col}× · ${LANG[X.lang]} ${X.need}+${X.anyJob?' · any job':' · degree'}${X.maxAge?' · under '+X.maxAge:''}${X.lottery?' · visa lottery':''}${why.length?' · <span class="neg">Needs '+esc(why.join(', '))+'</span>':''}</small></div><button class="btn small" data-act="move" data-arg="${k}" ${why.length||S.ap<1||S.edu.track?'disabled':''}>Apply</button></div>`;}).join('');
   const here=abroad?`<dl class="kv"><dt>Living in</dt><dd>${C.flag} ${C.city}, ${C.name}</dd><dt>Status</dt><dd>${esc(S.residency)}${S.myCitizen?' · Malaysian citizen':' · renounced Malaysian citizenship'}</dd><dt>Years here</dt><dd>${S.yearsAbroad}</dd></dl>
      <div class="stat"><div class="lbl"><span>Homesickness</span><span>${Math.round(S.homesick)}</span></div><div class="bar blue"><i style="width:${S.homesick}%"></i></div></div>
@@ -2507,7 +2521,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-22.79';
+const GAME_VERSION='2026-10-22.80';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
