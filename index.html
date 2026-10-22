@@ -737,11 +737,12 @@ function salaryBase(){if(!S.job)return 0;const J=JOBS[S.job.id];let m=J.base*J.g
   m*=1+abroadPrem(S.job.id);m*=1+(perfScore()-50)/200;return m;}
 function salary(fx){const J=JOBS[S.job.id];let m=salaryBase();if(S.country!=='MY')m*=fx.abroadSal||1;m*=(fx.sal&&fx.sal[J.sector])||1;
   if(S.job.id==='entrepreneur'&&S.pol&&S.pol.rank>=2)m*=1.3;
-  if(origCult()==='chinese'&&['entrepreneur','sales'].includes(S.job.id))m*=1.15; // family and clan business network
+  if(origCult()==='chinese'&&['entrepreneur','sales'].includes(S.job.id))m*=1.15;
+  if(honTier()&&['entrepreneur','sales'].includes(S.job.id))m*=1.05; // doors open for a Dato' // family and clan business network
   if(J.volatile)m*=Math.max(.15,1+(Math.random()*2-1)*J.volatile+(S.stats.luck-50)/200+(S.stats[J.stat]-50)/150);return m;}
 function partnerMonthly(){return allSpouses().reduce((t,p)=>t+(p.age<62?p.salary:0),0)*infl()*(S.country==='MY'?1:ctry().sal);}
 function incomeMonthly(){return (S.job?(S.job.lastMonthly||salaryBase()):0)+partnerMonthly();}
-const rate=fx=>.04+((fx&&fx.rate)||0);
+const rate=fx=>.04+((fx&&fx.rate)||0)-honRate();
 function amort(P,r,n){return P*r/(1-Math.pow(1+r,-n));}
 function homeOk(){const h=S.home!=null&&S.assets.houses[S.home];return !!(h&&h.country===S.country);}
 function ownsLanded(){return homeOk()&&S.assets.houses[S.home].landed;}
@@ -770,14 +771,16 @@ function covidModal(e){const a=age();const ch=[];
   ch.push(['Stay home and look after your health',()=>{bump('hlt',3);bump('hap',-1);return 'Lots of home cooking and video calls.';}]);
   return {title:e.title,icon:'w_pandemic',tag:'World event',text:e.desc,choices:ch};}
 function floodHit(e){if(S.country!=='MY'){log('Floods hit Malaysia. You donate to flood relief from abroad.');return;}
+  const fm=S.dyn.leg&&S.dyn.leg.food?.5:1;if(fm<1&&age()>=18){S.dyn.rep+=2;log('The flood relief food bank you funded feeds thousands of evacuees.');}
+  if(age()>=25&&S.ttl&&S.ttl.yrs.length&&S.money>=300000*infl())q(appealModal());
   const p=town().flood+(e.floodBoost||0);
   if(age()<14){if(chance(p)){bump('hap',-4);log('Floodwater enters your family home. Everyone helps clean up the mud.','world');}return;}
   if(!chance(p)){log('Floods hit other states. You volunteer with flood relief.');bump('cha',1);bump('hap',1);return;}
   const car=S.assets.cars[0];
   q({title:'The water is rising',icon:'w_flood',tag:'World event',text:'Heavy rain has flooded your area. Water is creeping up the road.',choices:[
-    ['Move the car to higher ground',()=>{if(!car)return 'No car to save. You move valuables upstairs instead.';if(roll('luck')>.4)return 'You park on a flyover with dozens of others. Car saved!';car.value*=.5;S.money-=3000*infl();return 'Too late: the engine flooded. Repairs cost '+fmt(3000*infl())+' and the car loses value.';}],
-    ['Sandbag the house',()=>{const dmg=homeOk()?RI(5000,20000)*infl():RI(1000,4000)*infl();S.money-=dmg;bump('hlt',-1);return 'The sandbags help, but you still spend '+fmt(dmg)+' on repairs and cleaning.';}],
-    ['Evacuate to the relief centre',()=>{bump('hap',-4);S.money-=RI(2000,8000)*infl();return 'You spend three nights at the school hall. The house needs cleaning and some furniture is gone.';}]]});}
+    ['Move the car to higher ground',()=>{if(!car)return 'No car to save. You move valuables upstairs instead.';if(roll('luck')>.4)return 'You park on a flyover with dozens of others. Car saved!';car.value*=.5;S.money-=3000*infl()*fm;return 'Too late: the engine flooded. Repairs cost '+fmt(3000*infl()*fm)+' and the car loses value.';}],
+    ['Sandbag the house',()=>{const dmg=(homeOk()?RI(5000,20000)*infl():RI(1000,4000)*infl())*fm;S.money-=dmg;bump('hlt',-1);return 'The sandbags help, but you still spend '+fmt(dmg)+' on repairs and cleaning.';}],
+    ['Evacuate to the relief centre',()=>{bump('hap',-4);S.money-=RI(2000,8000)*infl()*fm;return 'You spend three nights at the school hall. The house needs cleaning and some furniture is gone.';}]]});}
 
 /* ================= modal queue ================= */
 // Pictures are separate files now, so start loading a pop-up's picture as soon as it is queued.
@@ -791,7 +794,7 @@ function diff(b){const out=[];for(const k in STAT_NAMES){if(k==='luck')continue;
 function showNext(){if(cur)return;const m=MQ.shift();
   if(!m){$('#modal').hidden=true;render();save();if(!S.alive){showEnd();return;}if(autoYears>0)setTimeout(runAuto,180);return;}
   cur=m;drawModal();}
-const TAG_ART={'Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'✈️','Money':'💰','Career':'💼','Family':'👨‍👩‍👧','World event':'🌏','Health':'🏥','Festive season':'🏮','Education':'🎓','Vehicle':'🚗','Property':'🏠'};
+const TAG_ART={'Titles':'🎖️','Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'✈️','Money':'💰','Career':'💼','Family':'👨‍👩‍👧','World event':'🌏','Health':'🏥','Festive season':'🏮','Education':'🎓','Vehicle':'🚗','Property':'🏠'};
 // Illustration area: m.img (a picture URL) wins, then a full event picture (ev_ keys), then the event icon, then a tag emoji.
 // Politics pop-ups have no event id, so their pictures are matched by title.
 const POL_ART={'Late-night WhatsApp':'ev_pol_whatsapp','A fiery speech':'ev_pol_speech','Viral TikTok':'ev_pol_tiktok','Faction war':'ev_pol_faction','The "hotel move"':'ev_pol_hotel','General election':'ev_pol_ge','Party elections':'ev_pol_party','MACC raid':'ev_pol_raid','Prime Minister':'ev_pol_pm','Sacked':'ev_pol_sacked','Royal pardon':'ev_pol_pardon','Released':'ev_pol_released','Leaked files':'ev_pol_leak','Family betrayal':'ev_pol_betrayal'};
@@ -837,6 +840,7 @@ const ACTS=[
     const p=age()<35?.45:age()<40?.3:.15;
     if(chance(p)){expectKid(S.partner&&S.partner.stats);return 'Good news: a baby is on the way! It is due next year.';}return 'Not this time. Keep trying.';}},
   {id:'adopt',ic:'🤱',label:'Adopt a child',sub:'Give a child a home',ok:a=>a>=25&&a<=60&&S.kids.length<8,run(){qFront(adoptModal());return '';}},
+  {id:'nation',ic:'🏛️',label:'Contribute to the nation',sub:'Fund a project · once a year',ok:a=>a>=25&&natOk(),run(){qFront(nationModal());return '';}},
   {id:'invest',ic:'📈',label:'Invest 20% of cash',sub:'Stocks & unit trusts',ok:a=>a>=21,run(){if(S.money<1000)return 'You need at least RM 1,000 in cash to invest.';const v=S.money*.2;S.money-=v;S.stocks+=v;bump('int',.5);return 'You put '+fmt(v)+' into a stock & unit-trust portfolio.';}},
   {id:'rest',ic:'😴',label:'Rest',sub:'Health, happiness',ok:a=>a>=4,run(){bump('hlt',2);bump('hap',3);return pick(['A lazy weekend with Netflix.','Long nap after lunch.','A day at the beach.']);}},
 ];
@@ -861,11 +865,11 @@ function stageInfo(){const a=age(),t=S.edu.track;
   if(a>=13&&a<=15)return {label:S.edu.exam==='UEC'?'Junior middle (UEC)':'Lower secondary (Form 1–3)',L:3,ap:3};
   if(a>=16&&a<=17)return {label:S.edu.exam==='UEC'?'Senior middle · UEC':S.edu.exam==='IGCSE'?'Upper secondary · IGCSE':'Upper secondary (Form 4–5) · SPM',L:2,ap:3};
   return null;}
-function studyMult(){return (.4+S.stats.int/80)*(.6+S.stats.dis/100)*(S.traits.includes('Gifted')?1.25:1)*(S.traits.includes('Late bloomer')&&age()>=18?1.3:1);}
+function studyMult(){return (S.dyn.leg&&S.dyn.leg.school&&S.country==='MY'?1.05:1)*(.4+S.stats.int/80)*(.6+S.stats.dis/100)*(S.traits.includes('Gifted')?1.25:1)*(S.traits.includes('Late bloomer')&&age()>=18?1.3:1);}
 const passiveMult=()=>.4+S.stats.int/80;
 const gradeOf=k=>k>=88?'A+':k>=75?'A':k>=62?'B':k>=50?'C':k>=38?'D':'E';
 function startTrack(t){t.len=t.left;S.edu.track=t;S.know=(S.know||0)*.25;}
-function apFor(){const a=age();if(S.pol&&S.pol.jail)return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
+function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail)return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
 function doAct(id){if(cur)return;const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(age()))return;if(S.ap<=0){toast('No actions left this year. Press Next year.');return;}
   S.ap--;const b=snap();const out=A.run();if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();save();showNext();}
 function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span class="mono muted">${Math.round(S.langs[k]||0)}</span>`,()=>{const g=(6+R(0,4))*(.6+S.stats.dis/100);S.langs[k]=clamp((S.langs[k]||0)+g);return 'You practise '+LANG[k]+' with apps and conversation classes.';}]);
@@ -897,7 +901,7 @@ function meetModal(young,lvl,pre){const adult=young||age()>=18,p=pre||npc(adult?
   if(lvl){const off=lvl==='low'?()=>-R(10,25):lvl==='high'?()=>R(10,25):()=>R(-8,8);for(const k of ['int','hlt','cha','look','cre','ath'])p.stats[k]=clamp(Math.round((S.stats[k]||50)+off()),5,99);
     p.loy=lvl==='low'?1:lvl==='high'?-1:0;p.lvl=lvl;}
   if(young){p.age=clamp(age()-RI(8,20),18,99);p.young=1;p.job=p.age<23?'Student':pick(['Model','Influencer','Flight attendant','Barista','Personal trainer','Sales assistant']);p.salary=p.age<23?0:2500*R(.8,1.3);p.stats.look=clamp(p.stats.look+20);
-    p.gold=chance(clamp(.45+(nw>5e5?.2:0)+(nw>2e6?.1:0),0,.85));}else p.gold=chance(.05);
+    p.gold=chance(clamp((.45+(nw>5e5?.2:0)+(nw>2e6?.1:0))*(honTier()?1.2:1),0,.9));}else p.gold=chance(honTier()?.075:.05);
   const rich=young?clamp(Math.log10(Math.max(nw,1))*4-12,0,25):0;
   const compat=clamp(50+(S.stats.cha-50)/2+(S.stats.look-50)/3+R(-20,20)-(p.stats.look-S.stats.look)/5+rich+(lvl==='low'?25:lvl==='high'?-25:0),5,95);
   const hint=(p.gold&&chance(.5)?'\nThey ask what car you drive. Twice.':'')+(lvl==='low'?'\nThey seem a little starstruck by you.':lvl==='high'?'\nHonestly, they are out of your league, and they know it.':'');
@@ -1093,7 +1097,7 @@ function wealthTick(fx,IN,EX){wealthInit();const I=infl();
   for(const b of S.assets.biz){const B=BIZ.find(x=>x.id===b.id)||{yld:.08,sd:.15,stat:'int'};
     let y=B.yld+R(-B.sd,B.sd)+(S.stats[B.stat]-55)/600+(fx.stock||0)*.3-(S.job?.025:0)-(S.country!=='MY'?.03:0)-(b.weak?.06:0);
     if(B.tour&&fx.travel>1.5)y-=.25;if(B.crisis&&chance(B.crisis)){y-=.3;log(`Hard times: big orders were cancelled at your ${b.name.toLowerCase()}.`,'big');}
-    b.weak=0;const p=b.value*y;b.last=p;if(p>=0)IN('Profit from '+b.name,p);else EX('Loss at '+b.name,-p);
+    b.weak=0;if(S.ttl&&S.ttl.engYears>0)y+=.02;let p=b.value*y;if(p>0)p*=1+HON_BIZ[honTier()];b.last=p;if(p>=0)IN('Profit from '+b.name,p);else EX('Loss at '+b.name,-p);
     b.value*=clamp(1+(y-B.yld)*.6+.02,.5,1.4);}
   if(S.assets.biz.length&&chance(.12))q(bizEventModal(pick(S.assets.biz)));
   let joy=0;for(const l of S.assets.lux){const L=LUX.find(x=>x.id===l.id);EX('Upkeep: '+l.name,l.price*L.up);l.value*=1-L.dep;joy++;}
@@ -1214,6 +1218,7 @@ function finances(fx){const a=age(),I=infl(),E=S.edu,col=colNow(fx);let inc=0,ex
   if(S.pension)IN('Pension',S.pension*I*12);
   if(S.pol&&!S.pol.jail&&S.pol.rank>=3){IN(polTitle()+' pay',POL_PAY[S.pol.rank]*I*12*.8);if(S.pol.rank===4&&inGov())IN('GLC board fees',60000*I);}
   if(S.glcChair&&a<75)IN('GLC chairman fees',300000*I);
+  else if(honTier()>=2&&a<75&&!S.jail&&!(S.pol&&S.pol.jail))IN(honTier()>=3?'Board chairman fees':'Company director fees',(honTier()>=3?450000:180000)*I);
   S.assets.houses.forEach((h,i)=>{h.value*=1+.03+(fx.prop||0)+R(-.02,.02);const home=i===S.home&&h.country===S.country;
     if(!home){const v=chance(h.rental?.12:.08),bad=!v&&chance(.06);
       if(v)log(`Your ${h.name.toLowerCase().replace(/ \(to rent out\)/,'')} in ${h.where} sat empty this year. No rent.`);
@@ -1224,7 +1229,7 @@ function finances(fx){const a=age(),I=infl(),E=S.edu,col=colNow(fx);let inc=0,ex
   const student=!!E.track,mar=married();
   const kidsN=S.kids.filter(k=>k.alive!==false&&S.year-k.born<22).length;
   if(!(student&&a<26)&&!(S.withParents&&!S.job&&a<26&&!mar)){
-    let living=2200*I*col*(mar?1.7:1);if(S.withParents&&!mar)living*=.5;living+=kidsN*900*I*col;if(a>=65)living+=600*I*col;const style=(S.takeHome||0)*.35;EX(style>living*12?'Living costs and lifestyle':'Living costs'+(kidsN?' (incl. children)':''),Math.max(living*12,style));
+    let living=2200*I*col*(mar?1.7:1)*(1+HON_COL[honTier()]);if(S.withParents&&!mar)living*=.5;living+=kidsN*900*I*col;if(a>=65)living+=600*I*col;const style=(S.takeHome||0)*.35;EX(style>living*12?'Living costs and lifestyle':'Living costs'+(kidsN?' (incl. children)':''),Math.max(living*12,style));
     if(!homeOk()&&!(S.withParents&&!mar)&&!(S.pol&&S.pol.rank>=6))EX('Rent',(S.country==='MY'?1100:1400)*I*col*(mar||kidsN?1.4:1)*12);}
   S.assets.cars.forEach(c=>{EX('Car running costs',((c.ev?2400:4200*(fx.fuel||1))*I+c.price*.02)*(S.pol&&S.pol.rank>=5&&!S.pol.jail?0:1));c.value*=.88+(!c.ev&&fx.petrolCar?fx.petrolCar:0);if(c.loanLeft>0){const p=Math.min(c.pay,c.loanLeft);c.loanLeft-=p;EX('Car loan',p);}});
   S.assets.pets.forEach(p=>EX('Pets',p.cost*I));
@@ -1305,7 +1310,7 @@ function milestones(){const a=age(),E=S.edu;
   if(a===13){log(`Finished primary school. Final report card: mostly ${gradeOf(S.know)}.`,'big');S.know*=.3;}
   if(a===16){log(`Finished ${E.exam==='UEC'?'junior middle':'Form 3'}. Overall grade: ${gradeOf(S.know)}.`,'big');S.know*=.4;}
   if(a>=7&&a<=17)S.know=clamp(S.know+30/stageInfo().L*passiveMult());
-  if(a===18&&E.level==='none'){spmResult();if(origCult()==='chinese'&&(E.exam==='UEC'||E.spmA>=7)&&chance(.6))q(clanModal());if(E.exam==='UEC')q(uecModal());else{if(E.spmA>=9&&E.exam==='SPM')q(scholarModal());else if(E.spmA>=7&&E.exam==='SPM'&&isBumi()&&chance(.6))q(scholarModal('MARA'));q(preuModal());}}
+  if(a===18&&E.level==='none'){spmResult();if(origCult()==='chinese'&&(E.exam==='UEC'||E.spmA>=7)&&chance(.6+(S.dyn.honParent?.1:0)))q(clanModal());if(E.exam==='UEC')q(uecModal());else{if(E.spmA>=9&&E.exam==='SPM')q(scholarModal());else if(E.spmA>=7&&E.exam==='SPM'&&isBumi()&&chance(.6+(S.dyn.honParent?.1:0)))q(scholarModal('MARA'));q(preuModal());}}
   if(E.track&&a>18){payFees();S.know=clamp(S.know+30/(E.track.len||1)*passiveMult());E.track.left--;if(E.track.left<=0)finishTrack();}
   if(a===55&&S.epf>0&&!S.epfDone&&S.country==='MY'){S.epfDone=true;q({title:'EPF at 55',icon:'m_money',tag:'Money',text:`Your EPF balance is ${fmt(S.epf)}. You can now withdraw it.`,choices:[['Withdraw everything',()=>{S.money+=S.epf;S.epf=0;return 'The money lands in your bank account. Spend wisely!';}],['Keep it growing; draw it down after retiring',()=>'EPF keeps paying dividends and will fund your retirement.']]});}
   if(S.job&&a>=S.retireAsk&&!S.retired){S.retireAsk=a+5;q({title:'Time to retire?',icon:'m_retire',tag:'Career',text:`You're ${a}. Retire now, or keep working a few more years?`,choices:[['Retire',()=>{retire();return 'Pencen! No more alarm clocks.';}],['Keep working',()=>'You\'re not done yet.',()=>a<75]]});}
@@ -1340,7 +1345,7 @@ function babyAskModal(p){const same=samePartner(),wed=married();
     ['Not yet',()=>{S.babyAsked=false;if(S.partner!==p)return '';p.rel=clamp(p.rel-8);return `${esc(p.name)} looks disappointed but agrees to wait.`;}],
     ['Never',()=>{S.babyAsked=false;if(S.partner!==p)return '';p.rel=clamp(p.rel-20);return `${esc(p.name)} goes very quiet. This could become a big problem.`;}]]};}
 function parentsTick(){for(const p of S.parents){if(!p.alive)continue;p.age++;
-  if(p.age>62&&chance(Math.pow((p.age-55)/45,3)*.5)){p.alive=false;const a=age();
+  if(p.age>62&&chance(Math.pow((p.age-55)/45,3)*.5*(S.dyn.leg&&S.dyn.leg.dial?.85:1))){p.alive=false;const a=age();
     let amt=S.group==='T20'?RI(300000,3000000):S.group==='M40'?RI(40000,300000):RI(0,30000);amt*=infl()/2;
     const lastOne=!S.parents.some(x=>x.alive);if(a<18||p.handedOver)amt=0;
     log(`Your ${p.role.toLowerCase()} ${p.name} passed away at ${p.age}.`,'big');bump('hap',-15);
@@ -1349,12 +1354,13 @@ function parentsTick(){for(const p of S.parents){if(!p.alive)continue;p.age++;
     if(lastOne&&town().kampung&&a>=18){S.assets.houses.push({name:'Family kampung house',where:town().name,value:180000*infl(),price:180000*infl(),loanLeft:0,pay:0,country:'MY',landed:1});txt+='\nThe family kampung house passes to you.';}
     q({title:'Farewell',icon:'m_rip',text:txt,choices:[['Hold the funeral',()=>'Relatives come from all over to pay their respects.']]});if(S.fortune){if(S.group==='T20'&&chance(.45))q(familyCoModal());q(fortuneModal(S.fortune));S.fortune=0;}}}}
 function petsTick(){S.assets.pets=S.assets.pets.filter(p=>{p.age++;if(p.age>=p.life){log(`Your ${p.kind.toLowerCase()} ${p.name} passed away.`,'big');bump('hap',-5);return false;}return true;});}
-function kidsTick(){for(const k of S.kids){const ka=S.year-k.born;if(ka<18){k.stats.int=clamp(k.stats.int+.8);k.stats.ath=clamp(k.stats.ath+.4);}
+function kidsTick(){const sb=S.dyn.leg&&S.dyn.leg.school?.1:0;for(const k of S.kids){const ka=S.year-k.born;if(ka<18){k.stats.int=clamp(k.stats.int+.8+sb);k.stats.ath=clamp(k.stats.ath+.4);}
   if(ka===18){const n=Math.round(clamp((k.stats.int-35)/5.5+R(-1.5,1.5),0,10));k.spm=n;log(`${k.name} got ${n}A in SPM.`);}
   if(ka===24&&!k.job){k.job=k.stats.int>=60?pick(['Engineer','Doctor','Accountant','Software engineer','Lawyer']):pick(['Clerk','Sales executive','Technician','Designer','Nurse']);log(`${k.name} started work as a ${k.job.toLowerCase()}.`);}}}
 
 /* ================= festivals ================= */
 function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
+  if(a>=18&&S.country==='MY'&&S.dyn.leg&&S.dyn.leg.hall)bump('hap',3); // the whole community comes to the hall you built
   if(chance(.5)&&a>=6&&S.country==='MY'){const o=pick(Object.values(CULTURES).filter(c=>c.fest!==F));log(`Visited a friend's ${o.fest} open house. Ate far too much.`,'festive');bump('cha',1);}
   if(a<18||(S.edu.track&&!S.job)){const amt=Math.round((a<12?RI(80,300):RI(150,600))*I*(S.group==='T20'?2:S.group==='B40'?.6:1));
     q({title:F,icon:'f_'+S.culture,tag:'Festive season',text:`Relatives hand you ${C.gift}. ${fmt(amt)} in total!`,choices:[
@@ -1368,7 +1374,7 @@ function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
       ['Video call the family',()=>{S.homesick=clamp(S.homesick-5);return 'The whole family crowds around the phone to wave.';}]]});return;}
   const ch=[['Balik kampung (brace for the highway jam)',()=>{const jam=RI(4,14);S.money-=300*I;bump('hap',5);return `${jam} hours on the highway, but home cooking and catching up with relatives make it worth it.`;}]];
   if(a>=25)ch.push([`Host an open house (${fmt(3000*I)})`,()=>{S.money-=3000*I;bump('cha',3);bump('hap',4);S.openHouses++;S.dyn.rep+=1;if(S.openHouses>=5)addAch('openHouse');return 'Neighbours, colleagues and friends of every background drop by. Classic Malaysian open house.';},()=>S.money>3000*I,'Needs cash']);
-  if(S.job){const g=RI(300,1500)*I;ch.push([`Give ${C.gift} to the young ones (${fmt(g)})`,()=>{S.money-=g;bump('cha',2);bump('hap',2);return 'The kids line up politely, eyes on the envelopes.';}]);}
+  if(S.job){const g=RI(300,1500)*I*(honTier()?2:1);ch.push([`Give ${C.gift} to the young ones (${fmt(g)})`,()=>{S.money-=g;bump('cha',2);bump('hap',2);return 'The kids line up politely, eyes on the envelopes.';}]);}
   ch.push(['Quiet celebration at home',()=>{bump('hlt',2);bump('hap',2);return 'A calm, restful break with close family.';}]);
   q({title:F,icon:'f_'+S.culture,tag:'Festive season',text:`It's ${F}! How will you celebrate this year?`,choices:ch});}
 
@@ -1735,7 +1741,7 @@ function checkAch(){const nw=netWorth();if(nw>=1e6)addAch('millionaire');if(S.bi
   if(Object.values(S.langs).filter(v=>v>=60).length>=4)addAch('polyglot');if(S.assets.houses.length)addAch('homeowner');if(S.dyn.gen>=3)addAch('dynasty3');
   if(S.group!=='T20'&&nw>2e6)S.group='T20';else if(S.group==='B40'&&nw>3e5&&age()>=25)S.group='M40';}
 function deathChance(){const a=age();if(a<18)return 0;let p=.0004;if(a>=50)p+=Math.pow((a-50)/45,3)*.5;p*=(1.6-S.stats.hlt/100);if(S.traits.includes('Sickly'))p*=1.3;return Math.min(p,.95);}
-function die(){sfx('sad');if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;}S.alive=false;MQ=[];autoYears=0;const a=age();log(`Passed away at ${a}.`,'big');
+function die(){sfx('sad');if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;}S.alive=false;MQ=[];autoYears=0;const a=age();log(`Passed away at ${a}.`,'big');if(S.honour==='Tun')log('Given a state funeral. Flags fly at half-mast across the country.','big');
   q({title:'Rest in peace',icon:'m_rip',text:`${esc(dispName())} passed away at the age of ${a} in ${S.year}${S.country==='MY'?'':', in '+ctry().name}.`,choices:[['See life summary',null]]});}
 
 /* ================= year loop ================= */
@@ -1753,9 +1759,9 @@ function canStand(){return !S.bankruptYears&&!(S.pol.ban>S.year)&&!S.pol.jail;}
 function polTitle(){return S.pol&&S.pol.mb&&S.pol.rank<5?'Menteri Besar':S.pol?POL_RANKS[S.pol.rank]:'';}
 function heatHint(h){return h<15?'Nobody is looking':h<35?'A few rumours':h<60?'Journalists are asking questions':h<80?'The MACC has opened a file':'An arrest feels close';}
 // The player's name with any royal title in front, e.g. "Tan Sri Wei Jie".
-function honTier(){return {Datuk:1,"Dato'":1,'Datuk Seri':2,"Dato' Sri":2,'Dato Seri':2,'Tan Sri':3,'Puan Sri':3,Tun:4}[S.honour]||0;}
+function honTier(){return {Datuk:1,"Dato'":1,'Datuk Seri':2,"Dato' Sri":2,"Dato' Seri":2,'Dato Seri':2,'Tan Sri':3,'Puan Sri':3,Tun:4}[S.honour]||0;}
 function dispName(){return (S.honour?S.honour+' ':'')+S.name;}
-function giveHonour(t){const rep={Datuk:5,'Datuk Seri':6,'Tan Sri':8,Tun:15}[t]||3;S.honour=t;if(S.pol)S.pol.title=t;S.dyn.rep+=rep;addAch('datuk');log(`Conferred the title "${t}".`,'big');
+function giveHonour(t){const rep={Datuk:5,'Datuk Seri':6,'Tan Sri':8,Tun:15}[t]||3;S.honour=t;TT().src='pol';if(S.pol)S.pol.title=t;S.dyn.rep+=rep;addAch('datuk');log(`Conferred the title "${t}".`,'big');
   q({title:'Royal honour',icon:'m_scholar',tag:'Politics',text:`You are conferred the title of ${t}. From now on, people call you "${t} ${S.name}".`,choices:[['Receive it at the palace',()=>{bump('hap',6);return 'A proud day for the whole family.';}]]});}
 function setRank(r){const P=S.pol;const was=P.rank;P.rank=r;if(r>was&&r>=3)log('Became '+POL_RANKS[r]+'.','big');
   if(r>=5&&S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;S.job=null;log('Resigned from your job to serve in government.');}
@@ -1768,7 +1774,7 @@ function nationalResult(){const W=polW(),P=S.pol;for(const k in W.swing)W.swing[
   if(P&&old!==W.gov&&P.party===old&&P.heat>15){P.heat+=20;}
   return old!==W.gov;}
 function winProb(type,lvl,spend){const P=S.pol,W=polW(),share=PARTIES[P.party].str[type]+(W.swing[P.party]||0);
-  return clamp(.5+(share-.45)*1.6+(S.stats.cha-50)/250+P.sup/300+S.dyn.rep/400+spend+(P.rank>=3&&P.seat===type?.07:0)+(P.dirty===0&&type==='urban'?.05:0)-(P.heat>60?.08:0)-(lvl==='fed'?.05:0),.03,.95);}
+  return clamp(.5+(share-.45)*1.6+(S.stats.cha-50)/250+P.sup/300+S.dyn.rep/400+spend+(P.rank>=3&&P.seat===type?.07:0)+(P.dirty===0&&type==='urban'?.05:0)+(S.dyn.leg&&S.dyn.leg.bridge&&type!=='urban'?.05:0)-(P.heat>60?.08:0)-(lvl==='fed'?.05:0),.03,.95);}
 function geModal(){const P=S.pol,seat=P.rank>=3,ch=[];
   if(seat){ch.push([`Defend your seat in ${SEATS[P.seat][1]}`,()=>{qFront(spendModal(P.seat,P.rank>=4?'fed':'state'));return '';}]);
     if(P.rank===3)ch.push([`Move up to the Parliament seat of ${SEATS[P.seat][1]}`,()=>{qFront(spendModal(P.seat,'fed'));return '';}]);}
@@ -1841,14 +1847,15 @@ function polTick(){const P=S.pol;
     if(P.rank===7&&inGov()&&chance(.1)){setRank(8);log('The Prime Minister resigned. You take over.','big');q({title:'Prime Minister',icon:'m_vote',tag:'Politics',text:'The Prime Minister resigns, and the party picks you to lead the country.',choices:[['Take the oath',()=>'You are sworn in at Istana Negara.']]});}
     if(P.party!=='IND'&&P.loy<10&&chance(.5)){P.party='IND';if(P.rank>=5)P.rank=4;log('Sacked from the party.','big');q({title:'Sacked',icon:'m_vote',tag:'Politics',text:'The party supreme council sacks you. You keep your seat for now, as an independent.',choices:[['Fight on alone',()=>'Being an independent is lonely.']]});}
     if(P.rank>=1&&chance(.4))polEvent();}
-  if(P.rank>=3&&!S.honour&&chance(.06))giveHonour('Datuk');
-  else if((P.rank>=6||P.mb)&&S.honour==='Datuk'&&chance(.12))giveHonour(P.mb?'Datuk Seri':'Tan Sri');}
+  if(P.rank>=3&&honTier()<1&&chance(.06))giveHonour('Datuk');
+  else if((P.rank>=6||P.mb)&&honTier()===1&&chance(.12))giveHonour(P.mb?'Datuk Seri':'Tan Sri');
+  else if(P.rank>=6&&honTier()===2&&chance(.1))giveHonour('Tan Sri');}
 function raidModal(){const P=S.pol,I=infl();const seized=Math.max(0,S.money)*.35;S.money-=seized;P.heat=Math.max(0,P.heat-30);log('MACC raided your home. Seized: '+fmt(seized)+'.','big');
   const trial=lawyer=>()=>{const plead=lawyer==='plead';if(lawyer==='top')S.money-=800000*I;if(lawyer==='normal')S.money-=100000*I;
     const r=Math.random(),acq=lawyer==='top'?.35:lawyer==='normal'?.15:0,dnaa=plead?0:inGov()?.3:.1;
     if(r<acq){P.heat=10;S.dyn.rep-=2;log('Acquitted of corruption charges.','big');return 'The judge acquits you. Your supporters cheer outside the court.';}
     if(r<acq+dnaa){P.heat=40;S.dyn.rep-=4;log('Given a discharge not amounting to acquittal (DNAA).','big');return 'The prosecution drops the case with a "discharge not amounting to acquittal". You are free, but the case could come back.';}
-    const yrs=plead?RI(1,3):RI(3,12),fine=Math.max(a2c(1000000),seized);S.money-=fine;S.dyn.rep-=10;P.jail=yrs;P.rank=0;P.seat=null;P.mb=0;P.heat=0;S.ap=0;
+    const yrs=plead?RI(1,3):RI(3,12),fine=Math.max(a2c(1000000),seized);S.money-=fine;S.dyn.rep-=10;P.jail=yrs;P.rank=0;P.seat=null;P.mb=0;P.heat=0;S.ap=0;if(S.ttl&&S.ttl.src==='buy'){stripTitle();S.ttl.bought=0;}
     if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;S.job=null;}bump('hap',-20);log(`Convicted of corruption: ${yrs} year${yrs===1?'':'s'} in prison and a ${fmt(fine)} fine.`,'big');
     return `Guilty. You are sentenced to ${yrs} year${yrs===1?'':'s'} in prison and fined ${fmt(fine)}. You lose your seat and every party post.`;};
   return {title:'MACC raid',icon:'m_vote',tag:'Politics',text:`At dawn, MACC officers search your home. They seize ${fmt(seized)} in cash, handbags and watches. You are charged in court.`,choices:[
@@ -1872,8 +1879,8 @@ function policyModal(){const P=S.pol,W=polW();P.policyYear=S.year;const pm=P.ran
     :[['Raise the minimum wage',()=>{P.sup+=10;S.dyn.rep+=1;return 'Workers celebrate. Business groups grumble.';}],['Cut fuel subsidies',()=>{S.dyn.rep+=3;P.sup-=10;W.swing[P.party]=(W.swing[P.party]||0)-.02;return 'Economists approve. Your voters do not.';}],
       ['Free tuition at public universities',()=>{P.sup+=8;return 'Students and parents cheer.';}],['Launch a mega project in your state',()=>{P.sup+=5;return 'A new highway is announced. Ribbon-cutting photos everywhere.';}]];
   return {title:pm?'Table the national budget':'Choose your policy for the year',icon:'m_vote',tag:'Politics',text:pm?'As Prime Minister you table this year\'s national budget.':'Pick one policy to push this year.',choices:opts};}
-function joinModal(){const ch=['BR','GR','PAU','GB'].map(k=>[PARTIES[k].name,()=>{S.pol={party:k,rank:0,sup:20,loy:40,heat:0,dirty:0,seat:null,joined:S.year,jail:0,ban:0,terms:0,mb:0};log('Joined '+PARTIES[k].name+'.','big');return 'You pay your membership fee and get your party T-shirt.';},null,{BR:'Strong in rural seats',GR:'Strong in urban, mixed seats',PAU:'Strong on the east coast',GB:'Strong in Sabah and Sarawak'}[k]]);
-  ch.push(['Go independent',()=>{S.pol={party:'IND',rank:0,sup:20,loy:50,heat:0,dirty:0,seat:null,joined:S.year,jail:0,ban:0,terms:0,mb:0};log('Started an independent political career.','big');return 'No party, no machinery, no bosses.';},null,'Very hard to win']);
+function joinModal(){const ch=['BR','GR','PAU','GB'].map(k=>[PARTIES[k].name,()=>{S.pol={party:k,rank:0,sup:20+polBoost(),loy:40,heat:0,dirty:0,seat:null,joined:S.year,jail:0,ban:0,terms:0,mb:0};log('Joined '+PARTIES[k].name+'.','big');return 'You pay your membership fee and get your party T-shirt.';},null,{BR:'Strong in rural seats',GR:'Strong in urban, mixed seats',PAU:'Strong on the east coast',GB:'Strong in Sabah and Sarawak'}[k]]);
+  ch.push(['Go independent',()=>{S.pol={party:'IND',rank:0,sup:20+polBoost(),loy:50,heat:0,dirty:0,seat:null,joined:S.year,jail:0,ban:0,terms:0,mb:0};log('Started an independent political career.','big');return 'No party, no machinery, no bosses.';},null,'Very hard to win']);
   ch.push(['Not now',null]);return {title:'Join a political party',icon:'m_vote',tag:'Politics',text:'Pick a party. Which seats you can win depends on where the party is strong.',choices:ch};}
 function polPanel(){const a=age();if(a<18||S.country!=='MY')return '';const P=S.pol,W=polW();
   if(!P)return `<div class="panel"><h3>Politics</h3><p class="muted" style="margin:0;font-size:13px">${S.honour?'Title: '+S.honour+'. ':''}Join a party to start a political career, all the way up to Prime Minister.</p><div class="row"><button class="btn small" data-act="poljoin">Join a political party</button></div></div>`;
@@ -1883,17 +1890,176 @@ function polPanel(){const a=age();if(a<18||S.country!=='MY')return '';const P=S.
     <dt>Local support</dt><dd>${Math.round(P.sup)}/100</dd><dt>Party standing</dt><dd>${Math.round(P.loy)}/100</dd><dt>MACC attention</dt><dd>${heatHint(P.heat)}</dd><dt>Next general election</dt><dd>${W.nextGE}</dd>${P.rank>=3?`<dt>Pay</dt><dd class="mono">${fmt(POL_PAY[P.rank]*infl())}/month</dd>`:''}${P.ban>S.year?`<dt>Banned from standing</dt><dd>until ${P.ban}</dd>`:''}</dl>
     <div class="row">${P.party!=='IND'?b('polwork','Party work (1 action)',S.ap>0):''}${P.rank>=1||P.party==='IND'?b('ceramah','Hold a ceramah (1 action)',S.ap>0):''}${P.rank>=2?b('deals','Back-room deals',S.ap>0):''}${P.dirty>0?b('hide','Hide the money',S.money>0):''}${P.rank>=6||P.mb?b('policy',P.rank===8?'Table the budget':'Choose a policy',P.policyYear!==S.year):''}${P.rank===8?b('callge','Call a snap election',!W.snap&&W.nextGE>S.year+1):''}${b('polquit','Retire from politics',true)}</div></div>`;}
 
+/* ================= titles: buy one or earn one (v73) ================= */
+// Dato' can be bought (illegal, MACC risk). Dato' and Dato' Seri can be earned with the yearly "Contribute to the nation" action.
+// Tan Sri and Tun only come through politics. Legacies (S.dyn.leg) outlast you and pass to your heirs.
+function TT(){if(!S.ttl)S.ttl={macc:0,bought:0,src:null,pts:0,yrs:[],last:0,given:0,natYear:0,buyYear:0,bribe:0,due:null,dueSrc:null,builds:[],sch:[],trust:0,inhYear:0,invite:0,pause:0,engYears:0,freeDoc:0};if(!S.dyn.leg)S.dyn.leg={};return S.ttl;}
+function tArt(k,fb){return ICON_IMG[k]?k:fb;}
+function heatNow(){return S.pol?S.pol.heat:TT().macc;}
+function heatAdd(n){if(S.pol)S.pol.heat=Math.max(0,S.pol.heat+n);else{const T=TT();T.macc=Math.max(0,T.macc+n);}}
+const HON_BIZ=[0,.05,.1,.15,.15],HON_COL=[0,.03,.05,.07,.07];
+function honRate(){return !S?0:honTier()>=2?.01:honTier()?.005:0;}
+function spouseHon(p){const t=honTier();return t&&p&&p.status==='married'&&p.gender==='F'?['','Datin ','Datin Seri ','Puan Sri ','Toh Puan '][t]:'';}
+function polBoost(){const T=TT(),b=(honTier()>=2?10:0)+(T.invite?15:0);T.invite=0;return b;}
+function blokName(){return 'Blok '+(S.famName||S.name.split(' ')[0]);}
+function NAT(){const c=S.culture;return [
+  {id:'sch',n:'Sponsor 10 B40 scholarships',c:75000,p:4,rep:.5,hap:2,cha:0,t:'Ten students from poor families get full scholarships. Your name is on every award letter.'},
+  {id:'food',n:'A food bank and flood relief supplies',c:180000,p:9,rep:1,hap:2,cha:1,t:'Boats, generators and a warehouse of dry food, ready for the next monsoon.'},
+  {id:'school',n:'A school block and library for a rural school',c:450000,p:22,rep:2,hap:3,cha:1,b:1,t:()=>`A new block with a library goes up at a rural school. The headmaster names it "${blokName()}".`},
+  {id:'hall',n:c==='malay'?'A surau and community hall':c==='chinese'?'A temple hall and community centre':'A community hall',c:675000,p:32,rep:2,hap:3,cha:2,b:1,t:'The whole town turns up for the opening. There is enough food for a thousand people.'},
+  {id:'dial',n:'A dialysis centre for a small town',c:1200000,p:55,rep:3,hap:4,cha:1,b:1,t:'Patients who used to travel three hours for dialysis can now go down the road.'},
+  {id:'bridge',n:'A bridge and road to an Orang Asli village',c:2700000,p:120,rep:4,hap:5,cha:2,b:1,t:'For the first time, the village children can get to school when the river floods.'},
+  {id:'wing',n:'A hospital wing',c:7500000,p:320,rep:6,hap:6,cha:3,b:1,t:()=>`A new wing opens at the state hospital. The sign over the door says "${S.dyn.wingName||S.famName+' Family'} Wing".`}];}
+function natGoal(){const t=honTier();return t<1?{t:"Dato'",p:300,y:3}:t<2?{t:"Dato' Seri",p:900,y:6}:null;}
+function natFill(){const g=natGoal(),T=TT();return g?Math.min(1,T.pts/g.p,T.yrs.length/g.y):1;}
+function natHint(f){return f<.25?'Few people know your name':f<.5?'The local papers mention your charity':f<.75?'State officials have noticed your work':f<1?'Your name is on an honours shortlist':'Your name has gone to the palace';}
+function natOk(){const T=TT();return age()>=25&&S.country==='MY'&&!S.jail&&T.natYear!==S.year&&T.pause!==S.year;}
+function addPts(n){const T=TT();T.pts+=n;T.last=S.year;if(!T.yrs.includes(S.year))T.yrs.push(S.year);natCheck();}
+function natCheck(){const g=natGoal(),T=TT();if(g&&!T.due&&T.pts>=g.p&&T.yrs.length>=g.y){T.due=g.t;T.dueSrc='nation';log('Your name has been put forward for a state honour.');}}
+function nationModal(){const I=infl(),g=natGoal();
+  const ch=NAT().map(P=>{const cost=P.c*I;return [`${P.n} (${fmt(cost)})`,()=>giveNation(P,cost),()=>S.money>=cost,'Needs '+fmt(cost)+' in cash'];});
+  ch.push(['Not this year',()=>{S.ap++;return 'You put the chequebook back in the drawer.';}]);
+  return {title:'Contribute to the nation',icon:tArt('ev_t_ribbon','ev_bigproject'),tag:'Titles',text:'Which project will you fund this year? Big projects are remembered long after you are gone.'+(g?`\nRecognition: ${natHint(natFill())}.`:''),choices:ch};}
+function giveNation(P,cost){const T=TT(),L=S.dyn.leg,nw=Math.max(1,netWorth());S.money-=cost;T.natYear=S.year;T.given+=cost;
+  S.dyn.rep+=P.rep;bump('hap',P.hap);if(P.cha)bump('cha',P.cha);
+  if(P.id==='sch')T.sch.push(S.year);if(P.b)T.builds.push({n:P.n,c:cost,y:S.year});
+  const first=!L[P.id];L[P.id]=(L[P.id]||0)+1;if(P.id==='wing'&&first)S.dyn.wingName=(S.famName||S.name)+' Family';
+  if(P.id==='bridge'&&first)S.assets.houses.forEach(h=>{if(h.country==='MY'&&/kampung|terrace/i.test(h.name))h.value*=1.2;});
+  if(S.pol&&S.pol.seat&&!S.pol.jail){S.pol.sup=clamp(S.pol.sup+P.p/5);if(polW().nextGE-S.year<=1)heatAdd(5);}
+  log(`Funded ${P.n.replace(/^A /,'a ').replace(/^Sponsor/,'sponsorship of')} (${fmt(cost)}).`,'big');
+  addPts(P.p);
+  if(P.c>=450000&&chance(.4))q(ribbonModal());
+  if(cost>nw*.3&&S.partner&&S.partner.alive!==false&&married()&&chance(.5))q(famFirstModal());
+  let t=typeof P.t==='function'?P.t():P.t;const g=natGoal();if(g)t+=`\nRecognition: ${natHint(natFill())}.`;return t;}
+function conferTitle(t,src){const T=TT();S.honour=t;T.src=src;if(S.pol)S.pol.title=t;addAch('datuk');log(`Conferred the title "${t}"${src==='buy'?' (arranged through a middleman)':''}.`,'big');}
+function stripTitle(){const T=TT();if(T.src!=='buy')return false;S.honour=null;T.src=null;if(S.pol)S.pol.title=null;log('Stripped of your title.','big');return true;}
+function honoursModal(t,src){const mum=S.parents.find(p=>p.alive&&p.role==='Mother'),seri=t!=="Dato'",I=infl();
+  if(seri)return {title:'The honours list',icon:tArt('ev_t_investiture','ev_award'),tag:'Titles',text:`Years of schools, clinics and bridges have not gone unnoticed. On the Sultan's Birthday, the palace confers on you the title ${t}.`+(mum?' Your mother cries through the whole ceremony.':''),
+    choices:[['Kneel before the Sultan',()=>{conferTitle(t,src);bump('hap',10);bump('cha',2);S.dyn.rep+=6;return `From today you are ${t} ${S.name}.`;}]]};
+  return {title:'The honours list',icon:tArt('ev_t_investiture','ev_award'),tag:'Titles',text:`A letter with the state crest arrives. Your name is on this year's Sultan's Birthday honours list, for "outstanding service to the people". You are to be conferred the title ${t}.`,
+    choices:[['Receive it at the palace',()=>{conferTitle(t,src);bump('hap',8);bump('cha',3);S.dyn.rep+=5;return `From today, people call you "${t} ${S.name}".`;}],
+      [`Receive it, then hold a kenduri for the whole kampung (${fmt(45000*I)})`,()=>{conferTitle(t,src);S.money-=45000*I;bump('hap',10);bump('cha',5);S.dyn.rep+=7;return 'Three cows, a thousand guests and a queue for nasi minyak that goes round the block.';},()=>S.money>=45000*I]]};}
+/* --- buying a title --- */
+function buyOk(){return age()>=30&&S.country==='MY'&&!honTier()&&!S.jail&&!(S.pol&&S.pol.jail);}
+function buyRich(){return netWorth()>=2e6*infl();}
+function buyModal(free){const I=infl();TT().buyYear=S.year;
+  return {title:'A title, for a price',icon:tArt('ev_t_lobby','ev_bribe'),tag:'Titles',text:'Everyone knows titles can be "arranged". Nobody says it out loud. The highest you can buy is Dato\'.\nMACC attention: '+heatHint(heatNow())+'.',choices:[
+    [`Meet a middleman in a hotel lobby (${fmt(525000*I)})`,()=>buyTitle(525000*I,.7,20),()=>S.money>=525000*I,'Some of these men are conmen · raises MACC attention'],
+    [`Go through a "royal insider" (${fmt(1200000*I)})`,()=>buyTitle(1200000*I,.95,30),()=>S.money>=1200000*I,'Almost certain · raises MACC attention a lot'],
+    ['Walk away',()=>{if(!free)S.ap++;return 'You decide your name is fine as it is.';}]]};}
+function buyTitle(cost,ok,heat){const T=TT();S.money-=cost;
+  if(!chance(ok)){heatAdd(5);bump('hap',-6);log(`Lost ${fmt(cost)} to a title scam.`,'big');
+    q({title:'Scammed',icon:tArt('ev_t_lobby','ev_bribe'),tag:'Titles',text:'The middleman stops answering his phone. The "palace contact" never existed. You can\'t exactly go to the police.',choices:[['Swallow the loss',()=>'An expensive lesson.']]});
+    return `You hand over ${fmt(cost)} in a paper bag and wait for the good news.`;}
+  heatAdd(heat);T.bought=1;T.bribe=cost;conferTitle("Dato'",'buy');S.dyn.rep+=2;bump('cha',3);bump('hap',6);
+  return `A few months later your name appears on a state honours list. Nobody at the ceremony asks what you did to deserve it. From today you are "Dato' ${S.name}".`;}
+function titleRaidModal(){const T=TT(),I=infl();const seized=Math.max(0,S.money)*.2;S.money-=seized;T.macc=Math.max(0,T.macc-30);log('MACC raided your home. Seized: '+fmt(seized)+'.','big');
+  const fine=2*(T.bribe||300000*I);
+  const trial=k=>()=>{if(k==='top')S.money-=800000*I;if(k==='normal')S.money-=100000*I;
+    if(k==='plead'){const s=stripTitle();S.money-=fine;S.dyn.rep-=4;T.macc=0;T.bought=0;log(`Pleaded guilty to corruption. Fined ${fmt(fine)}.`,'big');return `You plead guilty. The court fines you ${fmt(fine)}${s?' and the palace strips your title':''}. No prison.`;}
+    if(chance(k==='top'?.35:.15)){T.macc=10;S.dyn.rep-=2;log('Acquitted of corruption charges.','big');return 'The judge acquits you. The middleman takes all the blame.';}
+    const yrs=RI(1,3),s=stripTitle();S.money-=fine;S.dyn.rep-=8;T.macc=0;T.bought=0;S.jail=yrs;S.ap=0;
+    if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;S.job=null;}bump('hap',-20);
+    log(`Convicted of corruption: ${yrs} year${yrs===1?'':'s'} in prison and a ${fmt(fine)} fine.`,'big');
+    return `Guilty. You are sentenced to ${yrs} year${yrs===1?'':'s'} in prison and fined ${fmt(fine)}.${s?' The palace strips your title.':''} You lose your job.`;};
+  return {title:'MACC at the door',icon:tArt('ev_t_macc','ev_raid'),tag:'Titles',text:`At dawn, MACC officers search your home. They seize ${fmt(seized)} and charge you with corruption.`,choices:[
+    [`Hire the top lawyer in KL (${fmt(800000*I)})`,trial('top')],[`Hire a normal lawyer (${fmt(100000*I)})`,trial('normal')],['Plead guilty: a fine but no prison',trial('plead')]]};}
+/* --- events --- */
+function ribbonModal(){return {title:'The ribbon-cutting',icon:tArt('ev_t_ribbon','ev_bigproject'),tag:'Titles',text:'The Menteri Besar wants to officiate the opening of "your" building. His people have already printed his face on the banner.',choices:[
+  ['Let him take the credit',()=>{addPts(15);return 'He gives a long speech and thanks you once, near the end. The state government remembers your good manners.';}],
+  ['Insist on cutting the ribbon yourself',()=>{bump('cha',2);S.dyn.rep+=2;return 'You cut the ribbon. The photo makes the front page, and the MB\'s office goes quiet.';}]]};}
+function famFirstModal(){const p=S.partner;return {title:'"Charity starts at home"',icon:'t_family',tag:'Titles',text:`${esc(p.name)} has seen the bank statements. "You gave away more this year than we spend in ten. What about us?"`,choices:[
+  ['Promise to slow down',()=>{p.rel=clamp(p.rel+5);TT().pause=S.year+1;return 'You agree to skip giving next year. Dinner is warm again.';}],
+  ['Explain why it matters',()=>{if(roll('cha')>.5){p.rel=clamp(p.rel+3);return `${esc(p.name)} listens, and then asks to come to the next opening.`;}p.rel=clamp(p.rel-10);return 'The talk turns into a fight. You sleep in the guest room.';}]]};}
+function appealModal(){const I=infl(),c=300000*I;return {title:'Flood appeal',icon:'ev_flood',tag:'Titles',text:'The east coast is under water and the government asks tycoons to help. A donation now counts double.',choices:[
+  [`Donate ${fmt(c)}`,()=>{const T=TT();S.money-=c;T.given+=c;S.dyn.rep+=1;bump('hap',3);log(`Gave ${fmt(c)} to the national flood appeal.`);addPts(28);return 'Your lorries of supplies reach Kuala Krai before the army does.';},()=>S.money>=c,'Needs '+fmt(c)],
+  ['Send prayers',()=>'You share the appeal on WhatsApp.']]};}
+function ringModal(){const T=TT();return {title:'The title ring is busted',icon:tArt('ev_t_macc','ev_pol_raid'),tag:'Titles',text:'MACC arrests the broker who "arranged" titles for a fee. The papers say he is naming his clients.',choices:[
+  ['Turn witness and return the title',()=>{const s=stripTitle();S.dyn.rep-=4;T.bought=0;if(S.pol)S.pol.heat=Math.max(0,S.pol.heat-25);else T.macc=0;log('Turned witness against a title broker.','big');return s?'You give a statement and hand back your title. Embarrassing, but you stay out of court.':'You give a statement. MACC closes your file.';}],
+  ['Deny everything',()=>{heatAdd(25);return 'Your lawyer says "no comment" on your behalf. MACC is not convinced.';}]]};}
+function revokeModal(){const T=TT();return {title:'The palace cleans house',icon:tArt('ev_t_revoked','ev_pol_sacked'),tag:'Titles',text:'The Sultan revokes a batch of "questionable" titles. Your name is on the list in every newspaper.',choices:[
+  ['Accept it quietly',()=>{stripTitle();T.bought=0;S.dyn.rep-=5;bump('hap',-6);return 'Your business cards go in the bin. At least nobody is going to prison.';}]]};}
+function journoModal(){const I=infl(),c=75000*I;return {title:'A journalist starts digging',icon:'ev_scandal',tag:'Titles',text:'A reporter from an online portal is asking how you got your title. She has a copy of your bank transfer.',choices:[
+  [`Pay her editor to drop it (${fmt(c)})`,()=>{S.money-=c;heatAdd(5);return 'The story never runs. Someone at MACC notices the payment, though.';},()=>S.money>=c],
+  ['Ignore it',()=>{S.dyn.rep-=2;heatAdd(8);return 'The story goes viral for a week. MACC reads it too.';}]]};}
+function blackmailModal(){const I=infl(),c=150000*I;return {title:'The middleman comes back',icon:tArt('ev_t_lobby','ev_bribe'),tag:'Titles',text:`The man who arranged your title calls. Business is slow. He wants ${fmt(c)} to "keep quiet".`,choices:[
+  ['Pay him',()=>{S.money-=c;return 'He thanks you warmly. You have a feeling he will call again.';},()=>S.money>=c],
+  ['Refuse',()=>{heatAdd(20);return 'He hangs up. A week later, an anonymous tip reaches MACC.';}]]};}
+function fixerModal(){return {title:'A card at a wedding dinner',icon:tArt('ev_t_fixer','ev_w_wedding'),tag:'Titles',text:'Between the eighth course and the yam seng, a man in a batik shirt slides you a business card: "Titles. Discreet. Any state."',choices:[
+  ['Hear him out',()=>{qFront(buyModal(true));return 'He lowers his voice and names his prices.';}],['Throw the card away',()=>'You go back to your shark fin soup.']]};}
+function fastModal(){const I=infl(),c=300000*I,T=TT(),g=natGoal();return {title:'The fast-track offer',icon:tArt('ev_t_lobby','ev_bribe'),tag:'Titles',text:`A man in a songkok says your name is already on a shortlist. For ${fmt(c)}, he can make sure it goes to the top of the pile.`,choices:[
+  ['Pay him',()=>{S.money-=c;T.bought=1;T.bribe=c;T.due=g.t;T.dueSrc='buy';heatAdd(20);return 'He promises good news next year. Your title will now come with strings attached.';},()=>S.money>=c],
+  ['Report him to MACC',()=>{S.dyn.rep+=3;return 'He is arrested a month later. Your honesty is noted.';}]]};}
+function partyAskModal(){return {title:'A party wants you',icon:'ev_pol_party',tag:'Titles',text:'A party division chief visits with a box of kuih. "Someone like you should be an MP. People already know your name."',choices:[
+  ['Join a party',()=>{TT().invite=1;qFront(joinModal());return 'You ask him which party would have you. "Any of them, Boss."';}],['Stay out of politics',()=>'You thank him for the kuih.']]};}
+function prModal(){return {title:'"Just a PR stunt"',icon:'ev_viral',tag:'Titles',text:'A viral post says your donations are just a tax trick to buy a title.',choices:[
+  ['Publish your audited accounts',()=>{if(roll('int')>.45){S.dyn.rep+=2;return 'The numbers are clean. The post gets deleted, and people like you more for it.';}S.dyn.rep-=1;return 'Nobody understands the accounts, and the comments only get worse.';}],
+  ['Ignore it',()=>{S.dyn.rep-=1;return 'It blows over, mostly.';}]]};}
+function roofModal(){const T=TT(),b=T.builds.splice(Math.floor(Math.random()*T.builds.length),1)[0],nm=b.n.replace(/^A /,'').toLowerCase(),fix=b.c*.25;
+  return {title:'The contractor cut corners',icon:tArt('ev_t_roof','ev_w_house'),tag:'Titles',text:`The roof of the ${nm} you funded leaks in the first monsoon. The contractor used cheap materials.`,choices:[
+    [`Pay to fix it properly (${fmt(fix)})`,()=>{S.money-=fix;return 'New roof, new contractor. Nobody outside the committee ever knows.';},()=>S.money>=fix],
+    ['Sue the contractor',()=>{if(chance(.5)){S.dyn.rep+=1;return 'The court orders the contractor to fix it at his own cost.';}S.money-=fix*1.2;return 'The case drags on and the contractor goes bust. You pay for the repairs and the lawyers.';}],
+    ['Ignore it',()=>{T.pts*=.85;S.dyn.rep-=3;return '"Tycoon\'s showpiece falls apart" makes the evening news.';}]]};}
+function scholarBackModal(){const T=TT();T.sch.shift();const v=S.assets.biz.length?pick(['doc','eng']):S.pol&&!S.pol.jail?pick(['doc','mp']):'doc';
+  if(v==='eng'){T.engYears=5;return {title:'A letter from a scholar',icon:'ev_u_convo',tag:'Titles',text:'A young engineer you sponsored years ago asks to work for you. "I want to give back to the person who gave me a chance."',choices:[['Hire her',()=>{bump('hap',4);return 'She streamlines your business within a year. Profits are up.';}]]};}
+  if(v==='mp'){return {title:'A letter from a scholar',icon:'ev_u_convo',tag:'Titles',text:'One of your old scholarship students has just been elected as an MP. She tells reporters you changed her life.',choices:[['Call to congratulate her',()=>{S.pol.sup=clamp(S.pol.sup+10);bump('hap',4);return 'She tells her voters to back you too.';}]]};}
+  T.freeDoc=1;return {title:'A letter from a scholar',icon:'ev_u_convo',tag:'Titles',text:'A young doctor writes: "Your scholarship got me through medical school. If you ever need a doctor, call me."',choices:[['Write back',()=>{bump('hap',5);return 'You keep the letter in your desk drawer. Your next illness will be in good hands.';}]]};}
+function vipModal(){const I=infl(),where=pick(['a round of golf with two ministers','the Sultan\'s Hari Raya open house','a charity gala at a KL hotel','a private dinner with a tycoon']);
+  return {title:'A VIP invitation',icon:tArt('ev_t_golf','ev_w_dinner'),tag:'Titles',text:`As ${S.honour} ${esc(S.name)}, you are invited to ${where}.`,choices:[
+    ['Talk business',()=>{if((S.assets.biz.length||(S.job&&['entrepreneur','sales'].includes(S.job.id)))&&chance(.4)){const g=RI(300000,1500000)*I;S.money+=g;log(`Closed a deal at a VIP event worth ${fmt(g)}.`,'big');return `A handshake over teh tarik turns into a deal worth ${fmt(g)}.`;}bump('cha',1);return 'You collect a stack of business cards.';}],
+    ['Listen to a "special offer"',()=>{const g=RI(500000,2000000)*I;S.money+=g;heatAdd(15);log('Took a "consultancy fee".');return `A businessman wants you to put in a word for a tender. Your "consultancy fee" is ${fmt(g)}. MACC would call it something else.`;}],
+    ['Just enjoy the evening',()=>{bump('hap',3);bump('cha',1);return 'Good food, good company, and a selfie with royalty.';}]]};}
+function inheritModal(k){const I=infl(),c=450000*I,T=TT();T.inhYear=S.year;return {title:'"Our inheritance"',icon:'t_family',tag:'Titles',text:`${esc(k.name)} sits you down. "You keep giving everything away. Will there be anything left for your own grandchildren?"`,choices:[
+  [`Set up a family trust (${fmt(c)})`,()=>{S.money-=c;T.trust=1;k.stats.hap=clamp((k.stats.hap||60)+10);return 'The lawyers draw up a trust for the grandchildren. The complaints stop.';},()=>S.money>=c],
+  ['Stand firm',()=>{bump('hap',-3);k.stats.hap=clamp((k.stats.hap||60)-10);return `"It's my money." ${esc(k.name)} leaves without finishing dinner.`;}]]};}
+/* --- yearly tick --- */
+function titleTick(){if(age()<18)return;const T=TT(),L=S.dyn.leg,t=honTier(),MY=S.country==='MY';
+  if(S.jail>0){S.jail--;bump('hap',-8);if(S.partner&&S.partner.alive!==false)S.partner.rel=clamp(S.partner.rel-10);
+    if(S.jail===0){log('Released from prison.','big');q({title:'Released',icon:'ev_pol_released',tag:'Titles',text:'You walk out of Sungai Buloh Prison. The world moved on without you.',choices:[['Start again',()=>'Your family is waiting at the gate.']]});}
+    else log('Another year in Sungai Buloh Prison.');return;}
+  if(S.pol&&T.macc>0){S.pol.heat+=T.macc;T.macc=0;}
+  if(!S.pol){T.macc=Math.max(0,T.macc-4);if(T.macc>=35&&chance((T.macc-35)/120)){q(titleRaidModal());return;}}
+  if(L.wing)S.dyn.rep+=.5;
+  const active=T.last&&S.year-T.last<=1;
+  if(active){bump('hap',1);if(age()>=60)bump('hlt',1);S.kids.forEach(k=>{const ka=S.year-k.born;if(k.alive!==false&&ka>=13&&ka<18)k.stats.cha=clamp(k.stats.cha+1);});}
+  if(T.pts>0&&T.last&&S.year-T.last>=3)T.pts*=.9;
+  if(t>=2)S.kids.forEach(k=>{const ka=S.year-k.born;if(k.alive!==false&&ka>=6&&ka<18&&chance(.1))k.stats.dis=clamp((k.stats.dis||40)-2);});
+  if(T.engYears>0)T.engYears--;
+  if(T.due&&MY){const d=T.due,src=T.dueSrc||'nation';T.due=null;T.dueSrc=null;if(t<({"Dato'":1,"Dato' Seri":2}[d]||0)){q(honoursModal(d,src));return;}}
+  const f=natFill(),a=age(),adultKid=S.kids.find(k=>k.alive!==false&&S.year-k.born>=21);
+  const pool=[
+    [T.bought?.05:0,ringModal],[T.bought&&T.src==='buy'?.03:0,revokeModal],[T.bought&&t?.08:0,journoModal],[T.bought?.06:0,blackmailModal],
+    [MY&&a>=30&&!t&&!T.bought&&!T.due&&buyRich()?.1:0,fixerModal],
+    [MY&&natGoal()&&!T.due&&!T.bought&&f>.5&&f<1?.1:0,fastModal],
+    [MY&&!S.pol&&a>=25&&a<=65&&T.pts>0?.04+.1*f:0,partyAskModal],
+    [active&&T.pts>0?.08*(.5+f):0,prModal],
+    [T.builds.some(b=>S.year-b.y<=10)?.08:0,roofModal],
+    [T.sch.some(y=>S.year-y>=6)?Math.min(.15,.05*T.sch.length):0,scholarBackModal],
+    [MY&&t?.3:0,vipModal],
+    [adultKid&&!T.trust&&S.year-T.inhYear>=5&&T.given>(Math.max(0,netWorth())+T.given)/3?.1:0,()=>inheritModal(adultKid)]];
+  for(const [p,fn] of pool.sort(()=>Math.random()-.5))if(p>0&&chance(p)){q(fn());break;}}
+function titlePanel(){const a=age();if(a<21||(S.country!=='MY'&&!S.honour))return '';const T=TT(),t=honTier(),g=natGoal(),h=heatNow(),L=S.dyn.leg;
+  const src={buy:'arranged through a middleman',nation:'for service to the nation',pol:'for political service'}[T.src]||'';
+  const hall=L.hall?(S.culture==='malay'?'a surau':S.culture==='chinese'?'a temple hall':'a community hall'):'';
+  const legs=[L.sch&&'B40 scholarships',L.food&&'a flood relief food bank',L.school&&blokName(),hall,L.dial&&'a dialysis centre',L.bridge&&'a bridge to an Orang Asli village',L.wing&&`the ${S.dyn.wingName||S.famName+' Family'} Wing at the state hospital`].filter(Boolean);
+  const perks=t?`Business +${Math.round(HON_BIZ[t]*100)}% · loans ${t>=2?'1':'0.5'}% cheaper${t>=3?' · board chairman':t>=2?' · company director':''} · living costs +${Math.round(HON_COL[t]*100)}%`:'';
+  let out=`<div class="panel"><h3>Titles & honours</h3><dl class="kv"><dt>Title</dt><dd>${S.honour?esc(S.honour)+(src?' · '+src:''):'None yet'}</dd>${t?`<dt>Perks</dt><dd>${perks}</dd>`:''}${h>0||T.bought?`<dt>MACC attention</dt><dd>${heatHint(h)}</dd>`:''}${legs.length?`<dt>Your legacy</dt><dd>${esc(legs.join(', '))}</dd>`:''}${S.jail?`<dt>Prison</dt><dd>${S.jail} more year${S.jail===1?'':'s'}</dd>`:''}</dl>`;
+  if(g&&a>=25&&S.country==='MY'){const f=natFill();out+=`<div class="stat"><div class="lbl"><span>Recognition · towards ${g.t}</span><span>${f>=1?'Complete':''}</span></div><div class="bar"><i class="hi" style="width:${Math.max(2,Math.round(f*100))}%"></i></div></div>
+    <p class="muted" style="margin:0;font-size:12.5px">${natHint(f)}. Use <b>Contribute to the nation</b> each year. A title takes years of giving, not one big cheque.</p>`;}
+  else if(!g)out+=`<p class="muted" style="margin:0;font-size:12.5px">Tan Sri and Tun only come through politics.</p>`;
+  if(buyOk())out+=`<div class="row"><button class="btn small" data-act="buytitle" ${S.ap>0&&buyRich()&&T.buyYear!==S.year?'':'disabled'}>Find someone who can "arrange" a title (1 action)</button></div>${buyRich()?'':`<p class="muted" style="margin:0;font-size:12.5px">The fixers only talk to people worth ${fmt(2e6*infl())} or more.</p>`}`;
+  return out+'</div>';}
 function nextYear(){if(cur||!S.alive)return;
   S.year++;tab='life';S.applied=0;
   worldTick();const fx=fxNow();
   if(age()>=18)finances(fx);else kidMoney();
-  careerTick(fx);polTick();passive(fx);milestones();fixPartners();relationships();spousesTick();affairTick();parentsTick();petsTick();kidsTick();birthsTick();
+  careerTick(fx);polTick();titleTick();passive(fx);milestones();fixPartners();relationships();spousesTick();affairTick();parentsTick();petsTick();kidsTick();birthsTick();
   if(age()>=3&&S.alive&&chance(illChance()))q(illModal(pickIll()));
   if(age()>=2)festival();
   if(age()>=5&&chance(.55))randomEvent();
   if(S.job&&age()>=18&&chance(.4))workEvent();
   checkAch();S.hapSum+=S.stats.hap;S.hapN++;S.ot=0;S.trips=0;S.ap=apFor();
-  if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail))qFront(stmtModal());
+  if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail)&&!S.jail)qFront(stmtModal());
   if(age()>=105||chance(deathChance()))die();
   render();save();showNext();}
 function autoSpend(){const a=age();let guard=10;while(S.ap>0&&guard--){let id;
@@ -2136,7 +2302,8 @@ function pickIll(){const a=age(),pd=pandemicNow();
 function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
   const can=k=>!kid||k==='gov'||k==='clinic'||k==='none'||(k==='priv'&&S.birthGroup!=='B40')||(k==='abroad'&&S.birthGroup==='T20');
   const ch=['gov','clinic','priv','abroad','none'].filter(can).map(k=>{const C=CARE[k];
-    const cost=kid?0:a2c(C.cost[s])*(k==='gov'&&abroad&&S.residency!=='citizen'?3:1);
+    const L=S.dyn.leg||{},doc=S.ttl&&S.ttl.freeDoc&&!abroad;
+    const cost=kid||doc?0:a2c(C.cost[s])*(k==='gov'&&abroad&&S.residency!=='citizen'?3:1)*(abroad?1:(L.dial?.75:1)*(L.hall&&s>=1?.8:1));
     const ok=clamp(C.ok[s]+(S.stats.hlt-50)/400-(a>60?.05:0)-(il.pand&&k!=='none'?.03:0),.02,.995);
     const nm=abroad&&k==='gov'?'Public hospital':abroad&&k==='abroad'?'World-class specialist hospital':C.n;
     return [nm+(cost?` (${fmt(cost)})`:''),()=>treat(il,k,cost,ok,nm),()=>k==='gov'||k==='none'||S.money>=cost,`${Math.round(ok*100)}% chance of a full recovery · ${kid&&k!=='none'?'Your parents pay':C.note}`];});
@@ -2144,16 +2311,16 @@ function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
   // Own picture per severity (and for outbreaks) once the art exists; until then the health-screening picture.
   const art=il.pand?'ev_ill_virus':['ev_ill_minor','ev_ill_serious','ev_ill_critical'][s];
   return {title:il.pand?'You caught '+il.n:'Feeling unwell',icon:ICON_IMG[art]?art:'ev_checkup',tag:'Health',text:`You come down with ${il.n}.${il.pand?' The virus is spreading fast this year.':''}\nSeverity: ${lvl}. Where do you go for treatment?`,choices:ch};}
-function treat(il,k,cost,ok,nm){S.money-=cost;const s=il.sev,a=age();
+function treat(il,k,cost,ok,nm){S.money-=cost;const s=il.sev,a=age();if(k!=='none'&&S.ttl&&S.ttl.freeDoc){S.ttl.freeDoc=0;ok=Math.min(.995,ok+.05);}
   if(chance(ok)){bump('hlt',-[1,3,6][s-1]);log(`Recovered from ${il.n}`+(k==='none'?' at home.':` (${nm}).`),s===3?'big':'');
     return k==='none'?'You sleep it off with Panadol and plenty of water. You feel fine.':pick(['The treatment works. You are back on your feet.','The doctors sort it out. You make a full recovery.','A few days of rest, and you feel like yourself again.']);}
   bump('hlt',-[6,14,25][s-1]);bump('hap',-[2,5,10][s-1]);
-  if(s===3&&chance(.25+Math.max(0,a-50)/150+(k==='none'?.35:0))){die();return `The treatment for ${il.n} doesn't work. You pass away.`;}
+  if(s===3&&chance(.25+Math.max(0,a-50)/150+(k==='none'?.35:0)-(S.dyn.leg&&S.dyn.leg.wing?.1:0))){die();return `The treatment for ${il.n} doesn't work. You pass away.`;}
   log(`${s===3?'Survived':'Struggled with'} ${il.n}; the treatment did not fully work.`,s>=2?'big':'');
   return s===1?'It drags on for weeks before you finally recover.':s===2?'There are complications, and recovery takes months. Your health takes a hit.':'You survive, but only just. Your health may never be quite the same.';}
 function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.filter(k=>k.alive!==false);const n=Math.max(1,living.length+allSpouses().length);
   const share=prev.will?es.cash*.5+es.cash*.5/n:es.cash/n;const sum=lifeSummary();
-  const dyn={...prev.dyn,gen:prev.dyn.gen+1,history:prev.dyn.history.concat([sum])};if(prev.honour)dyn.rep+=3;if(prev.pol&&prev.pol.dirty>=3)dyn.rep-=5;
+  const dyn={...prev.dyn,gen:prev.dyn.gen+1,history:prev.dyn.history.concat([sum])};if(prev.honour)dyn.rep+=3;if(prev.honour==='Tun')dyn.rep+=10;if(prev.dyn.leg&&prev.dyn.leg.wing)dyn.rep+=5;dyn.honParent=prev.honour?1:0;if(prev.pol&&prev.pol.dirty>=3)dyn.rep-=5;
   const a=prev.year-kid.born;
   const st={...kid.stats};const grow=Math.min(a,22);st.int=clamp(st.int+grow*.8);st.ath=clamp(st.ath+grow*.3);st.cha=clamp(st.cha+grow*.4);st.cre=clamp(st.cre+grow*.3);
   st.dis=clamp((st.dis||30)+Math.min(a,25)*.6);st.hap=clamp((st.hap||60)-10);st.luck=st.luck||RI(20,80);if(a>45)st.hlt=clamp(st.hlt-(a-45)*.8);
@@ -2220,7 +2387,7 @@ function panelLife(){const a=age();const acts=ACTS.filter(x=>x.ok(a));
     <p class="muted" style="margin:0;font-size:12.5px">${fc} Each new stage starts with new material. Your Smarts and Discipline make studying ×${studyMult().toFixed(2)} as effective.</p>`:'';
   const eduLine=knowHtml+`<dl class="kv"><dt>Education</dt><dd>${E.level==='none'?(a<4?'—':'In school'):EDU_LABEL[E.level]}${E.spmA!=null?` · ${E.exam} ${E.spmA}A`:''}${E.uni?` · ${esc(E.uni)} (${MAJORS[E.major].name}, CGPA ${E.gpa.toFixed(2)})`:''}${E.master?" · Master's":''}</dd>${E.scholar?`<dt>Scholarship</dt><dd>${E.scholar}${E.bond>0?` · bond ${E.bond} yrs left`:''}</dd>`:''}</dl>`;
   return `<div class="panel"><div class="row" style="justify-content:space-between"><h3>This year · age ${a}</h3><span class="muted" style="font-size:13px">${S.ap} action${S.ap===1?'':'s'} left</span></div>${actHtml}</div>
-   <div class="panel"><h3>${S.job||S.retired?'Career':'School & career'}</h3>${eduLine}${career}</div>${polPanel()}
+   <div class="panel"><h3>${S.job||S.retired?'Career':'School & career'}</h3>${eduLine}${career}</div>${polPanel()}${titlePanel()}
    <div class="panel"><h3>Life record</h3>${logHtml()}</div>`;}
 function logHtml(){const groups=[];for(let i=S.log.length-1;i>=0&&groups.length<40;i--){const e=S.log[i];let g=groups[groups.length-1];if(!g||g.a!==e.a){g={a:e.a,y:e.y,items:[]};groups.push(g);}g.items.push(e);}
   return `<div class="passbook">${groups.map(g=>`<div class="pb-age"><div class="when">Age ${g.a}<span>${g.y}</span></div><ul>${g.items.reverse().map(e=>`<li class="${e.k}">${esc(e.t)}</li>`).join('')}</ul></div>`).join('')}</div>`;}
@@ -2263,7 +2430,7 @@ function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY
 function panelFamily(){const p=S.partner,a=age();
   const parents=S.parents.map(x=>`<div class="item">${ico(x.role==='Father'?'father':'mother')}<div class="t"><b>${esc(x.role)}: ${esc(x.name)}</b><small>${esc(x.job)} · ${x.alive?'age '+x.age:'passed away'}</small></div></div>`).join('');
   let love;
-  if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${natTxt(p)?' · '+natTxt(p).trim():''}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
+  if(p&&p.alive!==false){love=`<div class="item">${ico((p.loy===-1||p.young)&&icoSrc(p.gender==='M'?'playboy':'playgirl',p.culture)?(p.gender==='M'?'playboy':'playgirl'):(p.status==='married'?'spouse_':'partner_')+(p.gender==='M'?'m':'f'),'',p.culture)}<div class="t"><b>${spouseHon(p)}${esc(p.name)} <span class="chip">${p.status==='married'?'Spouse':'Dating'}</span></b><small>${p.age} · ${esc(p.job)}${natTxt(p)?' · '+natTxt(p).trim():''}${p.young?' · much younger than you':''}${p.loy===1?' · devoted to you':p.loy===-1?' · has a wandering eye':''}</small></div></div>
     <div class="stat"><div class="lbl"><span>Relationship</span><span>${Math.round(p.rel)}</span></div><div class="bar"><i class="${barCls(p.rel)}" style="width:${p.rel}%"></i></div></div>
     <div class="row">${p.status==='dating'?`<button class="btn small primary" data-act="propose" ${p.rel>=60&&a>=20?'':'disabled'}>Propose${p.rel<60?' (relationship 60+)':a<20?' (age 20+)':''}</button>`:''}${a>=18?`${p.age>=18?`<button class="btn small" data-act="night" ${S.ap>0?'':'disabled'}>Spend the night (1 action)</button>`:''}<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone else (1 action)</button>${S.affair?'':`<button class="btn small" data-act="affair" ${S.ap>0?'':'disabled'}>Start a secret affair (1 action)</button>`}`:''}${married()&&polyOK()&&allSpouses().length<MAX_SPOUSES&&a>=21?`<button class="btn small" data-act="findspouse" ${S.ap>0?'':'disabled'}>Marry another partner (1 action)</button>`:''}<button class="btn small danger" data-act="breakup">${p.status==='married'?'Divorce':'Break up'}</button></div>`;}
   else love=`<p style="margin:0">${p?'Widowed. ':''}You're single.</p><div class="row"><button class="btn small" data-act="findlove" ${a>=16&&S.ap>0?'':'disabled'}>Look for love (1 action)</button>${a>=18?`<button class="btn small" data-act="hookup" ${S.ap>0?'':'disabled'}>Hook up with someone (1 action)</button>`:''}${a>=28?`<button class="btn small" data-act="findyoung" ${S.ap>0?'':'disabled'}>Look for a younger partner (1 action)</button>`:''}</div>`;
@@ -2315,7 +2482,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-22.72';
+const GAME_VERSION='2026-10-22.73';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
@@ -2363,6 +2530,7 @@ const ACT={
   will(){S.money-=1500*infl();S.will=true;log('Wrote a will.');render();save();},
   night(){if(S.ap<1||age()<18||!S.partner||S.partner.age<18)return;qFront(nightModal());showNext();},hookup(){if(S.ap<1||age()<18)return;qFront(hookupModal());showNext();},
   hop(){if(S.ap<1||!canHop()||S.hopYear===S.year)return;qFront(hopModal());showNext();},
+  buytitle(){if(S.ap<1||!buyOk()||!buyRich()||TT().buyYear===S.year)return;S.ap--;qFront(buyModal());showNext();},
   poljoin(){qFront(joinModal());showNext();},polwork(){if(S.ap<1||!S.pol)return;S.ap--;S.pol.loy=clamp(S.pol.loy+8);S.pol.sup=clamp(S.pol.sup+3);bump('hap',-1);toast('You give out flyers and fold chairs at the branch office. Party standing up.');render();save();},
   ceramah(){if(S.ap<1||!S.pol)return;S.ap--;bump('cha',1);S.pol.sup=clamp(S.pol.sup+8);if(chance(.1)){S.pol.sup=clamp(S.pol.sup-10);toast('Your joke falls flat and a clip goes viral. Support down.');}else toast('A big crowd under the tent. Charisma and local support up.');render();save();},
   deals(){if(!S.pol)return;qFront(dealsModal());showNext();},hide(){if(!S.pol)return;qFront(hideModal());showNext();},policy(){if(!S.pol||S.pol.policyYear===S.year)return;qFront(policyModal());showNext();},
