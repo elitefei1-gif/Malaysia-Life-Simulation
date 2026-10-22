@@ -78,6 +78,49 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .id-age b{display:block;font:800 36px/1 var(--f-display)}
 .id-age span{font-size:12px;color:var(--muted)}
 .id-money{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted);position:relative;z-index:1}
+/* Honour tiers on the IC card: Datuk silver, Datuk Seri gold, Tan Sri rich gold, Tun royal black and gold foil */
+.idcard.hon>*{position:relative;z-index:1}
+.id-hon{background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;background-size:200% 100%}
+.idcard.hon>.hon-em{position:absolute;right:10px;bottom:-14px;font-size:96px;line-height:1;pointer-events:none;z-index:0!important;opacity:.16}
+.hon-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;font:700 9px/1.3 var(--f-body);letter-spacing:.14em}
+.id-age .hon-tag{display:flex;width:max-content;margin:6px 0 0 auto;font:700 10px/1.4 var(--f-body);letter-spacing:.12em}
+.hon1{background:linear-gradient(125deg,#f4f6f8,#dde2e8 40%,#f9fafb 55%,#cdd4dc);border:1px solid #aeb7c1;box-shadow:var(--shadow),inset 0 0 0 3px rgba(255,255,255,.7),inset 0 0 0 4px #c3cad2}
+.hon1::after{background:repeating-radial-gradient(circle,transparent 0 6px,rgba(120,132,146,.18) 6px 7px)}
+.hon1 .id-hon{background-image:linear-gradient(100deg,#3f4851,#7f8b97 45%,#48525c 70%,#76818d)}
+.hon1 .hon-em{color:#7d8894}
+.hon1 .hon-tag{background:linear-gradient(100deg,#7b8692,#b9c2cb);color:#fff}
+.hon2{background:linear-gradient(125deg,#fbf3dc,#f0dfae 42%,#fcf6e4 58%,#e8d197);border:1px solid #c9a447;box-shadow:var(--shadow),inset 0 0 0 3px rgba(255,255,255,.6),inset 0 0 0 4px #d8b85e}
+.hon2::after{background:repeating-radial-gradient(circle,transparent 0 6px,rgba(176,134,30,.2) 6px 7px)}
+.hon2 .id-hon{background-image:linear-gradient(100deg,#7a5608,#c9971e 40%,#e8c25a 52%,#8d640c 75%,#b7861a)}
+.hon2 .hon-em{color:#b48a24;opacity:.2}
+.hon2 .hon-tag{background:linear-gradient(100deg,#9c7414,#d9ad3f);color:#fff}
+.hon3{background:
+   repeating-linear-gradient(45deg,rgba(150,104,10,.07) 0 1px,transparent 1px 12px),repeating-linear-gradient(-45deg,rgba(150,104,10,.07) 0 1px,transparent 1px 12px),
+   linear-gradient(125deg,#f7e7b4,#e6c46a 40%,#f8e6ab 58%,#d9ae4a);
+  border:2px solid #9b6f0c;box-shadow:0 2px 6px rgba(120,80,0,.18),0 10px 28px rgba(150,104,10,.28),inset 0 0 0 3px #f8e8b8,inset 0 0 0 4px #b1830f}
+.hon3::after{background:radial-gradient(circle,rgba(255,250,225,.75),transparent 65%)}
+.hon3 .id-top,.hon3 .id-meta,.hon3 .id-age span,.hon3 .id-money{color:#6b4d0a}
+.hon3 .id-hon{background-image:linear-gradient(100deg,#4a2f00,#8a5c02 35%,#b8860f 50%,#8a5c02 65%,#4a2f00);filter:drop-shadow(0 1px 0 rgba(255,245,210,.8))}
+.hon3 .hon-em{color:#8a5f05;opacity:.22}
+.hon3 .hon-tag{background:linear-gradient(100deg,#6e4a00,#c18f1c 50%,#6e4a00);color:#fff6da;box-shadow:0 0 0 1px #f2d687 inset}
+.hon4{background:
+   repeating-linear-gradient(45deg,rgba(226,184,84,.09) 0 1px,transparent 1px 11px),repeating-linear-gradient(-45deg,rgba(226,184,84,.09) 0 1px,transparent 1px 11px),
+   radial-gradient(120% 90% at 85% 0%,#3a2a55 0%,transparent 60%),linear-gradient(135deg,#17122b,#0e0c1a 55%,#231737);
+  border:2px solid transparent;background-origin:border-box;
+  box-shadow:0 0 0 2px #c99a2e,0 0 0 4px #17122b,0 0 0 5px #e6c35a,0 12px 32px rgba(40,20,70,.45),inset 0 0 22px rgba(230,190,90,.18);color:#f6ecd2}
+.idcard.hon4{margin:5px}
+.hon4::after{background:radial-gradient(circle,rgba(240,200,100,.28),transparent 62%)}
+.hon4::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(105deg,transparent 35%,rgba(255,236,170,.28) 48%,rgba(255,255,255,.4) 50%,rgba(255,236,170,.28) 52%,transparent 65%);background-size:250% 100%;background-position:130% 0;animation:honSweep 5.5s ease-in-out infinite}
+.hon4 .id-top,.hon4 .id-age span,.hon4 .id-money{color:#d9c08a}
+.hon4 .id-meta{color:#c9b98f}
+.hon4 .id-money b{color:#f6ecd2}
+.hon4 .id-hon{background-image:linear-gradient(100deg,#b9871c,#f6dc86 25%,#fff6d2 35%,#d9a83a 50%,#f6dc86 70%,#b9871c);animation:honFoil 4s linear infinite;filter:drop-shadow(0 0 6px rgba(240,200,100,.45))}
+.hon4 .hon-em{color:#e6c35a;opacity:.2}
+.hon4 .hon-tag{background:linear-gradient(100deg,#a87a17,#f3d77c 50%,#a87a17);color:#1a1230;box-shadow:0 0 8px rgba(240,200,100,.5)}
+.hon4 .ico.lg{box-shadow:0 0 0 2px #d9ad45,0 0 12px rgba(240,200,100,.35)}
+@keyframes honFoil{to{background-position:-200% 0}}
+@keyframes honSweep{0%,55%{background-position:130% 0}100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.hon4::before,.hon4 .id-hon{animation:none}}
 .id-money b{color:var(--ink);font-family:var(--f-mono);font-weight:600}
 .neg{color:var(--down)!important}
 .pos{color:var(--up)!important}
@@ -1710,6 +1753,7 @@ function canStand(){return !S.bankruptYears&&!(S.pol.ban>S.year)&&!S.pol.jail;}
 function polTitle(){return S.pol&&S.pol.mb&&S.pol.rank<5?'Menteri Besar':S.pol?POL_RANKS[S.pol.rank]:'';}
 function heatHint(h){return h<15?'Nobody is looking':h<35?'A few rumours':h<60?'Journalists are asking questions':h<80?'The MACC has opened a file':'An arrest feels close';}
 // The player's name with any royal title in front, e.g. "Tan Sri Wei Jie".
+function honTier(){return {Datuk:1,"Dato'":1,'Datuk Seri':2,"Dato' Sri":2,'Dato Seri':2,'Tan Sri':3,'Puan Sri':3,Tun:4}[S.honour]||0;}
 function dispName(){return (S.honour?S.honour+' ':'')+S.name;}
 function giveHonour(t){const rep={Datuk:5,'Datuk Seri':6,'Tan Sri':8,Tun:15}[t]||3;S.honour=t;if(S.pol)S.pol.title=t;S.dyn.rep+=rep;addAch('datuk');log(`Conferred the title "${t}".`,'big');
   q({title:'Royal honour',icon:'m_scholar',tag:'Politics',text:`You are conferred the title of ${t}. From now on, people call you "${t} ${S.name}".`,choices:[['Receive it at the palace',()=>{bump('hap',6);return 'A proud day for the whole family.';}]]});}
@@ -2146,9 +2190,9 @@ function stageName(){const a=age(),E=S.edu;if(!S.alive)return 'Passed away';if(a
   if(a<18)return {board:'Boarding school',uec:'Independent school',intl:'International school'}[E.secondary]||'Secondary school';if(E.track)return E.track.label;if(S.retired)return 'Retired';if(S.job)return JOBS[S.job.id].levels[S.job.level];return a<62?'Looking for work':'Retired';}
 function render(){if(!S)return;fixPartners();
   const C=ctry(),loc=S.country==='MY'?town().name:C.city+', '+C.name;
-  $('#g-head').innerHTML=`<div class="idcard"><div class="id-top"><span>Kad Pengenalan · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
-    <div class="id-body">${ico(avatarKey(),'lg')}<div class="id-main"><div class="id-name">${esc(dispName())}</div><div class="id-no">${S.ic}</div><div class="id-meta">${esc(loc)} · ${esc(stageName())}</div></div>
-    <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span></div></div>
+  $('#g-head').innerHTML=`<div class="idcard${honTier()?' hon hon'+honTier():''}">${honTier()?`<i class="hon-em" aria-hidden="true">${['','✦','✶','✷','❂'][honTier()]}</i>`:''}<div class="id-top"><span>Kad Pengenalan · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
+    <div class="id-body">${ico(avatarKey(),'lg')}<div class="id-main"><div class="id-name">${S.honour?`<span class="id-hon">${esc(S.honour)}</span> `+esc(S.name):esc(dispName())}</div><div class="id-no">${S.ic}</div><div class="id-meta">${esc(loc)} · ${esc(stageName())}</div></div>
+    <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
     <div class="id-money"><span>Cash <b class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
   $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
@@ -2271,7 +2315,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-22.71';
+const GAME_VERSION='2026-10-22.72';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
