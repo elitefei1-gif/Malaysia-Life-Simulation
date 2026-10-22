@@ -532,6 +532,74 @@ const ICON_IMG={'partner_f@iban':'img/partner_f__iban.webp','partner_f@indian':'
   'mother@malay':'img/mother__malay.webp',
   'son@malay':'img/son__malay.webp',
   'spouse_f@malay':'img/spouse_f__malay.webp',
+  'a_adopt':'img/a_adopt.webp',
+  'a_baby':'img/a_baby.webp',
+  'a_date':'img/a_date.webp',
+  'a_exercise':'img/a_exercise.webp',
+  'a_groom':'img/a_groom.webp',
+  'a_hobby':'img/a_hobby.webp',
+  'a_invest':'img/a_invest.webp',
+  'a_kids':'img/a_kids.webp',
+  'a_lang':'img/a_lang.webp',
+  'a_overtime':'img/a_overtime.webp',
+  'a_parttime':'img/a_parttime.webp',
+  'a_play':'img/a_play.webp',
+  'a_rest':'img/a_rest.webp',
+  'a_routine':'img/a_routine.webp',
+  'a_social':'img/a_social.webp',
+  'a_study':'img/a_study.webp',
+  'a_volunteer':'img/a_volunteer.webp',
+  'b_factory':'img/b_factory.webp',
+  'b_family':'img/b_family.webp',
+  'b_kopitiam':'img/b_kopitiam.webp',
+  'b_minimart':'img/b_minimart.webp',
+  'b_resort':'img/b_resort.webp',
+  'b_workshop':'img/b_workshop.webp',
+  'ev_adopt':'img/ev_adopt.webp',
+  'ev_babynews':'img/ev_babynews.webp',
+  'ev_bankrupt':'img/ev_bankrupt.webp',
+  'ev_biz_buyer':'img/ev_biz_buyer.webp',
+  'ev_biz_expand':'img/ev_biz_expand.webp',
+  'ev_biz_family':'img/ev_biz_family.webp',
+  'ev_biz_manager':'img/ev_biz_manager.webp',
+  'ev_debt':'img/ev_debt.webp',
+  'ev_degree':'img/ev_degree.webp',
+  'ev_epf':'img/ev_epf.webp',
+  'ev_fortune':'img/ev_fortune.webp',
+  'ev_grad':'img/ev_grad.webp',
+  'ev_grandkid@chinese':'img/ev_grandkid__chinese.webp',
+  'ev_m_primary':'img/ev_m_primary.webp',
+  'ev_m_secondary':'img/ev_m_secondary.webp',
+  'ev_m_spm':'img/ev_m_spm.webp',
+  'ev_m_tadika':'img/ev_m_tadika.webp',
+  'ev_mco':'img/ev_mco.webp',
+  'ev_night':'img/ev_night.webp',
+  'ev_nightout':'img/ev_nightout.webp',
+  'ev_p_rain@chinese':'img/ev_p_rain__chinese.webp',
+  'ev_s_canteenbiz@chinese':'img/ev_s_canteenbiz__chinese.webp',
+  'ev_s_tiktok@chinese':'img/ev_s_tiktok__chinese.webp',
+  'ev_scholar':'img/ev_scholar.webp',
+  'ev_w_wedding@chinese':'img/ev_w_wedding__chinese.webp',
+  'h_shoplot':'img/h_shoplot.webp',
+  'h_units':'img/h_units.webp',
+  'i_angel':'img/i_angel.webp',
+  'i_gold':'img/i_gold.webp',
+  'i_risky':'img/i_risky.webp',
+  'i_safe':'img/i_safe.webp',
+  'l_birkin':'img/l_birkin.webp',
+  'l_ferrari':'img/l_ferrari.webp',
+  'l_rolex':'img/l_rolex.webp',
+  'l_villa':'img/l_villa.webp',
+  'l_yacht':'img/l_yacht.webp',
+  's_ath':'img/s_ath.webp',
+  's_cha':'img/s_cha.webp',
+  's_cre':'img/s_cre.webp',
+  's_dis':'img/s_dis.webp',
+  's_hap':'img/s_hap.webp',
+  's_hlt':'img/s_hlt.webp',
+  's_int':'img/s_int.webp',
+  's_look':'img/s_look.webp',
+  's_luck':'img/s_luck.webp',
 };
 const ICON_EMOJI={b_kopitiam:'☕',b_minimart:'🏪',b_workshop:'🔧',b_factory:'🏭',b_resort:'🏝️',b_family:'🏢',l_rolex:'⌚',l_ferrari:'🏎️',l_yacht:'🛥️',l_villa:'🏖️',l_birkin:'👜',i_gold:'🪙',i_safe:'🏦',i_risky:'📈',i_angel:'🚀',h_shoplot:'🏬',h_units:'🏢',
   av_baby:'👶',av_boy:'👦',av_girl:'👧',av_teen_m:'🧑',av_teen_f:'👧',av_man:'👨',av_woman:'👩',av_old_m:'👴',av_old_f:'👵',av_rip:'🕊️',
@@ -684,9 +752,13 @@ const TAG_ART={'Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'�
 // Illustration area: m.img (a picture URL) wins, then a full event picture (ev_ keys), then the event icon, then a tag emoji.
 // Politics pop-ups have no event id, so their pictures are matched by title.
 const POL_ART={'Late-night WhatsApp':'ev_pol_whatsapp','A fiery speech':'ev_pol_speech','Viral TikTok':'ev_pol_tiktok','Faction war':'ev_pol_faction','The "hotel move"':'ev_pol_hotel','General election':'ev_pol_ge','Party elections':'ev_pol_party','MACC raid':'ev_pol_raid','Prime Minister':'ev_pol_pm','Sacked':'ev_pol_sacked','Royal pardon':'ev_pol_pardon','Released':'ev_pol_released','Leaked files':'ev_pol_leak','Family betrayal':'ev_pol_betrayal'};
-// Scene pictures for common pop-ups that otherwise only have a small icon (v70): by title, or by the icon they use.
-const TITLE_ART={'Someone catches your eye':'ev_meet','Look for love':'ev_meet','A dangerous spark':'ev_affair','"We need to talk"':'ev_breakup','Divorce papers':'ev_breakup','Name your baby':'ev_newborn','Job hunting':'ev_jobhunt','Job hopping':'ev_jobhunt','Time to retire?':'ev_retire'};
-const ICON_ART={m_ring:'ev_propose',m_cheat:'ev_caught',m_rip:'ev_farewell',f_malay:'ev_fest_malay',f_chinese:'ev_fest_chinese',t_family:'ev_household'};
+// Scene pictures for common pop-ups that otherwise only have a small icon (v70, more in v71): by title, or by the icon they use.
+const TITLE_ART={'Someone catches your eye':'ev_meet','Look for love':'ev_meet','A dangerous spark':'ev_affair','"We need to talk"':'ev_breakup','Divorce papers':'ev_breakup','Name your baby':'ev_newborn','Job hunting':'ev_jobhunt','Job hopping':'ev_jobhunt','Time to retire?':'ev_retire',
+  'The family company':'ev_biz_family','A buyer comes knocking':'ev_biz_buyer','Expansion offer':'ev_biz_expand','Your best manager wants to leave':'ev_biz_manager',
+  'EPF at 55':'ev_epf','A fortune to manage':'ev_fortune','Drowning in debt':'ev_debt','Declared bankrupt':'ev_bankrupt','Retrenched':'ev_w_layoff',
+  'Spend the night':'ev_night','A night out':'ev_nightout','Adopt a child':'ev_adopt','Baby fever':'ev_babynews','Talk of a family':'ev_babynews','Big news':'ev_babynews','She is pregnant':'ev_babynews'};
+const ICON_ART={m_ring:'ev_propose',m_cheat:'ev_caught',m_rip:'ev_farewell',f_malay:'ev_fest_malay',f_chinese:'ev_fest_chinese',t_family:'ev_household',
+  m_tadika:'ev_m_tadika',m_primary:'ev_m_primary',m_secondary:'ev_m_secondary',m_spm:'ev_m_spm',m_uni:'ev_degree',m_scholar:'ev_scholar',m_grad:'ev_grad',w_pandemic:'ev_mco',w_flood:'ev_flood'};
 function modalArt(m){if(m.tag==='Politics'&&POL_ART[m.title]&&icoSrc(POL_ART[m.title]))m={...m,icon:POL_ART[m.title]};
   {const k=TITLE_ART[m.title]||ICON_ART[m.icon];if(k&&icoSrc(k))m={...m,icon:k};}if(m.img)return `<div class="m-art"><img class="pic" src="${m.img}" alt=""></div>`;if(m.icon&&/^ev_/.test(m.icon)&&icoSrc(m.icon))return `<div class="m-art"><img class="pic" src="${icoSrc(m.icon)}" alt=""></div>`;if(m.icon&&hasIco(m.icon))return `<div class="m-art">${ico(m.icon)}</div>`;if(m.tag&&TAG_ART[m.tag])return `<div class="m-art"><span class="ico" aria-hidden="true">${TAG_ART[m.tag]}</span></div>`;return '';}
 function drawModal(){const m=cur;if(m.choices&&m.choices.length)cue(m.tag==='World event'?'alert':m.tag==='Festive season'?'festive':m.tag==='Love'?'love':m.tag==='Milestone'?'milestone':'event');else if(m.delta&&m.delta.length){const pos=m.delta.filter(x=>/^[+]/.test(x)).length,neg=m.delta.length-pos;cue(pos>neg?'good':neg>pos?'bad':'event');}const chs=(m.choices||[]).map((c,i)=>{const ok=!c[2]||c[2]();return `<button data-act="choose" data-arg="${i}" ${ok?'':'disabled'}>${c[0]}${c[3]?`<small>${c[3]}</small>`:''}</button>`;}).join('');
@@ -2199,7 +2271,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-21.70';
+const GAME_VERSION='2026-10-22.71';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
