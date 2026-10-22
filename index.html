@@ -845,6 +845,14 @@ const ACTS=[
   {id:'rest',ic:'😴',label:'Rest',sub:'Health, happiness',ok:a=>a>=4,run(){bump('hlt',2);bump('hap',3);return pick(['A lazy weekend with Netflix.','Long nap after lunch.','A day at the beach.']);}},
 ];
 ACTS.forEach(a=>{ICON_EMOJI['a_'+a.id]=a.ic;});
+// Use it or lose it: an adult stat left unpractised for over 3 years starts to fade. These activities keep a stat in practice.
+const PRACTICE={study:['int'],invest:['int'],lang:['int'],social:['cha'],volunteer:['cha'],date:['cha'],kids:['cha'],hobby:['cre'],play:['cre','ath'],exercise:['ath'],routine:['dis'],parttime:['dis']};
+const FADE_STATS=['int','cha','cre','ath','dis'],FADE_HOW={int:'studying',cha:'socialising',cre:'a hobby',ath:'exercise',dis:'a routine'};
+function practise(id){const u=S.used||(S.used={});for(const k of PRACTICE[id]||[])u[k]=S.year;}
+function idleYrs(k){const u=S.used||(S.used={});if(u[k]==null)u[k]=S.year;return S.year-u[k];}
+const rusty=k=>age()>=18&&FADE_STATS.includes(k)&&idleYrs(k)>3;
+// High Discipline slows every drop from ageing and fading: 0 → 1.2x, 50 → 0.85x, 100 → 0.5x.
+const decayMult=()=>1.2-S.stats.dis*.007;
 Object.assign(ICON_EMOJI,{ev_lottery4d:'🎟️',ev_ramadan:'🌙'});
 Object.assign(ICON_EMOJI,{s_int:'🧠',s_hlt:'❤️',s_cha:'🗣️',s_look:'✨',s_cre:'🎨',s_ath:'💪',s_dis:'🎯',s_hap:'😊',s_luck:'🍀'});
 Object.assign(ICON_EMOJI,{m_adopt:'🤱',m_preg:'🤰',m_fling:'🍹',m_gold:'👜',m_cheat:'📱',ev_carried:'💞',ev_bigproject:'📊',ev_mistake:'😬',ev_workaccident:'🚑',ev_bossleaves:'🪑',ev_bribe:'💰',ev_award:'🏆',ev_collapse:'💔',ev_scandal:'📰',ev_kabel:'🔌',ev_openhouse:'🍛',ev_kpi:'📊',ev_flood:'🌊',ev_leave:'🗓️',ev_posting:'🛫',ev_raid:'🚨',ev_durian:'🍈',ev_startup:'🚀',ev_poach:'🚀',ev_politics:'🗣️'});
@@ -871,7 +879,7 @@ const gradeOf=k=>k>=88?'A+':k>=75?'A':k>=62?'B':k>=50?'C':k>=38?'D':'E';
 function startTrack(t){t.len=t.left;S.edu.track=t;S.know=(S.know||0)*.25;}
 function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail)return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
 function doAct(id){if(cur)return;const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(age()))return;if(S.ap<=0){toast('No actions left this year. Press Next year.');return;}
-  S.ap--;const b=snap();const out=A.run();if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();save();showNext();}
+  S.ap--;const b=snap();const out=A.run();practise(id);if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();save();showNext();}
 function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span class="mono muted">${Math.round(S.langs[k]||0)}</span>`,()=>{const g=(6+R(0,4))*(.6+S.stats.dis/100);S.langs[k]=clamp((S.langs[k]||0)+g);return 'You practise '+LANG[k]+' with apps and conversation classes.';}]);
   return {title:'Which language?',text:'Languages help with exams, jobs and moving abroad.',choices:opts};}
 
@@ -1270,7 +1278,15 @@ function worldLines(){const A=S.world.active;if(!A.length)return '';const pct=x=
     if(e.onset==='flood'||/flood/i.test(e.title))L.push(`flood risk where you live: ${S.country==='MY'?(town().flood>=.2?'high':town().flood>=.08?'medium':'low'):'none (you are abroad)'}`);
     out.push(`${e.good?'▲':'▼'} ${e.title}${e.end>S.year?' (until '+e.end+')':''}: ${L.length?L.join(', '):'little direct effect on you'}.`);}
   return '<b>World events this year</b>\n'+out.join('\n');}
-function stmtModal(){const net=(S.lastInc||0)-(S.lastExp||0),kid=age()<18;return {title:'Money summary for '+S.year,icon:'m_money',tag:'Money',text:`${!kid&&!S.lastBreak.length?'No money came in or went out this year. Your family is still covering your living costs.\n\n':''}${kid?`Your ${S.parents.some(p=>p.alive)?'family spends':'relatives spend'} about ${fmt(S.famSpend||0)} on your food, ${age()<7?'nappies and check-ups':'school and clothes'} this year.${age()<7?' You are too young for pocket money.':''}\n\n`:''}Income ${fmt(S.lastInc||0)} · Spending ${fmt(S.lastExp||0)}${stmtLines()?'\n\n'+stmtLines():''}\n\nNet: ${net>=0?'+':'−'} ${fmt(Math.abs(net))}. Cash now: ${fmt(S.money)}.${worldLines()?'\n\n'+worldLines():''}`,choices:[['Got it',null],['Stop showing this every year',()=>{S.showStmt=false;return 'You can still see it in the Assets tab.';}]]};}
+const sgn=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(1);
+function statLines(){const d=S.yDelta||[],w=S.statWhy||{};if(!d.length&&!Object.keys(w).length)return '';
+  let t='<b>Your stats this year</b>\n'+(d.length?d.map(([k,v])=>STAT_NAMES[k]+' '+sgn(v)).join(' · '):'No change.');
+  const own=Object.entries(w).flatMap(([k,L])=>L.map(([r,v])=>`${STAT_NAMES[k]} ${sgn(-v)} (${r})`));
+  if(own.length){const m=S.statDm||1,pct=Math.round(Math.abs(1-m)*100);
+    t+='\nOn their own: '+own.join(' · ')+'.';
+    if(pct)t+=m<1?` Your Discipline (${Math.round(S.stats.dis)}) made these drops ${pct}% smaller.`:` Your low Discipline (${Math.round(S.stats.dis)}) made these drops ${pct}% bigger.`;}
+  return t;}
+function stmtModal(){const net=(S.lastInc||0)-(S.lastExp||0),kid=age()<18;return {title:'Your year: '+S.year,icon:'m_money',tag:'Money',text:`${!kid&&!S.lastBreak.length?'No money came in or went out this year. Your family is still covering your living costs.\n\n':''}${kid?`Your ${S.parents.some(p=>p.alive)?'family spends':'relatives spend'} about ${fmt(S.famSpend||0)} on your food, ${age()<7?'nappies and check-ups':'school and clothes'} this year.${age()<7?' You are too young for pocket money.':''}\n\n`:''}Income ${fmt(S.lastInc||0)} · Spending ${fmt(S.lastExp||0)}${stmtLines()?'\n\n'+stmtLines():''}\n\nNet: ${net>=0?'+':'−'} ${fmt(Math.abs(net))}. Cash now: ${fmt(S.money)}.${statLines()?'\n\n'+statLines():''}${worldLines()?'\n\n'+worldLines():''}`,choices:[['Got it',null],['Stop showing this every year',()=>{S.showStmt=false;return 'You can still see it in the Assets tab.';}]]};}
 function declareBankrupt(forced){let got=0;S.assets.houses.forEach(h=>got+=h.value*.7-h.loanLeft);S.assets.cars.forEach(c=>got+=c.value*.6-c.loanLeft);
   S.assets.houses=[];S.assets.cars=[];S.assets.biz=[];S.assets.lux=[];S.inv={safe:0,risky:0,gold:0,angel:[],banker:0};S.home=null;S.money=0;S.stocks=0;S.bankruptAsked=false;S.bankruptYears=5;bump('hap',-20);S.dyn.rep-=5;
   if(S.partner&&S.partner.gold){log(S.partner.name+' left when you went bankrupt.','big');S.partner=null;}
@@ -1282,11 +1298,19 @@ function bankruptModal(){return {title:'Drowning in debt',icon:'m_money',tag:'Mo
     bump('hap',-8);log('Sold assets to clear debts.','big');return 'You sell everything you own. It hurts, but you\'re breathing again.';}],['Declare bankruptcy',()=>{qFront(declareBankrupt(false));return '';}],['Hang on and hope for the best',()=>'You keep juggling the debts. If they keep growing, the court will make the decision for you.']]};}
 
 /* ================= yearly ticks ================= */
-function passive(fx){const a=age(),st=S.stats;
+function passive(fx){const a=age(),st=S.stats,dm=S.statDm=decayMult(),why=S.statWhy={};
+  const fall=(k,n,r)=>{const v=Math.min(n*dm,Math.max(0,st[k]));if(v<=0)return;st[k]-=v;(why[k]=why[k]||[]).push([r,v]);};
   if(a<18){st.int+=a>=4?.5:.3;st.ath+=.4;st.cha+=.3;st.cre+=.3;}
   if(a<18){if(S.parenting==='Strict')st.dis+=1;if(S.parenting==='Loving')st.hap+=.6;if(S.parenting==='Distant'||S.parenting==='Divorced')st.hap-=.6;}
   st.hap+=(55-st.hap)*.12;
-  if(a>45)st.hlt-=.8;if(a>65)st.hlt-=1.2;if(a>40)st.look-=.4;if(a>60)st.ath-=1;
+  if(a>45)fall('hlt',a>65?2:.8,'ageing');if(a>40)fall('look',.4,'ageing');if(a>60)fall('ath',1,'ageing');
+  if(a>=18){const u=S.used||(S.used={}),J=S.job&&JOBS[S.job.id],jailed=S.jail||(S.pol&&S.pol.jail);
+    // A job keeps its main stat and Discipline in practice, studying keeps Smarts. Nothing fades in prison, where there are no actions.
+    if(J){u[J.stat]=S.year;u.dis=S.year;}if(S.edu.track){u.int=S.year;u.dis=S.year;}
+    for(const k of FADE_STATS){if(jailed){u[k]=S.year;continue;}const n=idleYrs(k);if(n<=3||st[k]<=20)continue;
+      if(n===4)log(`Your ${STAT_NAMES[k]} is getting rusty. Try ${FADE_HOW[k]} to keep it up.`);
+      const v=Math.min((n>8?1:.5)*dm,st[k]-20);if(v>0){st[k]-=v;(why[k]=why[k]||[]).push([`out of practice, ${n} years without ${FADE_HOW[k]}`,v]);}}}
+  else{const u=S.used||(S.used={});for(const k of FADE_STATS)u[k]=S.year;}
   st.hlt+=fx.hlt||0;st.hap+=fx.hap||0;
   if(S.job)st.hap+=(JOBS[S.job.id].hap||0)*.5;
   if(S.ot>=2){S.otYrs++;}else S.otYrs=0;
@@ -2049,7 +2073,7 @@ function titlePanel(){const a=age();if(a<21||(S.country!=='MY'&&!S.honour))retur
   else if(!g)out+=`<p class="muted" style="margin:0;font-size:12.5px">Tan Sri and Tun only come through politics.</p>`;
   if(buyOk())out+=`<div class="row"><button class="btn small" data-act="buytitle" ${S.ap>0&&buyRich()&&T.buyYear!==S.year?'':'disabled'}>Find someone who can "arrange" a title (1 action)</button></div>${buyRich()?'':`<p class="muted" style="margin:0;font-size:12.5px">The fixers only talk to people worth ${fmt(2e6*infl())} or more.</p>`}`;
   return out+'</div>';}
-function nextYear(){if(cur||!S.alive)return;
+function nextYear(){if(cur||!S.alive)return;const yb=S.yStart||snap();
   S.year++;tab='life';S.applied=0;
   worldTick();const fx=fxNow();
   if(age()>=18)finances(fx);else kidMoney();
@@ -2058,6 +2082,7 @@ function nextYear(){if(cur||!S.alive)return;
   if(age()>=2)festival();
   if(age()>=5&&chance(.55))randomEvent();
   if(S.job&&age()>=18&&chance(.4))workEvent();
+  S.yDelta=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>[k,S.stats[k]-(yb[k]??S.stats[k])]).filter(x=>Math.abs(x[1])>=.05);S.yStart=snap();
   checkAch();S.hapSum+=S.stats.hap;S.hapN++;S.ot=0;S.trips=0;S.ap=apFor();
   if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail)&&!S.jail)qFront(stmtModal());
   if(age()>=105||chance(deathChance()))die();
@@ -2065,7 +2090,7 @@ function nextYear(){if(cur||!S.alive)return;
 function autoSpend(){const a=age();let guard=10;while(S.ap>0&&guard--){let id;
   if(a<7)id=pick(['play','study']);else if(a<=17||S.edu.track)id=pick(['study','study','social','exercise']);
   else if(S.retired)id=pick(['hobby','exercise','rest']);else id=pick(['exercise','social','rest',S.partner?'date':'hobby']);
-  const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(a)){S.ap--;continue;}S.ap--;const o=A.run();if(o)log(o);}}
+  const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(a)){S.ap--;continue;}S.ap--;const o=A.run();practise(id);if(o)log(o);}}
 function runAuto(){if(!S.alive){autoYears=0;return;}if(cur)return;if(autoYears<=0){render();return;}autoYears--;autoSpend();nextYear();}
 
 /* ================= moving / travel ================= */
@@ -2362,7 +2387,7 @@ function render(){if(!S)return;fixPartners();
     <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
     <div class="id-money"><span>Cash <b class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`;
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
-  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
+  $('#g-stats').innerHTML=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}${rusty(k)?' <small class="muted" title="Fading: try '+FADE_HOW[k]+'">· rusty</small>':''}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join('');
   $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('')||'<span class="muted" style="font-size:13px">none yet</span>';
   $('#g-tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join('');
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
@@ -2482,7 +2507,7 @@ let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
-const GAME_VERSION='2026-10-22.78';
+const GAME_VERSION='2026-10-22.79';
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
 document.querySelectorAll('.ver-label').forEach(el=>el.textContent=VERSION_LABEL);
 function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)return;
