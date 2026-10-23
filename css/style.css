@@ -590,3 +590,9 @@ html[data-skin="malam"] #s-birth .btn.bc-go{color:#fff}
 .t-icons .btn span{font-size:22px;line-height:1.1}
 .howto{margin:0;padding-left:20px;display:grid;gap:8px;white-space:normal;font-size:15px}
 html[data-skin="malam"] .t-quote{color:#dbe4ec}
+
+/* ---- v107 home screen icon picker (Settings) ---- */
+.appicons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:4px}
+.appico{justify-items:center;text-align:center}
+.appico img{width:52px;height:52px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.set-note{display:block;font-size:11.5px;margin-bottom:10px}

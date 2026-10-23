@@ -127,11 +127,13 @@ const SKINS=[['songket','Songket','Teal & gold',['#0d4a52','#e7b84a','#c92c43']]
   ['malam','Malam','Night mode',['#0f1a24','#d9a93f','#ff6b81']],['kampung','Kampung','Wood & paddy',['#5a3e22','#8cbf4f','#b5542a']],['batik','Batik Biru','Indigo & gold',['#16357a','#f0b44c','#2a58b8']]];
 function settingsHtml(){const cur=skinNow(),game=S&&S.alive&&!$('#s-game').hidden;
   return `<div class="set-h">Theme</div><div class="skins">${SKINS.map(([k,n,d,c])=>`<button class="skin" data-act="skin" data-arg="${k}" aria-pressed="${cur===k}"><span class="sw">${c.map(x=>`<i style="background:${x}"></i>`).join('')}</span>${n}<small>${d}</small></button>`).join('')}</div>`+
+    `<div class="set-h">Home screen icon</div><div class="appicons">${APP_ICONS.map(([k,n,src])=>`<button class="skin appico" data-act="appicon" data-arg="${k}" aria-pressed="${iconNow()===k}"><img src="${src}" alt="">${n}</button>`).join('')}</div><small class="muted set-note">Takes effect when you add the game to your home screen. Already added? Remove it and add it again.</small>`+
     `<div class="set-h">Sound</div><div class="set-row"><span>Music and sound effects</span><button class="btn small" data-act="smute" aria-pressed="${!MUTED}">${MUTED?'🔇 Off':'🔊 On'}</button></div>`+
     (game?`<div class="set-h">Game</div><div class="set-row"><span>Start over with a different family</span><button class="btn small danger" data-act="abandon">Start new family</button></div>`:'')+
     `<small class="muted">Malaysian Life Simulator ${VERSION_LABEL}</small>`;}
 function settingsModal(){return {title:'Settings',tag:'Settings',_settings:1,text:settingsHtml(),choices:[['Done',null]]};}
-function settingsRedraw(){const t=cur&&cur._settings&&$('#m-sheet .txt');if(t){cur.text=settingsHtml();t.innerHTML=cur.text;}}
+// Redraw the whole sheet: the settings markup has <div>s, which the browser moves out of the pop-up's <p class="txt">.
+function settingsRedraw(){if(!cur||!cur._settings)return;const sh=$('#m-sheet'),y=sh.scrollTop;cur.text=settingsHtml();drawModal(1);sh.scrollTop=y;}
 // Title screen "Continue" button names who you are playing.
 function contBtn(){const s=load(),b=$('#btn-continue');if(!b)return;b.hidden=!s;if(s)b.textContent=s.alive&&s.name?`Continue: ${s.name}, age ${s.year-s.birthYear}`:'Continue saved life';}
 function showScreen(id){if(id==='s-title')contBtn();['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}

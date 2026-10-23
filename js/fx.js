@@ -71,6 +71,10 @@ function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 const SKIN_KEY='my-lifesim-skin';
 function skinNow(){return document.documentElement.dataset.skin||'songket';}
 function setSkin(k){if(k==='songket')delete document.documentElement.dataset.skin;else document.documentElement.dataset.skin=k;try{localStorage.setItem(SKIN_KEY,k);}catch(e){}}
+// Home screen icon: the phone reads it when the game is added to the home screen (see the <head> script in index.html).
+const ICON_KEY='my-lifesim-icon',APP_ICONS=[['kid','Kid','img/icon_kid.png'],['hibiscus','Hibiscus','img/icon_hibiscus.png'],['malam','Malam','img/icon_malam.png']];
+function iconNow(){let k;try{k=localStorage.getItem(ICON_KEY);}catch(e){}return APP_ICONS.some(x=>x[0]===k)?k:'kid';}
+function setAppIcon(k){const I=APP_ICONS.find(x=>x[0]===k);if(!I)return;try{localStorage.setItem(ICON_KEY,k);}catch(e){}['ico-apple','ico-fav'].forEach(id=>{const l=document.getElementById(id);if(l)l.href=I[2];});}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
