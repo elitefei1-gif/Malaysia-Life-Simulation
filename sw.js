@@ -1,9 +1,9 @@
 // Offline support for Malaysian Life Simulator.
-// The page (index.html) is network-first: always try GitHub, fall back to the saved copy when offline.
-// Pictures, music and fonts are cache-first. Every img/ and music/ file named in index.html is
-// saved on the first online visit, and topped up whenever a newer index.html arrives.
-const PAGE_CACHE='lifesim-page-v1',ASSET_CACHE='lifesim-assets-v1',FONT_CACHE='lifesim-fonts-v1';
-const KEEP=[PAGE_CACHE,ASSET_CACHE,FONT_CACHE];
+// The page (index.html) and its code (js/, css/) are network-first: always try GitHub, fall back to the
+// saved copy when offline. Pictures, music and fonts are cache-first. Every img/ and music/ file named in
+// index.html or its code files is saved on the first online visit, and topped up whenever a newer index.html arrives.
+const PAGE_CACHE='lifesim-page-v1',CODE_CACHE='lifesim-code-v1',ASSET_CACHE='lifesim-assets-v1',FONT_CACHE='lifesim-fonts-v1';
+const KEEP=[PAGE_CACHE,CODE_CACHE,ASSET_CACHE,FONT_CACHE];
 const SCOPE=new URL(self.registration.scope);
 const PAGE_KEY=new URL('./',SCOPE).href;
 const PAGE_TIMEOUT=6000;
@@ -14,12 +14,15 @@ self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.
 self.addEventListener('message',e=>{if(e.data==='warm')e.waitUntil(warm());});
 
 function isPage(url){if(url.origin!==SCOPE.origin)return false;const p=url.pathname;return p===SCOPE.pathname||p===SCOPE.pathname+'index.html';}
+// Code files are asked for as js/name.js?v=GAME_VERSION, so each version is saved under its own key.
+function isCode(url){return url.origin===SCOPE.origin&&url.pathname.startsWith(SCOPE.pathname)&&/^(js\/[^/]+\.js|css\/[^/]+\.css)$/.test(url.pathname.slice(SCOPE.pathname.length));}
 function isAsset(url){return url.origin===SCOPE.origin&&/\/(img|music)\/[^/]+$/.test(url.pathname);}
 function isFont(url){return url.hostname==='fonts.googleapis.com'||url.hostname==='fonts.gstatic.com';}
 
 self.addEventListener('fetch',e=>{const req=e.request;if(req.method!=='GET')return;const url=new URL(req.url);
   if(req.mode==='navigate'&&url.origin===SCOPE.origin&&url.pathname.startsWith(SCOPE.pathname)&&(isPage(url)||url.pathname.endsWith('/')))e.respondWith(pageFirst());
   else if(isPage(url))e.respondWith(pageFirst());
+  else if(isCode(url))e.respondWith(codeFirst(url));
   else if(isAsset(url))e.respondWith(assetFirst(req,url));
   else if(isFont(url))e.respondWith(fontFirst(req));});
 
@@ -31,6 +34,17 @@ function pageFirst(){const net=fetchPage();
   return Promise.race([net,timeout]).then(r=>r.ok?r:fromPageCache().then(c=>c||r))
     .catch(()=>fromPageCache().then(c=>c||net));}
 function fromPageCache(){return caches.open(PAGE_CACHE).then(c=>c.match(PAGE_KEY));}
+function codeFirst(url){const key=url.href;
+  const net=fetch(key,{cache:'no-cache',credentials:'same-origin'}).then(r=>{if(r.ok&&r.status===200){const c=r.clone();caches.open(CODE_CACHE).then(ch=>ch.put(key,c)).catch(()=>{});}return r;});
+  const fromCache=()=>caches.open(CODE_CACHE).then(c=>c.match(key));
+  const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('slow')),PAGE_TIMEOUT));
+  return Promise.race([net,timeout]).then(r=>r.ok?r:fromCache().then(c=>c||r))
+    .catch(()=>fromCache().then(c=>c||net));}
+// Save the js/ and css/ files the page names (removing older versions), then return the page plus their text.
+function warmCode(html){const want=[...new Set(html.match(/(?:js\/[\w.-]+\.js|css\/[\w.-]+\.css)(?:\?v=[\w.-]+)?/g)||[])].map(p=>new URL(p,SCOPE).href);
+  return caches.open(CODE_CACHE).then(c=>c.keys().then(keys=>{keys.forEach(k=>{if(!want.includes(k.url))c.delete(k);});
+    return Promise.all(want.map(u=>c.match(u).then(hit=>hit||fetch(u,{cache:'no-cache',credentials:'same-origin'}).then(r=>{if(r.ok&&r.status===200){c.put(u,r.clone()).catch(()=>{});return r;}}))
+      .then(r=>r?r.text():'').catch(()=>'')));})).then(texts=>[html,...texts].join('\n'));}
 
 function assetFirst(req,url){const key=url.origin+url.pathname;
   return caches.open(ASSET_CACHE).then(c=>c.match(key).then(hit=>{
@@ -64,8 +78,8 @@ function recheck(c,html,urls){const v=(html.match(/const GAME_VERSION='([^']+)'/
 // Files no longer named are removed so the cache doesn't grow forever.
 let warming=null;
 function warm(){if(warming)return warming;
-  warming=fromPageCache().then(p=>p?p.text():'').then(html=>{if(!html)return;
-    const want=new Set((html.match(/(?:img|music)\/[A-Za-z0-9_.@-]+\.(?:webp|png|jpg|mp3)/g)||[]).map(p=>new URL(p,SCOPE).href));
+  warming=fromPageCache().then(p=>p?p.text():'').then(html=>html?warmCode(html).then(all=>[html,all]):[]).then(([html,all])=>{if(!html)return;
+    const want=new Set((all.match(/(?:img|music)\/[A-Za-z0-9_.@-]+\.(?:webp|png|jpg|mp3)/g)||[]).map(p=>new URL(p,SCOPE).href));
     return caches.open(ASSET_CACHE).then(c=>c.keys().then(keys=>{const have=new Set(keys.map(k=>k.url));
       keys.forEach(k=>{if(!want.has(k.url))c.delete(k);});
       const todo=[...want].filter(u=>!have.has(u));let i=0;
