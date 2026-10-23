@@ -44,10 +44,15 @@ function fxCelebrate(){const H=innerHeight,W=innerWidth;for(let i=0;i<42;i++){co
   if(k!=='f')e.style.background=k==='h'?['#c92c43','#e04a5f','#ff8fa3'][i%3]:['#e7b84a','#0b8a7d','#f5d78a'][i%3];
   const x=Math.random()*W,sw=(Math.random()-.5)*120,r=360+Math.random()*360;
   e.animate([{transform:`translate(${x}px,-30px) rotate(0)`},{transform:`translate(${x+sw}px,${H+40}px) rotate(${r}deg)`}],{duration:2400+Math.random()*1800,delay:Math.random()*900,easing:'linear',fill:'both'}).onfinish=()=>e.remove();}}
-const FX_BIG=/\b(married|marry|wedding|graduat|convocation|diploma done|promoted|promotion|scholarship|bursary|newborn|it's a (boy|girl)|jackpot|you won|award|dato'?|datuk|tan sri|tun|prime minister|elected|first pay)/i,
-  FX_SAD=/\b(died|death|dies|passed away|funeral|divorce|bankrupt|jail|prison|sacked|retrench|arrest|raid|lost|fail|rejected|dumped|break ?up)/i;
-function modalFx(m){if(noFx()||m._fx)return;m._fx=1;const d=m.delta||[],pos=d.filter(x=>/^[+]/.test(x)).length,txt=m.title+' '+(m.text||'');
-  if(pos>=d.length-pos&&FX_BIG.test(txt)&&!FX_SAD.test(txt))fxCelebrate();
+// Life-changing events, matched on the log line the game writes when they happen (not on pop-up wording,
+// which celebrated "A card at a wedding dinner" and missed becoming an MP). Promotions count only at the top rank.
+const FX_LIFE=/^(Married |Welcomed .+ into the family|Adopted .+ into the family|Graduated|First-class honours|Conferred the title|Won the (Parliament|state) seat|Became Menteri Besar|The Prime Minister resigned\. You take over|Won the 4D jackpot)/;
+function fxLifeEvent(t){return FX_LIFE.test(t)||(/^Promoted to /.test(t)&&!!S.job&&S.job.level===JOBS[S.job.id].levels.length-1);}
+// A pop-up celebrates when it has _party: set on the event's own pop-up (baby, graduation, royal honour, Prime
+// Minister, top promotion), or by choose() when the choice just made logged one (wedding, title, seat, jackpot).
+let fxParty=0,fxLast=0;
+function modalFx(m){if(noFx()||m._fx)return;m._fx=1;const d=m.delta||[];
+  if(m._party&&Date.now()-fxLast>4000){fxLast=Date.now();fxCelebrate();}
   const mm=d.find(x=>/^\+RM/.test(x));if(!mm||!S)return;const amt=+mm.replace(/[^\d.]/g,'')*(/M$/.test(mm)?1e6:1);
   const w=fxEl('div','fx-wallet',`${ico('m_money','st')}Cash <b>${fmt(S.money-amt)}</b>`),wb=w.querySelector('b');
   w.animate([{transform:'translate(-50%,-60px)',opacity:0},{transform:'translate(-50%,0)',opacity:1,offset:.12},{transform:'translate(-50%,0)',opacity:1,offset:.88},{transform:'translate(-50%,-60px)',opacity:0}],{duration:3200,delay:200,fill:'both',easing:'ease-out'}).onfinish=()=>w.remove();

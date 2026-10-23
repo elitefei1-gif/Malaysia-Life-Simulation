@@ -106,7 +106,7 @@ function addKid(other,o){o=o||{};const st=o.adopted?inherit(rndStats(),rndStats(
   if(!o.ageBack&&!autoYears)qFront(nameKidModal(k,S.log[S.log.length-1]));return k;}
 // The player names each newborn; the box starts with a suggested name.
 function nameKidModal(k,entry){const who=k.gender==='M'?'boy':'girl';
-  return {title:'Name your baby',icon:k.gender==='M'?'son':'daughter',tag:'Family',text:`It's a ${who}! Type a name, or keep the one suggested.<input id="kid-name" class="name-in" maxlength="24" value="${esc(k.name)}" autocomplete="off" onkeydown="if(event.key==='Enter')choose(0)">`,choices:[
+  return {title:'Name your baby',icon:k.gender==='M'?'son':'daughter',tag:'Family',_party:1,text:`It's a ${who}! Type a name, or keep the one suggested.<input id="kid-name" class="name-in" maxlength="24" value="${esc(k.name)}" autocomplete="off" onkeydown="if(event.key==='Enter')choose(0)">`,choices:[
     ['Use this name',()=>{const el=$('#kid-name');const n=(el&&el.value||'').replace(/\s+/g,' ').trim().slice(0,24);if(n&&n!==k.name){if(entry)entry.t=entry.t.replace(k.name,n);k.name=n;}return '';}],
     ['Suggest another name',()=>{const el=$('#kid-name');if(el){let n,t=0;do n=genName(S.culture,k.gender);while(n===el.value&&++t<8);el.value=n;el.focus();}return 'keep';}]]};}
 function newKid(){return addKid(S.partner&&S.partner.stats);}
@@ -203,17 +203,19 @@ function payFees(){const E=S.edu,t=E.track,I=infl();let fee=t.cost*I;if(E.schola
   if(rem>0){S.money-=rem;log('Paid '+fmt(rem)+' towards fees yourself.');}}
 function finishTrack(){const E=S.edu,t=E.track;E.track=null;
   if(t.kind==='master'){E.master=1;E.uniTier=Math.min(3,(E.uniTier||1)+1);if(S.job)S.job.bonus=(S.job.bonus||1)*1.15;addAch('grad');log("Graduated with a Master's degree from "+t.uni+'.','big');
-    if(t.abroad){E.abroadDeg=t.abroad;qFront({title:'Graduation abroad',icon:'m_grad',tag:'Milestone',text:`You finished your Master's in ${COUNTRIES[t.abroad].name}. Malaysian employers pay more for an overseas qualification.`,choices:[['Fly home and start job hunting',()=>{moveTo('MY');qFront(jobModal());return 'Balik Malaysia! Your old colleagues want to hear everything.';}]]});}
+    if(t.abroad){E.abroadDeg=t.abroad;qFront({title:'Graduation abroad',icon:'m_grad',tag:'Milestone',_party:1,text:`You finished your Master's in ${COUNTRIES[t.abroad].name}. Malaysian employers pay more for an overseas qualification.`,choices:[['Fly home and start job hunting',()=>{moveTo('MY');qFront(jobModal());return 'Balik Malaysia! Your old colleagues want to hear everything.';}]]});}
+    else qFront({title:'Graduation day',icon:'m_grad',tag:'Milestone',_party:1,text:`You collect your Master's degree from ${esc(t.uni)}.${S.job?' Your pay goes up 15%.':''}`,choices:[['Celebrate with the family',()=>{bump('hap',3);return 'A proud day.';}]]});
     return;}
   if(t.kind==='preu'){E.preu=t.label;E.preuScore=Math.round(clamp(S.know*.8+S.stats.int*.15+(E.spmA||0)*.5+R(-5,5)+(t.id==='matrik'?5:0)));
     if(t.id==='tvet'){E.level='tvet';log('Completed TVET with a skills certificate.','big');qFront(jobModal());return;}
-    if(t.id==='diploma'){E.level='diploma';log('Graduated with a Diploma.','big');qFront({title:'Diploma done!',icon:'m_grad',tag:'Milestone',text:'Continue to a degree (enter year 2) or start working?',choices:[['Continue to a degree',()=>{qFront(majorModal(1));return 'Back to studying!';}],['Start working',()=>{qFront(jobModal());return 'Time to earn a living.';}]]});return;}
+    if(t.id==='diploma'){E.level='diploma';log('Graduated with a Diploma.','big');qFront({title:'Diploma done!',icon:'m_grad',tag:'Milestone',_party:1,text:'Continue to a degree (enter year 2) or start working?',choices:[['Continue to a degree',()=>{qFront(majorModal(1));return 'Back to studying!';}],['Start working',()=>{qFront(jobModal());return 'Time to earn a living.';}]]});return;}
     log(`Finished ${t.label}. Score: ${E.preuScore}/100.`,'big');qFront(majorModal(0));return;}
   E.level='degree';E.major=t.id;E.uni=t.uni;E.uniTier=t.tier;E.gpa=+clamp(2+(S.know*.8+S.stats.int*.2-40)/28+R(-.15,.15),2,4).toFixed(2);
   if(E.scholar&&!t.mature)E.bond=5;addAch('grad');if(S.ptptn>0&&E.gpa>=3.67){log('First-class honours: your PTPTN loan of '+fmt(S.ptptn)+' is waived!','big');S.ptptn=0;}log(`Graduated from ${t.uni} in ${MAJORS[t.id].name}, CGPA ${E.gpa.toFixed(2)}.`,'big');
-  if(t.abroad){E.abroadDeg=t.abroad;const c=COUNTRIES[t.abroad];qFront({title:'Graduation abroad',icon:'m_grad',tag:'Milestone',text:`You graduated in ${c.name}. Malaysian employers pay more for an overseas degree, and how much more depends on the industry and where you studied.`,choices:[
+  if(t.abroad){E.abroadDeg=t.abroad;const c=COUNTRIES[t.abroad];qFront({title:'Graduation abroad',icon:'m_grad',tag:'Milestone',_party:1,text:`You graduated in ${c.name}. Malaysian employers pay more for an overseas degree, and how much more depends on the industry and where you studied.`,choices:[
     ['Fly home and start job hunting',()=>{moveTo('MY');qFront(jobModal());return 'Balik Malaysia! Mum cooks your favourite dinner.';}]]});}
-  else if(!S.job)qFront(jobModal());else{S.job.bonus=(S.job.bonus||1)*1.1;log('Your new degree earns you a 10% raise at work.');}}
+  else{if(!S.job)qFront(jobModal());else{S.job.bonus=(S.job.bonus||1)*1.1;log('Your new degree earns you a 10% raise at work.');}
+    qFront({title:'Graduation day',icon:'m_grad',tag:'Milestone',_party:1,text:`Convocation at ${esc(t.uni)}. You walk across the stage to collect your degree in ${MAJORS[t.id].name}, CGPA ${E.gpa.toFixed(2)}.${S.job?' Your new degree earns you a 10% raise at work.':''}`,choices:[['Take photos with the family',()=>{bump('hap',3);return 'Mum frames the photo for the living room.';}]]});}}
 function restudyModal(){const E=S.edu,ch=[];
   if(EDU_RANK[E.level]<3)ch.push(['Study for a degree',()=>{qFront(restudyMajorModal());return '';},()=>EDU_RANK[E.level]>=1,'Needs at least SPM']);
   else{if(!E.master)ch.push(["Master's degree or MBA, part-time (2 years)",()=>{startTrack({kind:'master',id:'master',label:"Master's degree (part-time)",left:2,cost:15000,uni:pick(['Universiti Malaya','UKM','Sunway University','Asia School of Business']),parttime:1,mature:1});log("Started a part-time Master's degree.",'big');return 'Evening classes and weekend assignments. It will boost your career.';},()=>S.money>=a2c(15000),'About '+fmt(a2c(15000))+' a year']);
