@@ -22,7 +22,7 @@ function render(){if(!S)return;fixPartners();warmIcons();
   setHtml($('#g-tabs'),TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join(''));
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
   $('#btn-next').disabled=!S.alive;
-  const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty,music:panelMusic}[tab];setHtml($('#g-panel'),P());}
+  const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty,music:panelMusic}[tab];setHtml($('#g-panel'),P());bgm();}
 function panelLife(){const a=age();const acts=ACTS.filter(x=>x.ok(a));
   const actHtml=acts.length?`<div class="acts">${acts.map(x=>`<button class="act" data-act="do" data-arg="${x.id}" ${S.ap>0?'':'disabled'}>${ico('a_'+x.id)}<b>${typeof x.label==='function'?x.label():x.label}</b><small>${typeof x.sub==='function'?x.sub():x.sub}</small></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Babies don\'t have choices yet. Press <b>Next year</b> to grow up.</p>';
   const E=S.edu,J=S.job&&JOBS[S.job.id];
@@ -121,7 +121,7 @@ function panelMusic(){const t=TRACKS[mpTrack],on=mpOn(),many=TRACKS.length>1,d=t
     <div class="row">${many?`<button class="btn mp-btn" data-act="mpprev" aria-label="Previous song">${mpIcon('prev')}</button>`:''}<button class="btn primary mp-btn mp-main" data-act="mptoggle" aria-label="${on?'Pause':'Play'}">${mpIcon(on?'pause':'play')}</button>${many?`<button class="btn mp-btn" data-act="mpnext" aria-label="Next song">${mpIcon('next')}</button>`:''}</div>
     <button class="btn small" data-act="mprepeat" aria-pressed="${mpRepeat}">🔁 Repeat ${mpRepeat?'on':'off'}</button></div>
    ${many?`<div class="list">${TRACKS.map((x,i)=>`<div class="item tap mp-row${i===mpTrack?' cur':''}" data-act="mpplay" data-arg="${i}"><span class="mp-n">${i===mpTrack&&on?'🔊':i+1}</span><div class="t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></div><span class="mono muted">${mpTime(x.len)}</span></div>`).join('')}</div>`:''}</div>`;}
-function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);}
+function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}
 function switchTab(t){tab=t;render();if(t==='music')mpTick();}
 function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
   $('#s-birth').innerHTML=`<div class="hero" style="padding-top:8px"><div class="eyebrow">Welcome to the world</div><h1 style="font-size:38px">${esc(setup.nameNow)} is born</h1><p>In ${esc(T.name)}, ${setup.year}. The family's main festival is ${C.fest}.</p></div>
