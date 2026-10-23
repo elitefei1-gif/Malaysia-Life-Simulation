@@ -52,10 +52,11 @@ const ACT={
   handover(){qFront(handoverModal());showNext();},
   heir(a){const k=S.kids[+a];S=heirFrom(k);MQ=[];cur=null;tab='life';save();showScreen('s-game');render();},
   relative(){const k=relativeHeir();S=heirFrom(k);MQ=[];cur=null;tab='life';save();showScreen('s-game');render();},
-  abandon(){qFront({title:'Start over?',text:'This deletes the current family and all its generations.',choices:[['Yes, start a new family',()=>{clearSave();S=null;MQ=[];cur=null;$('#modal').hidden=true;$('#btn-continue').hidden=true;showScreen('s-setup');return false;}],['Cancel',null]]});showNext();},
+  abandon(){if(cur&&cur._settings){cur=null;$('#modal').hidden=true;}qFront({title:'Start over?',text:'This deletes the current family and all its generations.',choices:[['Yes, start a new family',()=>{clearSave();S=null;MQ=[];cur=null;$('#modal').hidden=true;$('#btn-continue').hidden=true;showScreen('s-setup');return false;}],['Cancel',null]]});showNext();},
   buybiz(a){buyBiz(a);},sellbiz(a){sellBiz(+a);},buylux(a){buyLux(a);},selllux(a){sellLux(+a);},invest(a){invest(a);},cashout(a){cashOut(a);},angel(){backStartup();},
   music(){showScreen('s-music');mpRefresh();},musicBack(){showScreen('s-title');},
   mptoggle(){mpToggle();},mpplay(a){mpPlay(+a);},mpprev(){mpSkip(-1);},mpnext(){mpSkip(1);},mprepeat(){mpSetRepeat();},
+  settings(){qFront(settingsModal());showNext();},skin(a){setSkin(a);settingsRedraw();},smute(){toggleMute();settingsRedraw();},
   abandonEnd(){clearSave();S=null;$('#btn-continue').hidden=true;showScreen('s-setup');},
 };
 document.addEventListener('click',e=>{const seg=e.target.closest('[data-seg] button');if(seg){if(seg.disabled)return;const box=seg.parentElement;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===seg));setup[box.dataset.seg]=seg.dataset.v;return;}

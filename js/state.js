@@ -121,7 +121,7 @@ function diff(b){const out=[];for(const k in STAT_NAMES){if(k==='luck')continue;
   const dk=Math.round((S.know||0)-(b.know||0));if(dk)out.push((dk>0?'+':'')+dk+' Knowledge');
   const dm=S.money-b.money;if(Math.abs(dm)>=1)out.push((dm>0?'+':'')+fmt(dm));return out;}
 function showNext(){if(cur)return;const m=MQ.shift();
-  if(!m){$('#modal').hidden=true;render();save();if(!S.alive){showEnd();return;}if(autoYears>0)setTimeout(runAuto,180);return;}
+  if(!m){$('#modal').hidden=true;if(!S)return;render();save();if(!S.alive){showEnd();return;}if(autoYears>0)setTimeout(runAuto,180);return;}
   cur=m;drawModal();}
 const TAG_ART={'Titles':'🎖️','Politics':'🏛️','Love':'💞','Milestone':'🎂','Travel':'✈️','Money':'💰','Career':'💼','Family':'👨‍👩‍👧','World event':'🌏','Health':'🏥','Festive season':'🏮','Education':'🎓','Vehicle':'🚗','Property':'🏠'};
 // Illustration area: m.img (a picture URL) wins, then a full event picture (ev_ keys), then the event icon, then a tag emoji.

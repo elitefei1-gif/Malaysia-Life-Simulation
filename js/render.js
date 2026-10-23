@@ -12,7 +12,7 @@ function warmIcons(){const c=icoCult();if(iconsWarm===c)return;iconsWarm=c;
   for(const k of [...ACTS.map(x=>'a_'+x.id),...Object.keys(STAT_NAMES).map(x=>'s_'+x),...TABS.map(([x])=>'t_'+x)]){const src=icoSrc(k);if(src){const im=new Image();im.src=src;ICON_WARM.push(im);}}}
 function render(){if(!S)return;fixPartners();warmIcons();
   const C=ctry(),loc=S.country==='MY'?town().name:C.city+', '+C.name;
-  setHtml($('#g-head'),`<div class="idcard${honTier()?' hon hon'+honTier():''}">${honTier()?`<i class="hon-em" aria-hidden="true">${['','✦','✶','✷','❂'][honTier()]}</i>`:''}<div class="id-top"><span>Identity card · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
+  setHtml($('#g-head'),`<div class="idcard${honTier()?' hon hon'+honTier():''}">${honTier()?`<i class="hon-em" aria-hidden="true">${['','✦','✶','✷','❂'][honTier()]}</i>`:''}<div class="id-top"><span>Identity card · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}<button class="gear" data-act="settings" aria-label="Settings" title="Settings">⚙️</button></span></div>
     <div class="id-body">${ico(avatarKey(),'lg')}<div class="id-main"><div class="id-name">${S.honour?`<span class="id-hon">${esc(S.honour)}</span> `+esc(S.name):esc(dispName())}</div><div class="id-no">${S.ic}</div><div class="id-meta">${esc(loc)} · ${esc(stageName())}</div></div>
     <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span><div class="pips id-pips" id="g-pips" title="Actions left this year"></div>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
     <div class="id-money"><span>Cash <b id="id-cash" class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`);
@@ -108,9 +108,7 @@ function panelFamily(){const p=S.partner,a=age();
 function panelDynasty(){const d=S.dyn;const hist=d.history.map(h=>`<div class="gen"><div class="g">Gen ${h.gen}</div><div class="item"><div class="t"><b>${esc(h.name)} · ${esc(h.title)}</b><small>${h.born}–${h.died} (age ${h.age}) · ${esc(h.career)} · net worth <span class="mono">${fmt(h.nw)}</span> · score ${h.score}</small></div></div></div>`).join('');
   return `<div class="panel"><h3>${esc(CULTURES[d.culture||S.culture].famLabel(d.famName))}</h3><dl class="kv"><dt>Generation</dt><dd>${d.gen}</dd><dt>Family reputation</dt><dd>${Math.round(d.rep)}</dd></dl>
    <div class="tree">${hist}<div class="gen"><div class="g">Gen ${d.gen}</div><div class="item"><div class="t"><b>${esc(dispName())} <span class="chip">Now</span></b><small>Born ${S.birthYear} · age ${age()}</small></div></div></div></div></div>
-   <div class="panel"><h3>Achievements</h3><p class="muted" style="margin:0;font-size:13px">Gold = earned by any generation of the family.</p><div class="ach">${Object.entries(ACH).map(([k,v])=>`<div class="${d.ach.includes(k)?'got':''}"><b>${v[0]}</b>${v[1]}</div>`).join('')}</div></div>
-   <div class="panel"><h3>Game</h3><div class="row"><button class="btn small danger" data-act="abandon">Start a completely new family</button></div></div>
-   <div class="panel"><h3>Sound</h3><div class="row" style="justify-content:space-between"><span>Music and sound effects</span><button class="btn small" data-act="mute" aria-pressed="${!MUTED}">${MUTED?'🔇 Off':'🔊 On'}</button></div></div>`;}
+   <div class="panel"><h3>Achievements</h3><p class="muted" style="margin:0;font-size:13px">Gold = earned by any generation of the family.</p><div class="ach">${Object.entries(ACH).map(([k,v])=>`<div class="${d.ach.includes(k)?'got':''}"><b>${v[0]}</b>${v[1]}</div>`).join('')}</div></div>`;}
 const MP_ICON={play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>',prev:'<path d="M6 6h2v12H6zM9.5 12 18 18V6z"/>',next:'<path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/>'};
 const mpIcon=k=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">${MP_ICON[k]}</svg>`;
 function panelMusic(){const t=TRACKS[mpTrack],on=mpOn(),many=TRACKS.length>1,d=t.len;
@@ -121,6 +119,16 @@ function panelMusic(){const t=TRACKS[mpTrack],on=mpOn(),many=TRACKS.length>1,d=t
     <div class="row">${many?`<button class="btn mp-btn" data-act="mpprev" aria-label="Previous song">${mpIcon('prev')}</button>`:''}<button class="btn primary mp-btn mp-main" data-act="mptoggle" aria-label="${on?'Pause':'Play'}">${mpIcon(on?'pause':'play')}</button>${many?`<button class="btn mp-btn" data-act="mpnext" aria-label="Next song">${mpIcon('next')}</button>`:''}</div>
     <button class="btn small" data-act="mprepeat" aria-pressed="${mpRepeat}">🔁 Repeat ${mpRepeat?'on':'off'}</button></div>
    ${many?`<div class="list">${TRACKS.map((x,i)=>`<div class="item tap mp-row${i===mpTrack?' cur':''}" data-act="mpplay" data-arg="${i}"><span class="mp-n">${i===mpTrack&&on?'🔊':i+1}</span><div class="t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></div><span class="mono muted">${mpTime(x.len)}</span></div>`).join('')}</div>`:''}</div>`;}
+// Settings (v98): themes, sound, and starting over. Opened by the ⚙️ on the ID card or the title screen.
+const SKINS=[['songket','Songket','Teal & gold',['#0d4a52','#e7b84a','#c92c43']],['peranakan','Peranakan','Mint & pink',['#2a9d8f','#f2a7c3','#d6457a']],
+  ['malam','Malam','Night mode',['#0f1a24','#d9a93f','#ff6b81']],['kampung','Kampung','Wood & paddy',['#5a3e22','#8cbf4f','#b5542a']],['batik','Batik Biru','Indigo & gold',['#16357a','#f0b44c','#2a58b8']]];
+function settingsHtml(){const cur=skinNow(),game=S&&S.alive&&!$('#s-game').hidden;
+  return `<div class="set-h">Theme</div><div class="skins">${SKINS.map(([k,n,d,c])=>`<button class="skin" data-act="skin" data-arg="${k}" aria-pressed="${cur===k}"><span class="sw">${c.map(x=>`<i style="background:${x}"></i>`).join('')}</span>${n}<small>${d}</small></button>`).join('')}</div>`+
+    `<div class="set-h">Sound</div><div class="set-row"><span>Music and sound effects</span><button class="btn small" data-act="smute" aria-pressed="${!MUTED}">${MUTED?'🔇 Off':'🔊 On'}</button></div>`+
+    (game?`<div class="set-h">Game</div><div class="set-row"><span>Start over with a different family</span><button class="btn small danger" data-act="abandon">Start new family</button></div>`:'')+
+    `<small class="muted">Malaysian Life Simulator ${VERSION_LABEL}</small>`;}
+function settingsModal(){return {title:'Settings',tag:'Settings',_settings:1,text:settingsHtml(),choices:[['Done',null]]};}
+function settingsRedraw(){const t=cur&&cur._settings&&$('#m-sheet .txt');if(t){cur.text=settingsHtml();t.innerHTML=cur.text;}}
 function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}
 function switchTab(t){tab=t;render();$('#g-panel').scrollTop=0;if(t==='music')mpTick();}
 function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
