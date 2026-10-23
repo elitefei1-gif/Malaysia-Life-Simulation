@@ -22,7 +22,7 @@ function render(){if(!S)return;fixPartners();warmIcons();
   setHtml($('#g-tabs'),TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join(''));
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
   $('#btn-next').disabled=!S.alive;
-  const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty,music:panelMusic}[tab];setHtml($('#g-panel'),P());bgm();}
+  if(!TABS.some(t=>t[0]===tab))tab='life';const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty}[tab];setHtml($('#g-panel'),P());bgm();}
 function panelLife(){const a=age();const acts=ACTS.filter(x=>x.ok(a));
   const actHtml=acts.length?`<div class="acts">${acts.map(x=>`<button class="act" data-act="do" data-arg="${x.id}" ${S.ap>0?'':'disabled'}>${ico('a_'+x.id)}<b>${typeof x.label==='function'?x.label():x.label}</b><small>${typeof x.sub==='function'?x.sub():x.sub}</small></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Babies don\'t have choices yet. Press <b>Next year</b> to grow up.</p>';
   const E=S.edu,J=S.job&&JOBS[S.job.id];
@@ -129,7 +129,7 @@ function settingsHtml(){const cur=skinNow(),game=S&&S.alive&&!$('#s-game').hidde
   return `<div class="set-h">Theme</div><div class="skins">${SKINS.map(([k,n,d,c])=>`<button class="skin" data-act="skin" data-arg="${k}" aria-pressed="${cur===k}"><span class="sw">${c.map(x=>`<i style="background:${x}"></i>`).join('')}</span>${n}<small>${d}</small></button>`).join('')}</div>`+
     `<div class="set-h">Home screen icon</div><div class="appicons">${APP_ICONS.map(([k,n,src])=>`<button class="skin appico" data-act="appicon" data-arg="${k}" aria-pressed="${iconNow()===k}"><img src="${src}" alt="">${n}</button>`).join('')}</div><small class="muted set-note">Takes effect when you add the game to your home screen. Already added? Remove it and add it again.</small>`+
     `<div class="set-h">Save backup</div><div class="set-row"><span>Keep a copy of your game, for a new phone or before re-adding the icon</span></div><div class="set-row set-btns"><button class="btn small" data-act="backup" ${load()?'':'disabled'}>Copy save code</button><button class="btn small" data-act="restore">Restore from code</button></div>`+
-    `<div class="set-h">Sound</div><div class="set-row"><span>Music and sound effects</span><button class="btn small" data-act="smute" aria-pressed="${!MUTED}">${MUTED?'🔇 Off':'🔊 On'}</button></div>`+
+    `<div class="set-h">Sound &amp; music</div><div class="set-row"><span>Music and sound effects</span><button class="btn small" data-act="smute" aria-pressed="${!MUTED}">${MUTED?'🔇 Off':'🔊 On'}</button></div><div class="set-row"><span>Listen to the game's songs in full</span><button class="btn small" data-act="music">🎵 Music player</button></div>`+
     (game?`<div class="set-h">Game</div><div class="set-row"><span>Start over with a different family</span><button class="btn small danger" data-act="abandon">Start new family</button></div>`:'')+
     `<small class="muted">Malaysian Life Simulator ${VERSION_LABEL}</small>`;}
 function settingsModal(){return {title:'Settings',tag:'Settings',_settings:1,text:settingsHtml(),choices:[['Done',null]]};}
@@ -138,7 +138,7 @@ function settingsRedraw(){if(!cur||!cur._settings)return;const sh=$('#m-sheet'),
 // Title screen "Continue" button names who you are playing.
 function contBtn(){const s=load(),b=$('#btn-continue');if(!b)return;b.hidden=!s;if(s)b.textContent=s.alive&&s.name?`Continue: ${s.name}, age ${s.year-s.birthYear}`:'Continue saved life';}
 function showScreen(id){if(id==='s-title')contBtn();['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}
-function switchTab(t){tab=t;render();$('#g-panel').scrollTop=0;if(t==='music')mpTick();}
+function switchTab(t){tab=t;render();$('#g-panel').scrollTop=0;}
 function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
   const grp={B40:'B40 · lower income',M40:'M40 · middle income',T20:'T20 · top 20%'}[d.group];
   const pst=p=>[['int','Smarts'],['look','Looks'],['hlt','Health'],['cha','Charisma']].map(([k,n])=>`<div class="pst"><span>${n}</span><b>${p.stats[k]}</b><div class="bar"><i class="${barCls(p.stats[k])}" style="width:${p.stats[k]}%"></i></div></div>`).join('');

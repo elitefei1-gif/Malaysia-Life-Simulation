@@ -98,7 +98,8 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
 - Theme colours live at the end of `css/style.css` as `html[data-skin="x"]{--bg:…;--accent:…}` plus a few
   overrides. Use the colour variables (`var(--surface)`, `var(--ink)`, `var(--accent)`…) in new styles rather than
   fixed colours, or the new style will look wrong in Malam (the dark theme). Check new screens in Malam.
-- Settings (`settingsModal()` in `render.js`) holds the theme picker, the home screen icon picker, sound on/off and "Start new family".
+- Settings (`settingsModal()` in `render.js`) holds the theme picker, the home screen icon picker, save backup, sound on/off,
+  the music player button and "Start new family".
 - Save backup (Settings): "Copy save code" turns the save into one text code (`saveCode()` / `readCode()` in `fx.js`,
   prefix `MYLIFE1:`); "Restore from code" writes it back. Keep `readCode()` accepting old codes if the save format grows.
 - Home screen icon: `img/icon_kid.png`, `icon_hibiscus.png`, `icon_malam.png` (192×192). The choice is stored in localStorage
@@ -117,7 +118,8 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
     Hardship (titles in `MOMENT_TITLE`), and Wedding (set by `cueLog` when a marriage is logged). Then it fades back
     and the stage song resumes where it left off. `cue` in `TRACKS` skips a moment song's intro.
   - A song that can't load (offline and never played) falls back to Menu Hangat, which is always saved offline.
-- Music page: the Music tab in a game, and the 🎵 Music button on the title screen. It plays the songs in
+- Music page (`#s-music`): the 🎵 Music button on the title screen, and "Music player" in Settings during a game
+  (Back returns to wherever it was opened from). It plays the songs in
   `TRACKS` (`sound.js`) in full and pauses the background music while one plays. To add a song, convert it to
   MP3 (Opus `.m4a` doesn't play on older iPhones). For example:
   `ffmpeg -i in.m4a -map 0:a -c:a libmp3lame -b:a 160k -ar 44100 -map_metadata -1 music/songs/NN-name.mp3`,

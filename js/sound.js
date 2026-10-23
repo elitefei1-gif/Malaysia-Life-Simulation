@@ -125,7 +125,7 @@ function mpToggle(){if(mpOn())MP.pause();else mpPlay(mpTrack);}
 // Back to the start of the song if it's more than 3 seconds in, otherwise the previous song.
 function mpSkip(d){if(d<0&&MP&&MP.currentTime>3){MP.currentTime=0;return;}mpPlay((mpTrack+d+TRACKS.length)%TRACKS.length);}
 function mpSetRepeat(){mpRepeat=!mpRepeat;if(MP)MP.loop=mpRepeat;mpRefresh();}
-function mpRefresh(){if(!$('#s-music').hidden)setHtml($('#music-page'),panelMusic());else if(S&&tab==='music'&&!$('#s-game').hidden)setHtml($('#g-panel'),panelMusic());mpTick();}
+function mpRefresh(){if(!$('#s-music').hidden)setHtml($('#music-page'),panelMusic());mpTick();}
 function mpTick(){const d=mpDur(),c=MP?MP.currentTime:0;
   document.querySelectorAll('.mp-time').forEach(el=>el.textContent=mpTime(c)+' / '+mpTime(d));
   if(!mpDrag)document.querySelectorAll('.mp-seek').forEach(el=>el.value=d?Math.round(c/d*1000):0);}

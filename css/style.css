@@ -214,7 +214,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .ico{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-size:24px;line-height:1;object-fit:cover}
 .ico.lg{width:64px;height:64px;font-size:36px;border-radius:16px;background:var(--surface)}
 img.ico{background:var(--surface)}
-.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;border-bottom:0;overflow:visible}
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;border-bottom:0;overflow:visible}
 .tabs button{--tc:var(--accent);display:grid;justify-items:center;gap:4px;padding:8px 4px 7px;border:2px solid color-mix(in srgb,var(--tc) 45%,var(--line));border-radius:14px;
   background:color-mix(in srgb,var(--tc) 9%,var(--surface));color:var(--ink);font-size:12.5px;font-weight:700;line-height:1.15;text-align:center;transition:transform .12s,background .12s}
 .tabs button .ico{width:30px;height:30px;font-size:20px;border-radius:9px;border:0;background:transparent}
