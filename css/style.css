@@ -605,3 +605,5 @@ html[data-skin="malam"] .t-quote{color:#dbe4ec}
 .tabs button .ico{width:44px;height:44px}
 @media (max-height:700px){#s-game .tabs button .ico{width:34px;height:34px}}
 @media (max-width:350px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ---- v116 pop-ups: the songket band stays on top while the pop-up scrolls, so pictures and text slide under it ---- */
+#modal .sheet::before{content:"";position:sticky;top:-40px;z-index:3;flex:none;height:40px;margin:-40px -18px -14px;background:inherit;animation:none}
