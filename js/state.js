@@ -12,7 +12,7 @@ const town=()=>TOWNS[S.town];
 const ctry=()=>COUNTRIES[S.country];
 const married=()=>S.partner&&S.partner.status==='married'&&S.partner.alive!==false;
 function bump(k,n){S.stats[k]=clamp(S.stats[k]+n);}
-function log(t,k){S.log.push({a:age(),y:S.year,t,k:k||''});if(k==='big'){cueLog(t);if(fxLifeEvent(t))fxParty=1;}if(S.log.length>500)S.log.splice(0,S.log.length-500);}
+function log(t,k){S.log.push({a:age(),y:S.year,t,k:k||''});if(k==='big'){cueLog(t);if(fxLifeEvent(t))fxParty=1;if(/^Married /.test(t))fxArt={title:'Wedding day',icon:'ev_wedding'};}if(S.log.length>500)S.log.splice(0,S.log.length-500);}
 function roll(stat){return S.stats[stat]/100*.7+Math.random()*.3+(S.stats.luck-50)/500;}
 function addAch(id){if(!S.ach.includes(id)){S.ach.push(id);if(!S.dyn.ach.includes(id))S.dyn.ach.push(id);toast('🏅 Achievement: '+ACH[id][0]);}}
 
@@ -142,7 +142,7 @@ function drawModal(){const m=cur;if(m.choices&&m.choices.length)cue(m.tag==='Wor
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
   $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});modalFx(m);bgm();}
 function choose(i){const c=cur&&cur.choices&&cur.choices[i];if(!c){closeModal();return;}if(c[2]&&!c[2]())return;if(!c[1]){closeModal();return;}
-  const b=snap();let out;fxParty=0;try{out=c[1]();}catch(e){console.error(e);out='';}const party=fxParty&&!MQ.some(x=>x._party);fxParty=0;if(out===false){cur=null;return;}if(out==='keep')return;
-  const d=S?diff(b):[];if(out||d.length){cur={title:cur.title,tag:cur.tag,icon:cur.icon,text:out||'Done.',delta:d,choices:null,_party:party};drawModal();}else closeModal();}
+  const b=snap();let out;fxParty=0;fxArt=null;try{out=c[1]();}catch(e){console.error(e);out='';}const party=fxParty&&!MQ.some(x=>x._party),art=fxArt;fxParty=0;fxArt=null;if(out===false){cur=null;return;}if(out==='keep')return;
+  const d=S?diff(b):[];if(out||d.length){cur={title:art?art.title:cur.title,tag:cur.tag,icon:art?art.icon:cur.icon,text:out||'Done.',delta:d,choices:null,_party:party};drawModal();}else closeModal();}
 function closeModal(){cur=null;$('#modal').hidden=true;showNext();}
 
