@@ -140,7 +140,7 @@ function drawModal(){const m=cur;if(m.choices&&m.choices.length)cue(m.tag==='Wor
   $('#m-sheet').innerHTML=`${m.tag?`<span class="chip tag ${m.tag==='World event'?'warn':m.tag==='Festive season'?'gold':''}">${esc(m.tag)}</span>`:''}${modalArt(m)}<h2 id="m-title">${m.title}</h2><p class="txt">${m.text||''}</p>
    ${m.delta&&m.delta.length?`<div class="delta">${m.delta.map(d=>`<span class="${/^[+]/.test(d)?'pos':'neg'}">${esc(d)}</span>`).join('')}</div>`:''}
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
-  $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});modalFx(m);}
+  $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});modalFx(m);bgm();}
 function choose(i){const c=cur&&cur.choices&&cur.choices[i];if(!c){closeModal();return;}if(c[2]&&!c[2]())return;if(!c[1]){closeModal();return;}
   const b=snap();let out;try{out=c[1]();}catch(e){console.error(e);out='';}if(out===false){cur=null;return;}if(out==='keep')return;
   const d=S?diff(b):[];if(out||d.length){cur={title:cur.title,tag:cur.tag,icon:cur.icon,text:out||'Done.',delta:d,choices:null};drawModal();}else closeModal();}

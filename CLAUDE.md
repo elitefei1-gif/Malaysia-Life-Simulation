@@ -84,18 +84,26 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
 
 ## Music
 
-- Background music: `music/menu-hangat.mp3`, quiet and looping, follows the mute button (`bgm()` in `sound.js`).
+- Background music (`bgm()` in `sound.js`) follows the player's life, quiet and looping, and follows the mute button:
+  - Title screen: Emas Harapan. End screen: Legacy.
+  - Stage songs from `bgmStage()`: Childhood (0–12), School Days (13–17), Uni Life (studying, no job), Working Life,
+    Golden Years (60+ or retired). Politics (politician) and Rich Life (Dato' or very rich) override those, and
+    Hardship overrides everything during jail or hospital.
+  - Moment songs from `bgmMoment()` play while their pop-up is open: Raya, Chinese New Year, Romance (`Love` tag),
+    Hardship (titles in `MOMENT_TITLE`), and Wedding (set by `cueLog` when a marriage is logged). Then it fades back
+    and the stage song resumes where it left off. `cue` in `TRACKS` skips a moment song's intro.
+  - A song that can't load (offline and never played) falls back to Menu Hangat, which is always saved offline.
 - Music page: the Music tab in a game, and the 🎵 Music button on the title screen. It plays the songs in
   `TRACKS` (`sound.js`) in full and pauses the background music while one plays. To add a song, convert it to
-  MP3 (Opus `.m4a` doesn't play on older iPhones), for example
+  MP3 (Opus `.m4a` doesn't play on older iPhones). For example:
   `ffmpeg -i in.m4a -map 0:a -c:a libmp3lame -b:a 160k -ar 44100 -map_metadata -1 music/songs/NN-name.mp3`,
   then add a line to `TRACKS` with its length in seconds (`len`).
 
 ## Offline support (`sw.js`)
 
 `index.html` and the `js/` and `css/` files load from the network first, with the saved copy used when
-offline. Pictures and background music are saved on the first visit. Music page songs (`music/songs/`)
-are saved only once played, so a first visit stays light. The service worker finds which pictures to
+offline. Pictures and Menu Hangat are saved on the first visit. Songs in `music/songs/` are saved the first
+time they play, so a first visit stays light. The service worker finds which pictures to
 save by scanning `index.html` and the code files for `img/...` and `music/...` paths. So write picture
 paths out in full (as in `ICON_IMG`), not built from pieces at runtime. Bump the cache names in `sw.js`
 only if the caching scheme itself changes.
