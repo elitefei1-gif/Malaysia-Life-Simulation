@@ -1,0 +1,13 @@
+{
+  "name": "malaysia-life-simulation",
+  "private": true,
+  "description": "Malaysian Life Simulator: a static web game (no build step). Node is only used for the play-test.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/smoke.mjs",
+    "serve": "npx --yes http-server -c-1 -p 8080 ."
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
