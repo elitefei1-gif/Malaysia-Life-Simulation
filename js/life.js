@@ -65,6 +65,7 @@ function doAct(id){if(cur)return;const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(ag
   const tile=$(`.act[data-arg="${id}"]`),src=tile&&tile.getBoundingClientRect(),pre=fxRusty();
   S.ap--;const b=snap();const out=A.run();practise(id);if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();actFx(id,src,b,pre);save();showNext();}
 function langModal(){const opts=Object.keys(LANG).map(k=>[`${LANG[k]} <span class="mono muted">${Math.round(S.langs[k]||0)}</span>`,()=>{const g=(6+R(0,4))*(.6+S.stats.dis/100);S.langs[k]=clamp((S.langs[k]||0)+g);return 'You practise '+LANG[k]+' with apps and conversation classes.';}]);
+  opts.push(['Not now',()=>{S.ap++;return '';},null,'Keeps your action for something else']);
   return {title:'Which language?',text:'Languages help with exams, jobs and moving abroad.',choices:opts};}
 
 /* ================= love & family ================= */
@@ -114,7 +115,7 @@ function adoptModal(){const ok=married()?.85:.55,I=a2c(1);
   const go=(lbl,ageBack,cost,txt)=>[`${lbl} (${fmt(cost*I)})`,()=>{S.money-=cost*I;if(!chance(ok+(S.stats.cha-50)/300))return 'The Social Welfare Department (JKM) says your application needs more time. You can try again next year.'+(married()?'':' Single applicants face extra checks.');
     const k=addKid(null,{adopted:true,ageBack,hap:10});return txt.replace('#',k.name);},()=>S.money>=cost*I,'Needs '+fmt(cost*I)];
   return {title:'Adopt a child',icon:'m_adopt',tag:'Family',text:'You apply through the Social Welfare Department (JKM). Home visits, interviews and paperwork follow.'+(married()?'':'\nYou are applying as a single parent, so approval is harder.'),
-    choices:[go('A baby',0,8000,'Welcome home, #! The sleepless nights begin.'),go('A toddler (age 2 to 4)',RI(2,4),5000,'# holds your hand all the way home. A new chapter starts.'),go('An older child (age 6 to 12)',RI(6,12),3000,'# spent years in a children\'s home. Tonight they sleep in their own room.'),['Not now',null]]};}
+    choices:[go('A baby',0,8000,'Welcome home, #! The sleepless nights begin.'),go('A toddler (age 2 to 4)',RI(2,4),5000,'# holds your hand all the way home. A new chapter starts.'),go('An older child (age 6 to 12)',RI(6,12),3000,'# spent years in a children\'s home. Tonight they sleep in their own room.'),['Not now',()=>{S.ap++;return '';},null,'Keeps your action for something else']]};}
 function pregModal(o){const a=age(),p=S.partner,me=S.gender==='F',nm=o.name||'your partner';
   const support=()=>{if(p&&p.alive!==false&&o.fling&&chance(.6)){p.rel=clamp(p.rel-40);log(p.name+' found out about the child from your fling.','big');return ' '+p.name+' finds out and is devastated.';}return '';};
   // o.how says where the baby came from: a holiday fling (default), a one-night stand ('party') or a secret affair ('affair').
