@@ -564,3 +564,27 @@ html[data-skin="malam"] .yearbar .nextbtn,html[data-skin="malam"] .nextbtn{color
 html[data-skin="malam"] .bc-body h1,html[data-skin="malam"] .pc-name,html[data-skin="malam"] .bc-top{color:#f5e6c4}
 html[data-skin="malam"] .pcard{background:#182634;border-color:#3b556b}
 html[data-skin="malam"] #s-birth .btn.bc-go{color:#fff}
+/* ---- v100 title screen (poster): title in the sky, the street picture below it, then quote and buttons. No scrolling. ---- */
+#s-title:not([hidden]){display:flex;flex-direction:column;gap:12px;min-height:calc(100dvh - 16px);padding-bottom:max(14px,env(safe-area-inset-bottom,0px))}
+/* The hero takes all spare height. Its background is the picture's own sky colour, so the title sits "in the sky".
+   The picture is zoomed so the schoolgirl (left), the graduate (middle) and the grandmother (right) all stay in view. */
+.t-hero{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:#d8f7e8;
+  margin:-16px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-top:max(22px,env(safe-area-inset-top,0px))}
+.t-pic{flex:none;height:min(72.5vw,38dvh,420px);background:url(../img/title-banner.webp) no-repeat 91% 100%/130% auto}
+@media (min-width:600px){.t-pic{background-size:auto 100%;background-position:center bottom}}
+.t-hero::after{content:"";position:absolute;inset:auto 0 0 0;height:16%;background:linear-gradient(transparent,var(--bg))}
+.t-title{position:relative;z-index:1;flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:0 16px 8px}
+.t-title .eyebrow{color:#c92c43;font-weight:900}
+.t-title h1{font-size:clamp(40px,12vw,52px);line-height:1;margin:6px 0 0;color:#0d4a52;font-weight:900}
+.t-title h1 em{color:#c92c43;font-style:normal}
+.t-sub{text-align:center;margin-top:-18px;position:relative;z-index:1}
+.t-quote{margin:0;font-size:15px;font-style:italic;font-weight:600;line-height:1.5;color:var(--muted)}
+.t-btns{display:grid;gap:10px}
+.btn.t-go{min-height:60px;font-size:21px;font-weight:900;border-radius:16px;border:2px solid var(--songket);color:#fff;
+  background:linear-gradient(90deg,var(--btn1,#c92c43),var(--btn2,#e04a5f));box-shadow:0 8px 20px var(--btn-glow,rgba(201,44,67,.3))}
+.btn.t-cont{min-height:50px;font-size:16px;font-weight:800;border-radius:14px}
+.t-icons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.t-icons .btn{display:grid;justify-items:center;gap:2px;padding:10px 4px;border-radius:14px;font-size:12.5px;font-weight:800}
+.t-icons .btn span{font-size:22px;line-height:1.1}
+.howto{margin:0;padding-left:20px;display:grid;gap:8px;white-space:normal;font-size:15px}
+html[data-skin="malam"] .t-quote{color:#dbe4ec}
