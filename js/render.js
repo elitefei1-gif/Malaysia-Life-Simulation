@@ -129,7 +129,9 @@ function settingsHtml(){const cur=skinNow(),game=S&&S.alive&&!$('#s-game').hidde
     `<small class="muted">Malaysian Life Simulator ${VERSION_LABEL}</small>`;}
 function settingsModal(){return {title:'Settings',tag:'Settings',_settings:1,text:settingsHtml(),choices:[['Done',null]]};}
 function settingsRedraw(){const t=cur&&cur._settings&&$('#m-sheet .txt');if(t){cur.text=settingsHtml();t.innerHTML=cur.text;}}
-function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}
+// Title screen "Continue" button names who you are playing.
+function contBtn(){const s=load(),b=$('#btn-continue');if(!b)return;b.hidden=!s;if(s)b.textContent=s.alive&&s.name?`Continue: ${s.name}, age ${s.year-s.birthYear}`:'Continue saved life';}
+function showScreen(id){if(id==='s-title')contBtn();['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}
 function switchTab(t){tab=t;render();$('#g-panel').scrollTop=0;if(t==='music')mpTick();}
 function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
   const grp={B40:'B40 · lower income',M40:'M40 · middle income',T20:'T20 · top 20%'}[d.group];

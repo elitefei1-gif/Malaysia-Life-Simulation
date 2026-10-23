@@ -1,35 +1,27 @@
-<!doctype html><html data-theme="light"><head><meta charset=utf8><meta name="color-scheme" content="light"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="css/style.css?v=2026-10-23.99"><script>try{var k=localStorage.getItem("my-lifesim-skin");if(k)document.documentElement.dataset.skin=k}catch(e){}</script></head><body>
+<!doctype html><html data-theme="light"><head><meta charset=utf8><meta name="color-scheme" content="light"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="css/style.css?v=2026-10-23.100"><script>try{var k=localStorage.getItem("my-lifesim-skin");if(k)document.documentElement.dataset.skin=k}catch(e){}</script></head><body>
 <title>Malaysian Life Simulator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap">
 
 <div id="app">
-  <!-- TITLE -->
+  <!-- TITLE (v100 poster): the street picture fills the top, then title, quote and buttons -->
   <section id="s-title" class="stack">
-    <div class="hero">
-      <img class="title-banner" alt="" src="img/title-banner.webp">
-      <div class="eyebrow">One life. No rewinds.</div>
-      <h1>Malaysian <em>Life</em> Simulator</h1>
-      <p>You don't choose the family you're born into, or the year. Everything after that is yours: the late nights before SPM, the first crush, the job offer in KL, the Myvi you saved three years for, the day you finally balik kampung for good.</p>
-       <p class="hero-note">Some choices open doors. Others close them forever. There's no undo, and no two lives play out the same. When this one ends, all that remains is what you built and who you leave behind. Make it a life worth remembering.</p>
+    <div class="t-hero">
+      <div class="t-title"><div class="eyebrow">One life · No rewinds</div><h1>Malaysian<br><em>Life</em> Simulator</h1></div>
+      <div class="t-pic" role="img" aria-label="A Malaysian street: a schoolgirl, a graduate, friends at a mamak and a grandmother on her porch"></div>
     </div>
-    <div class="row start-row">
-      <button class="btn primary pulse" data-act="toSetup">Start a new life</button>
-      <button class="btn" data-act="continue" id="btn-continue" hidden>Continue saved life</button>
-      <button class="btn" data-act="music">🎵 Music</button>
-      <button class="btn" data-act="settings">⚙️ Settings</button>
+    <div class="t-sub">
+      <p class="t-quote">“You don't choose where you're born.<br>Everything after that is yours.”</p>
     </div>
-    <div class="panel">
-      <h3>How to play</h3>
-      <ul class="muted" style="margin:0;padding-left:18px;display:grid;gap:4px">
-        <li>Each turn is one year. Spend your <b>action points</b> on activities, then press <b>Next year</b>.</li>
-        <li>Your parents' genes, family income and choices shape exam results, careers, love and money.</li>
-        <li><b>Knowledge</b> starts fresh at every school stage; your <b>Smarts</b> and <b>Discipline</b> make each hour of study count for more.</li>
-        <li>Real Malaysian milestones: SPM, Matrikulasi/STPM/A-Levels, PTPTN, EPF, festivals and open houses.</li>
-        <li>History happens around you: the 1997 crisis, COVID-19 lockdowns, floods, booms and crashes.</li>
-        <li>When you die, continue as your child in <b>Dynasty mode</b> and inherit your estate.</li>
-      </ul>
+    <div class="t-btns">
+      <button class="btn t-go" data-act="toSetup">Start a new life ▸</button>
+      <button class="btn t-cont" data-act="continue" id="btn-continue" hidden>Continue saved life</button>
+      <div class="t-icons">
+        <button class="btn" data-act="howto"><span>❓</span>How to play</button>
+        <button class="btn" data-act="music"><span>🎵</span>Music</button>
+        <button class="btn" data-act="settings"><span>⚙️</span>Settings</button>
+      </div>
     </div>
   </section>
 
@@ -81,23 +73,23 @@
 <div id="toast" hidden></div>
 
 <!-- GAME_VERSION is the one version number. Bump it for every release (node tools/bump-version.mjs) so phones fetch the new files. -->
-<script>const GAME_VERSION='2026-10-23.99';</script>
-<script src="js/core.js?v=2026-10-23.99"></script>
-<script src="js/icons.js?v=2026-10-23.99"></script>
-<script src="js/state.js?v=2026-10-23.99"></script>
-<script src="js/life.js?v=2026-10-23.99"></script>
-<script src="js/money.js?v=2026-10-23.99"></script>
-<script src="js/events.js?v=2026-10-23.99"></script>
-<script src="js/politics.js?v=2026-10-23.99"></script>
-<script src="js/titles.js?v=2026-10-23.99"></script>
-<script src="js/year.js?v=2026-10-23.99"></script>
-<script src="js/travel.js?v=2026-10-23.99"></script>
-<script src="js/spouses.js?v=2026-10-23.99"></script>
-<script src="js/health.js?v=2026-10-23.99"></script>
-<script src="js/render.js?v=2026-10-23.99"></script>
-<script src="js/fx.js?v=2026-10-23.99"></script>
-<script src="js/input.js?v=2026-10-23.99"></script>
-<script src="js/sound.js?v=2026-10-23.99"></script>
-<script src="js/boot.js?v=2026-10-23.99"></script>
+<script>const GAME_VERSION='2026-10-23.100';</script>
+<script src="js/core.js?v=2026-10-23.100"></script>
+<script src="js/icons.js?v=2026-10-23.100"></script>
+<script src="js/state.js?v=2026-10-23.100"></script>
+<script src="js/life.js?v=2026-10-23.100"></script>
+<script src="js/money.js?v=2026-10-23.100"></script>
+<script src="js/events.js?v=2026-10-23.100"></script>
+<script src="js/politics.js?v=2026-10-23.100"></script>
+<script src="js/titles.js?v=2026-10-23.100"></script>
+<script src="js/year.js?v=2026-10-23.100"></script>
+<script src="js/travel.js?v=2026-10-23.100"></script>
+<script src="js/spouses.js?v=2026-10-23.100"></script>
+<script src="js/health.js?v=2026-10-23.100"></script>
+<script src="js/render.js?v=2026-10-23.100"></script>
+<script src="js/fx.js?v=2026-10-23.100"></script>
+<script src="js/input.js?v=2026-10-23.100"></script>
+<script src="js/sound.js?v=2026-10-23.100"></script>
+<script src="js/boot.js?v=2026-10-23.100"></script>
 
 </body></html>

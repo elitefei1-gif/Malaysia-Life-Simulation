@@ -56,6 +56,7 @@ const ACT={
   buybiz(a){buyBiz(a);},sellbiz(a){sellBiz(+a);},buylux(a){buyLux(a);},selllux(a){sellLux(+a);},invest(a){invest(a);},cashout(a){cashOut(a);},angel(){backStartup();},
   music(){showScreen('s-music');mpRefresh();},musicBack(){showScreen('s-title');},
   mptoggle(){mpToggle();},mpplay(a){mpPlay(+a);},mpprev(){mpSkip(-1);},mpnext(){mpSkip(1);},mprepeat(){mpSetRepeat();},
+  howto(){qFront({title:'How to play',tag:'Guide',text:'<ul class="howto"><li>Each turn is one year. Spend your <b>action points</b> on activities, then press <b>Next year</b>.</li><li>Your parents\' genes, family income and choices shape exam results, careers, love and money.</li><li><b>Knowledge</b> starts fresh at every school stage. Your <b>Smarts</b> and <b>Discipline</b> make each hour of study count for more.</li><li>Real Malaysian milestones: SPM, Matrikulasi/STPM/A-Levels, PTPTN, EPF, festivals and open houses.</li><li>History happens around you: the 1997 crisis, COVID-19 lockdowns, floods, booms and crashes.</li><li>When you die, continue as your child in <b>Dynasty mode</b> and inherit your estate.</li></ul>',choices:[['Got it',null]]});showNext();},
   settings(){qFront(settingsModal());showNext();},skin(a){setSkin(a);settingsRedraw();},smute(){toggleMute();settingsRedraw();},
   abandonEnd(){clearSave();S=null;$('#btn-continue').hidden=true;showScreen('s-setup');},
 };
