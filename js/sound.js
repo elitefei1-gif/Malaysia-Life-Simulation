@@ -52,11 +52,11 @@ const MOMENTS=['raya','cny','romance','wedding','hardship','legacy'];
 const MOMENT_TITLE={'Declared bankrupt':'hardship','Drowning in debt':'hardship','Retrenched':'hardship','"We need to talk"':'hardship','Divorce papers':'hardship',
   'Gone':'hardship','Caught':'hardship','Messages on their phone':'hardship','MACC raid':'hardship','Sacked':'hardship','Rest in peace':'legacy'};
 function bgmMoment(m){if(!m)return null;if(MOMENT_TITLE[m.title])return MOMENT_TITLE[m.title];if(m.icon==='m_rip')return 'hardship';
-  if(m.tag==='Festive season')return /Raya/.test(m.title)?'raya':/Chinese New Year/.test(m.title)?'cny':null;
+  if(m.tag==='Festive season')return (S&&S.festN||0)>5?null:/Raya/.test(m.title)?'raya':/Chinese New Year/.test(m.title)?'cny':null;
   return m.tag==='Love'?'romance':null;}
 function bgmStage(){const a=age();
   if(S.jail||(S.pol&&S.pol.jail)||inHosp())return 'hardship';
-  if(S.pol&&a>=18)return 'politics';
+  if(S.pol&&a>=18&&S.pol.dirty>(S.pol.raidDirty||0))return 'politics'; // only once you're corrupt, until a MACC raid or retiring
   if(a>=25&&(honTier()||netWorth()>=5e6*infl()))return 'rich';
   if(a>=60||S.retired)return 'golden';
   if(a<=12)return 'child';
