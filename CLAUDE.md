@@ -63,6 +63,10 @@ The JS files load in the order `index.html` lists them:
 - **Old saves must keep working.** Players' games are in localStorage (`SAVE_KEY`). Any new field on `S`
   must work when it's missing. Create it lazily, the way `spouses()` and `TT()` do (`S.x = S.x || ...`), or
   use `??` defaults. Never rename or remove existing fields.
+- **Playable cultures** are listed in `PLAYABLE` (`core.js`): Malay, Chinese and Indian. Iban and Kadazan only
+  appear as partners until they have their 13 portraits (`av_baby`, `av_boy`, `av_girl`, `av_teen_m`, `av_teen_f`,
+  `av_man`, `av_woman`, `av_old_m`, `av_old_f`, `father`, `mother`, `son`, `daughter` as `name__culture.webp`, 400×400
+  with a transparent background). Then add them to `PLAYABLE`, enable their button in `index.html`, and give them `towns`.
 - **Malaysian realism** is part of the game: culture-specific details (Malay, Chinese, Indian, Iban, Kadazan,
   and foreign partners), real institutions (SPM, PTPTN, EPF, MACC), RM amounts scaled with `infl()`.
 

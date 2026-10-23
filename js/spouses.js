@@ -58,7 +58,7 @@ function spousesTick(){const L=spouses(),n=allSpouses().length;
     if(s.rel<15&&chance(.5)){dropSpouse(s,.7);bump('hap',-8);log(s.name+' divorced you.','big');q({title:'Divorce papers',icon:'m_love',tag:'Love',text:`${esc(s.name)} says sharing you was never going to work, and files for divorce. The settlement takes 30% of your cash.`,choices:[['Sign the papers',()=>'One fewer seat at the dinner table.']]});}}
   if(allSpouses().length>=2&&chance(.5))q(multiEvent());}
 function multiEvent(){const L=allSpouses(),a=pick(L),b=pick(L.filter(x=>x!==a)),A=esc(a.name),B=esc(b.name),both=d=>{a.rel=clamp(a.rel+d);b.rel=clamp(b.rel+d);};
-  const fest=S.culture==='chinese'?'Chinese New Year reunion dinner':'first morning of Hari Raya';
+  const fest=S.culture==='chinese'?'Chinese New Year reunion dinner':S.culture==='indian'?'Deepavali morning':'first morning of Hari Raya';
   const E=[
     {t:'Whose family first?',x:`${A} and ${B} both want you at their family's ${fest}. Nobody will budge.`,ch:[
       [`Go with ${A}`,()=>{a.rel=clamp(a.rel+10);b.rel=clamp(b.rel-12);return `${A} is delighted. ${B} spends the festival with their own family, and posts sad photos.`;}],

@@ -150,7 +150,7 @@ function titleTick(){if(age()<18)return;const T=TT(),L=S.dyn.leg,t=honTier(),MY=
   for(const [p,fn] of pool.sort(()=>Math.random()-.5))if(p>0&&chance(p)){q(fn());break;}}
 function titlePanel(){const a=age();if(a<21||(S.country!=='MY'&&!S.honour))return '';const T=TT(),t=honTier(),g=natGoal(),h=heatNow(),L=S.dyn.leg;
   const src={buy:'arranged through a middleman',nation:'for service to the nation',pol:'for political service'}[T.src]||'';
-  const hall=L.hall?(S.culture==='malay'?'a surau':S.culture==='chinese'?'a temple hall':'a community hall'):'';
+  const hall=L.hall?(S.culture==='malay'?'a surau':S.culture==='chinese'||S.culture==='indian'?'a temple hall':'a community hall'):'';
   const legs=[L.sch&&'B40 scholarships',L.food&&'a flood relief food bank',L.school&&blokName(),hall,L.dial&&'a dialysis centre',L.bridge&&'a bridge to an Orang Asli village',L.wing&&`the ${S.dyn.wingName||S.famName+' Family'} Wing at the state hospital`].filter(Boolean);
   const perks=t?`Business +${Math.round(HON_BIZ[t]*100)}% · loans ${t>=2?'1':'0.5'}% cheaper${t>=3?' · board chairman':t>=2?' · company director':''} · living costs +${Math.round(HON_COL[t]*100)}%`:'';
   let out=`<div class="panel"><h3>Titles & honours</h3><dl class="kv"><dt>Title</dt><dd>${S.honour?esc(S.honour)+(src?' · '+src:''):'None yet'}</dd>${t?`<dt>Perks</dt><dd>${perks}</dd>`:''}${h>0||T.bought?`<dt>MACC attention</dt><dd>${heatHint(h)}</dd>`:''}${legs.length?`<dt>Your legacy</dt><dd>${esc(legs.join(', '))}</dd>`:''}${S.jail?`<dt>Prison</dt><dd>${S.jail} more year${S.jail===1?'':'s'}</dd>`:''}</dl>`;
