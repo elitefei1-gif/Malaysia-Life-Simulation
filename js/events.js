@@ -8,7 +8,7 @@ function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
     q({title:F,icon:'f_'+S.culture,tag:'Festive season',text:`Relatives hand you ${C.gift}. ${fmt(amt)} in total!`,choices:[
       ['Save it in the bank',()=>{S.money+=amt;bump('dis',2);return 'Into the savings account it goes.';}],
       [a<13?'Spend it on snacks and toys':'Treat yourself',()=>{S.money+=amt*.2;bump('hap',4);return a<13?'Fireworks, sweets and a new toy. Best day ever.':'New shoes, bubble tea and a movie with friends.';}],
-      ['Give half to your parents',()=>{S.money+=amt*.5;bump('hap',2);bump('cha',1);return 'Your parents are touched.';},()=>parAlive(),'Your parents have passed away']]});return;}
+      ['Give half to your parents',()=>{S.money+=amt*.5;bump('hap',2);bump('cha',1);return 'Your parents are touched.';},()=>parAlive(),parAlive()?'':'Your parents have passed away']]});return;}
   if(S.country!=='MY'){const fl=COUNTRIES[S.country].flight*I*((fxNow().travel)||1);
     q({title:F+' abroad',icon:'f_'+S.culture,tag:'Festive season',text:`${F} is here and you're far from home in ${ctry().city}.`,choices:[
       [`Fly home to balik kampung (${fmt(fl)})`,()=>{S.money-=fl;S.homesick=clamp(S.homesick-35);bump('hap',7);return parAlive()?'Mum\'s cooking, cousins everywhere, and a very full stomach.':'Cousins everywhere, old family recipes and a very full stomach.';}],
