@@ -1,4 +1,4 @@
-<!doctype html><html data-theme="light"><head><meta charset=utf8><meta name="color-scheme" content="light"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="css/style.css?v=2026-10-23.84"></head><body>
+<!doctype html><html data-theme="light"><head><meta charset=utf8><meta name="color-scheme" content="light"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="css/style.css?v=2026-10-23.85"></head><body>
 <title>Malaysian Life Simulator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,7 @@
     <div class="row start-row">
       <button class="btn primary pulse" data-act="toSetup">Start a new life</button>
       <button class="btn" data-act="continue" id="btn-continue" hidden>Continue saved life</button>
+      <button class="btn" data-act="music">🎵 Music</button>
     </div>
     <div class="panel">
       <h3>How to play</h3>
@@ -29,6 +30,12 @@
         <li>When you die, continue as your child in <b>Dynasty mode</b> and inherit your estate.</li>
       </ul>
     </div>
+  </section>
+
+  <!-- MUSIC (from the title screen; in a game it's the Music tab) -->
+  <section id="s-music" class="stack" hidden>
+    <div class="row"><button class="btn ghost" data-act="musicBack">‹ Back</button></div>
+    <div id="music-page" class="stack"></div>
   </section>
 
   <!-- SETUP -->
@@ -74,23 +81,23 @@
 <div id="toast" hidden></div>
 
 <!-- GAME_VERSION is the one version number. Bump it for every release (node tools/bump-version.mjs) so phones fetch the new files. -->
-<script>const GAME_VERSION='2026-10-23.84';</script>
-<script src="js/core.js?v=2026-10-23.84"></script>
-<script src="js/icons.js?v=2026-10-23.84"></script>
-<script src="js/state.js?v=2026-10-23.84"></script>
-<script src="js/life.js?v=2026-10-23.84"></script>
-<script src="js/money.js?v=2026-10-23.84"></script>
-<script src="js/events.js?v=2026-10-23.84"></script>
-<script src="js/politics.js?v=2026-10-23.84"></script>
-<script src="js/titles.js?v=2026-10-23.84"></script>
-<script src="js/year.js?v=2026-10-23.84"></script>
-<script src="js/travel.js?v=2026-10-23.84"></script>
-<script src="js/spouses.js?v=2026-10-23.84"></script>
-<script src="js/health.js?v=2026-10-23.84"></script>
-<script src="js/render.js?v=2026-10-23.84"></script>
-<script src="js/fx.js?v=2026-10-23.84"></script>
-<script src="js/input.js?v=2026-10-23.84"></script>
-<script src="js/sound.js?v=2026-10-23.84"></script>
-<script src="js/boot.js?v=2026-10-23.84"></script>
+<script>const GAME_VERSION='2026-10-23.85';</script>
+<script src="js/core.js?v=2026-10-23.85"></script>
+<script src="js/icons.js?v=2026-10-23.85"></script>
+<script src="js/state.js?v=2026-10-23.85"></script>
+<script src="js/life.js?v=2026-10-23.85"></script>
+<script src="js/money.js?v=2026-10-23.85"></script>
+<script src="js/events.js?v=2026-10-23.85"></script>
+<script src="js/politics.js?v=2026-10-23.85"></script>
+<script src="js/titles.js?v=2026-10-23.85"></script>
+<script src="js/year.js?v=2026-10-23.85"></script>
+<script src="js/travel.js?v=2026-10-23.85"></script>
+<script src="js/spouses.js?v=2026-10-23.85"></script>
+<script src="js/health.js?v=2026-10-23.85"></script>
+<script src="js/render.js?v=2026-10-23.85"></script>
+<script src="js/fx.js?v=2026-10-23.85"></script>
+<script src="js/input.js?v=2026-10-23.85"></script>
+<script src="js/sound.js?v=2026-10-23.85"></script>
+<script src="js/boot.js?v=2026-10-23.85"></script>
 
 </body></html>

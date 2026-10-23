@@ -16,7 +16,7 @@ if (badVersions.length) { badVersions.forEach(b => console.log(b)); console.log(
 // Every picture and music file named in the code must exist (names are case-sensitive on GitHub Pages).
 const code = ['index.html', 'sw.js', ...['css', 'js'].flatMap(d => fs.readdirSync(path.join(ROOT, d)).map(f => d + '/' + f))]
   .map(f => fs.readFileSync(path.join(ROOT, f), 'utf8')).join('\n');
-const missing = [...new Set(code.match(/(?:img|music)\/[A-Za-z0-9_.@-]+\.(?:webp|png|jpg|mp3)/g) || [])].filter(f => !fs.existsSync(path.join(ROOT, f)));
+const missing = [...new Set(code.match(/(?:img|music)\/(?:songs\/)?[A-Za-z0-9_.@-]+\.(?:webp|png|jpg|mp3)/g) || [])].filter(f => !fs.existsSync(path.join(ROOT, f)));
 if (missing.length) { console.log('Missing files named in the code:\n  ' + missing.join('\n  ')); process.exit(1); }
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.mp3': 'audio/mpeg' };
 

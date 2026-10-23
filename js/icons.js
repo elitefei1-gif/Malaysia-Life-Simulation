@@ -107,7 +107,7 @@ const ICON_EMOJI={b_kopitiam:'☕',b_minimart:'🏪',b_workshop:'🔧',b_factory
   h_flat:'🏢',h_terrace:'🏘️',h_condo:'🏙️',h_luxcondo:'🌆',h_semid:'🏡',h_bungalow:'🏠',h_kampung:'🛖',
   c_bike:'🏍️',c_hatch:'🚗',c_sedan:'🚘',c_suv:'🚙',c_ev:'⚡',c_lux:'🚘',c_super:'🏎️',
   p_kcat:'🐈',p_persian:'🐱',p_bsh:'🐱',p_mutt:'🐕',p_golden:'🦮',p_shihtzu:'🐩',p_betta:'🐟',p_arowana:'🐉',p_koi:'🎏',p_merbok:'🕊️',p_hamster:'🐹',p_rabbit:'🐇',
-  t_life:'🌱',t_assets:'💰',t_travel:'✈️',t_family:'💞',t_dynasty:'🌳',
+  t_life:'🌱',t_assets:'💰',t_travel:'✈️',t_family:'💞',t_dynasty:'🌳',t_music:'🎵',
   f_malay:'🌙',f_chinese:'🧧',f_indian:'🪔',f_iban:'🌾',f_kadazan:'🎋',
   m_tadika:'🖍️',m_primary:'🎒',m_secondary:'🏫',m_spm:'📝',m_scholar:'🏅',m_uni:'🏛️',m_grad:'🎓',m_job:'💼',m_layoff:'📦',m_retire:'🌅',m_money:'💸',
   m_love:'💘',m_ring:'💍',m_rip:'🕯️',m_abroad:'🛫',w_pandemic:'🦠',w_flood:'🌊',
@@ -126,5 +126,5 @@ const H_KEY={shoplot:'h_shoplot',units:'h_units',ppr:'h_flat',apt:'h_flat',abroa
 function houseKey(h){const k=h.kind||h.id;if(k&&icoSrc('h_'+k))return 'h_'+k;return H_KEY[k]||(/kampung|longhouse/i.test(h.name)?'h_kampung':/luxury/i.test(h.name)?'h_luxcondo':/condo/i.test(h.name)?'h_condo':/bungalow|garden/i.test(h.name)?'h_bungalow':/semi/i.test(h.name)?'h_semid':/terrace/i.test(h.name)?'h_terrace':'h_flat');}
 const C_KEY={Motorcycle:'c_bike',Budget:'c_hatch',Popular:'c_hatch',Sedan:'c_sedan',Executive:'c_sedan',SUV:'c_suv',EV:'c_ev',Luxury:'c_lux',Supercar:'c_super'};
 const carKey=(t,id)=>id&&icoSrc('c_'+id)?'c_'+id:C_KEY[t]||'c_hatch';
-const TABS=[['life','Life'],['assets','Assets'],['travel','Travel'],['family','Family'],['dynasty','Dynasty']];
+const TABS=[['life','Life'],['assets','Assets'],['travel','Travel'],['family','Family'],['dynasty','Dynasty'],['music','Music']];
 

@@ -22,7 +22,7 @@ function render(){if(!S)return;fixPartners();warmIcons();
   setHtml($('#g-tabs'),TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join(''));
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
   $('#btn-next').disabled=!S.alive;
-  const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty}[tab];setHtml($('#g-panel'),P());}
+  const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty,music:panelMusic}[tab];setHtml($('#g-panel'),P());}
 function panelLife(){const a=age();const acts=ACTS.filter(x=>x.ok(a));
   const actHtml=acts.length?`<div class="acts">${acts.map(x=>`<button class="act" data-act="do" data-arg="${x.id}" ${S.ap>0?'':'disabled'}>${ico('a_'+x.id)}<b>${typeof x.label==='function'?x.label():x.label}</b><small>${typeof x.sub==='function'?x.sub():x.sub}</small></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Babies don\'t have choices yet. Press <b>Next year</b> to grow up.</p>';
   const E=S.edu,J=S.job&&JOBS[S.job.id];
@@ -111,8 +111,18 @@ function panelDynasty(){const d=S.dyn;const hist=d.history.map(h=>`<div class="g
    <div class="panel"><h3>Achievements</h3><p class="muted" style="margin:0;font-size:13px">Gold = earned by any generation of the family.</p><div class="ach">${Object.entries(ACH).map(([k,v])=>`<div class="${d.ach.includes(k)?'got':''}"><b>${v[0]}</b>${v[1]}</div>`).join('')}</div></div>
    <div class="panel"><h3>Game</h3><div class="row"><button class="btn small danger" data-act="abandon">Start a completely new family</button></div></div>
    <div class="panel"><h3>Sound</h3><div class="row" style="justify-content:space-between"><span>Music and sound effects</span><button class="btn small" data-act="mute" aria-pressed="${!MUTED}">${MUTED?'🔇 Off':'🔊 On'}</button></div></div>`;}
-function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);}
-function switchTab(t){tab=t;render();}
+const MP_ICON={play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>',prev:'<path d="M6 6h2v12H6zM9.5 12 18 18V6z"/>',next:'<path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/>'};
+const mpIcon=k=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">${MP_ICON[k]}</svg>`;
+function panelMusic(){const t=TRACKS[mpTrack],on=mpOn(),many=TRACKS.length>1,d=t.len;
+  return `<div class="panel mp"><h3>Music</h3><p class="muted" style="margin:0;font-size:13px">Listen to the game's songs in full. The background music pauses while a song plays.</p>
+   <div class="mp-now"><img class="mp-art${on?' on':''}" src="img/title-banner.webp" alt=""><div class="mp-info"><div class="eyebrow">${on?'Now playing':'Ready to play'}</div><b>${esc(t.title)}</b><small>${esc(t.sub)}</small></div></div>
+   <input type="range" class="mp-seek" min="0" max="1000" step="1" value="0" aria-label="Position in song">
+   <div class="mp-ctrl"><span class="mp-time mono">0:00 / ${mpTime(d)}</span>
+    <div class="row">${many?`<button class="btn mp-btn" data-act="mpprev" aria-label="Previous song">${mpIcon('prev')}</button>`:''}<button class="btn primary mp-btn mp-main" data-act="mptoggle" aria-label="${on?'Pause':'Play'}">${mpIcon(on?'pause':'play')}</button>${many?`<button class="btn mp-btn" data-act="mpnext" aria-label="Next song">${mpIcon('next')}</button>`:''}</div>
+    <button class="btn small" data-act="mprepeat" aria-pressed="${mpRepeat}">🔁 Repeat ${mpRepeat?'on':'off'}</button></div>
+   ${many?`<div class="list">${TRACKS.map((x,i)=>`<div class="item tap mp-row${i===mpTrack?' cur':''}" data-act="mpplay" data-arg="${i}"><span class="mp-n">${i===mpTrack&&on?'🔊':i+1}</span><div class="t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></div><span class="mono muted">${mpTime(x.len)}</span></div>`).join('')}</div>`:''}</div>`;}
+function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);}
+function switchTab(t){tab=t;render();if(t==='music')mpTick();}
 function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
   $('#s-birth').innerHTML=`<div class="hero" style="padding-top:8px"><div class="eyebrow">Welcome to the world</div><h1 style="font-size:38px">${esc(setup.nameNow)} is born</h1><p>In ${esc(T.name)}, ${setup.year}. The family's main festival is ${C.fest}.</p></div>
    <div class="parents">${d.parents.map(p=>`<div class="panel"><div class="row">${ico(p.role==='Father'?'father':'mother','lg')}<div><div class="eyebrow">${p.role}</div><h3>${esc(p.name)}</h3></div></div><p class="muted" style="margin:0">${esc(p.job)} · age ${p.age}</p>

@@ -54,12 +54,14 @@ const ACT={
   relative(){const k=relativeHeir();S=heirFrom(k);MQ=[];cur=null;tab='life';save();showScreen('s-game');render();},
   abandon(){qFront({title:'Start over?',text:'This deletes the current family and all its generations.',choices:[['Yes, start a new family',()=>{clearSave();S=null;MQ=[];cur=null;$('#modal').hidden=true;$('#btn-continue').hidden=true;showScreen('s-setup');return false;}],['Cancel',null]]});showNext();},
   buybiz(a){buyBiz(a);},sellbiz(a){sellBiz(+a);},buylux(a){buyLux(a);},selllux(a){sellLux(+a);},invest(a){invest(a);},cashout(a){cashOut(a);},angel(){backStartup();},
+  music(){showScreen('s-music');mpRefresh();},musicBack(){showScreen('s-title');},
+  mptoggle(){mpToggle();},mpplay(a){mpPlay(+a);},mpprev(){mpSkip(-1);},mpnext(){mpSkip(1);},mprepeat(){mpSetRepeat();},
   abandonEnd(){clearSave();S=null;$('#btn-continue').hidden=true;showScreen('s-setup');},
 };
 document.addEventListener('click',e=>{const seg=e.target.closest('[data-seg] button');if(seg){if(seg.disabled)return;const box=seg.parentElement;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===seg));setup[box.dataset.seg]=seg.dataset.v;return;}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(!f)return;
   const act=b.dataset.act,m0=S&&S.money,ch=act==='choose'&&cur&&cur.choices&&cur.choices[+b.dataset.arg];
-  CUE=null;f(b.dataset.arg);
+  CUE=null;f(b.dataset.arg);if(act.startsWith('mp'))return;
   const d=S&&typeof m0==='number'?S.money-m0:0;
   if(CUE){const k=CUE;CUE=null;if(act==='next'||act==='auto'){sfx('next');setTimeout(()=>sfx(k),260);}else sfx(k);return;}
   if(act==='next'||act==='auto')sfx('next');else if(act==='tab')sfx('tab');else if(act==='close'||(ch&&!ch[1]))sfx('back');
