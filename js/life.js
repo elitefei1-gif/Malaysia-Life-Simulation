@@ -18,7 +18,9 @@ const ACTS=[
   {id:'parttime',ic:'🧾',label:'Part-time job',sub:'Earn money',ok:a=>a>=16&&!S.job&&!S.retired,run(){const g=a2c(age()<18?2500:4500);S.money+=g;bump('dis',1);bump('hlt',-.5);return 'Weekend shifts at a '+pick(['fast-food outlet','bookstore','café','mall kiosk','car wash'])+'. Earned '+fmt(g)+'.';}},
   {id:'overtime',ic:'💼',label:'Work overtime',sub:'Pay, promotion; health −',ok:()=>!!S.job,run(){S.ot++;bump('hlt',-2);bump('hap',-1);return 'Late nights at the office. Your boss notices.';}},
   {id:'date',ic:'💞',label:()=>married()?'Quality time':'Go on a date',sub:'Relationship',ok:()=>S.partner&&S.partner.alive!==false,run(){const c=a2c(200);if(age()>=18)S.money-=c;S.partner.rel=clamp(S.partner.rel+8+S.stats.cha/12);bump('hap',2);return pick(['Dinner by the river in Melaka.','A movie and late supper.','Pasar malam stroll with satay.','A weekend trip up to Genting.'])+spTurn(S.partner,2,1);}},
-  {id:'kids',ic:'🧒',label:'Time with kids',sub:'Happiness, kids grow',ok:()=>S.kids.some(k=>k.alive!==false&&S.year-k.born<18),run(){S.kids.forEach(k=>{if(S.year-k.born<18){k.stats.int=clamp(k.stats.int+1.5);k.stats.cha=clamp(k.stats.cha+1);}});kidBump(6,liveKids(0,17));bump('hap',3);return pick(['Homework help and a trip to the playground.','Family picnic at the lake.','Bedtime stories every night.']);}},
+  {id:'kids',ic:'🧒',label:'Family time',sub:'Closer to the whole family',ok:()=>liveKids().length>0||parAlive(),run(){const young=liveKids(0,17),sp=S.partner&&S.partner.alive!==false&&S.partner.status==='married';
+    young.forEach(k=>{k.stats.int=clamp(k.stats.int+1.5);k.stats.cha=clamp(k.stats.cha+1);});kidBump(5,young);kidBump(3,liveKids(18));parBump(4);if(sp)S.partner.rel=clamp(S.partner.rel+4);bump('hap',3);
+    return age()<18?pick(['Family dinner, then everyone squeezes onto the sofa for a drama.','A Sunday at the beach with the whole family.','Supper at the mamak with your parents.']):young.length?pick(['Homework help and a trip to the playground.','Family picnic at the lake.','Bedtime stories every night.','A Sunday at your parents\' place with the kids running around.']):pick(['Sunday lunch at your parents\' place.','A family makan with everyone at one long table.','A weekend road trip with the family.']);}},
   {id:'baby',ic:'🍼',label:'Try for a baby',sub:'Grow the family',ok:a=>married()&&!samePartner()&&a<46&&S.kids.length<8&&!expecting(),run(){
     const p=age()<35?.45:age()<40?.3:.15;
     if(chance(p)){expectKid(S.partner&&S.partner.stats);return 'Good news: a baby is on the way! It is due next year.';}return 'Not this time. Keep trying.';}},
@@ -60,7 +62,7 @@ function studyMult(){return (S.dyn.leg&&S.dyn.leg.school&&S.country==='MY'?1.05:
 const passiveMult=()=>.4+S.stats.int/80;
 const gradeOf=k=>k>=88?'A+':k>=75?'A':k>=62?'B':k>=50?'C':k>=38?'D':'E';
 function startTrack(t){t.len=t.left;S.edu.track=t;S.know=(S.know||0)*.25;}
-function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail||inHosp())return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return 3;if(a<18)return 4;return 5;}
+function apFor(){const a=age();if(S.pol&&S.pol.jail||S.jail||inHosp())return 0;if(a<4)return 0;if(a<7)return 1;if(a<13)return 2;if(S.retired||a>=65)return a>=75?3:4;if(a<18)return 4;return 5;}
 function doAct(id){if(cur)return;const A=ACTS.find(x=>x.id===id);if(!A||!A.ok(age()))return;if(S.ap<=0){toast('No actions left this year. Press Next year.');return;}
   const tile=$(`.act[data-arg="${id}"]`),src=tile&&tile.getBoundingClientRect(),pre=fxRusty();
   S.ap--;const b=snap();const out=A.run();practise(id);if(out){log(out);const d=diff(b);toast(out+(d.length?'  ('+d.join(', ')+')':''));}render();actFx(id,src,b,pre);save();showNext();}
