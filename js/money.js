@@ -288,18 +288,24 @@ function babyAskModal(p){const same=samePartner(),wed=married();
     [same?'Yes, let\'s adopt':'Yes, let\'s try',yes],
     ['Not yet',()=>{S.babyAsked=false;if(S.partner!==p)return '';p.rel=clamp(p.rel-8);return `${esc(p.name)} looks disappointed but agrees to wait.`;}],
     ['Never',()=>{S.babyAsked=false;if(S.partner!==p)return '';p.rel=clamp(p.rel-20);return `${esc(p.name)} goes very quiet. This could become a big problem.`;}]]};}
-function parentsTick(){if(S.withParents&&age()>=18&&!parAlive())S.withParents=false;for(const p of S.parents){if(!p.alive)continue;p.age++;
+function parentsTick(){if(S.withParents&&age()>=18&&!parAlive())S.withParents=false;famRel();const ag=age(),abroad=S.country!=='MY';
+  for(const p of S.parents){if(!p.alive)continue;p.age++;
+  // Closeness drifts: teens pull away, adults drift unless they make time; living together or nearby keeps it warm.
+  if(ag>=13)p.rel=clamp(p.rel-(ag<18?1:S.withParents?0:abroad?3:1.5));
   if(p.age>62&&chance(Math.pow((p.age-55)/45,3)*.5*(S.dyn.leg&&S.dyn.leg.dial?.85:1))){p.alive=false;const a=age();
     let amt=S.group==='T20'?RI(300000,3000000):S.group==='M40'?RI(40000,300000):RI(0,30000);amt*=infl()/2;
     const lastOne=!S.parents.some(x=>x.alive);if(a<18||p.handedOver)amt=0;
-    log(`Your ${p.role.toLowerCase()} ${p.name} passed away at ${p.age}.`,'big');bump('hap',-15);
+    const cold=p.rel<25&&a>=18&&amt>0;if(cold)amt*=.4;
+    log(`Your ${p.role.toLowerCase()} ${p.name} passed away at ${p.age}.`,'big');bump('hap',p.rel<35?-20:-15);
     let txt=`Your ${p.role.toLowerCase()}, ${esc(p.name)}, passed away at ${p.age}.`;
-    if(amt>0){S.money+=amt;txt+=`\nYou inherit ${fmt(amt)}.`;if(amt>=400000*infl()&&a>=21)S.fortune=amt;}
+    txt+=p.rel>=75?'\nYou were close to the end, and you said everything you wanted to say.':p.rel<35?'\nYou never really made peace. That is the hardest part.':'';
+    if(amt>0){S.money+=amt;txt+=`\nYou inherit ${fmt(amt)}.`+(cold?' Most of the estate goes to relatives who were there for them.':'');if(amt>=400000*infl()&&a>=21)S.fortune=amt;}
     if(lastOne&&S.withParents&&a>=18){S.withParents=false;txt+='\nThe family home is sold to settle the estate, so you will need a place of your own.';}
     if(lastOne&&town().kampung&&a>=18){S.assets.houses.push({name:'Family kampung house',where:town().name,value:180000*infl(),price:180000*infl(),loanLeft:0,pay:0,country:'MY',landed:1});txt+='\nThe family kampung house passes to you.';}
     q({title:'Farewell',icon:'m_rip',text:txt,choices:[['Hold the funeral',()=>'Relatives come from all over to pay their respects.']]});if(S.fortune){if(S.group==='T20'&&chance(.45))q(familyCoModal());q(fortuneModal(S.fortune));S.fortune=0;}}}}
 function petsTick(){S.assets.pets=S.assets.pets.filter(p=>{p.age++;if(p.age>=p.life){log(`Your ${p.kind.toLowerCase()} ${p.name} passed away.`,'big');bump('hap',-5);return false;}return true;});}
-function kidsTick(){const sb=S.dyn.leg&&S.dyn.leg.school?.1:0;for(const k of S.kids){const ka=S.year-k.born;if(ka<18){k.stats.int=clamp(k.stats.int+.8+sb);k.stats.ath=clamp(k.stats.ath+.4);}
+function kidsTick(){const sb=S.dyn.leg&&S.dyn.leg.school?.1:0;famRel();const far=S.country!=='MY'||(S.pol&&S.pol.jail>0)||inHosp();
+  for(const k of S.kids){const ka=S.year-k.born;if(k.alive!==false&&ka>=1)k.rel=clamp(k.rel-(ka<13?1:ka<18?2:1)-(far?2:0)-((S.otYrs||0)>0&&ka<18?1:0));if(ka<18){k.stats.int=clamp(k.stats.int+.8+sb);k.stats.ath=clamp(k.stats.ath+.4);}
   if(ka===18){const n=Math.round(clamp((k.stats.int-35)/5.5+R(-1.5,1.5),0,10));k.spm=n;log(`${k.name} got ${n}A in SPM.`);}
   if(ka===24&&!k.job){k.job=k.stats.int>=60?pick(['Engineer','Doctor','Accountant','Software engineer','Lawyer']):pick(['Clerk','Sales executive','Technician','Designer','Nurse']);log(`${k.name} started work as a ${k.job.toLowerCase()}.`);}}}
 

@@ -231,6 +231,8 @@ img.ico{background:var(--surface)}
 .item{border:1.5px solid var(--line-strong);background:var(--surface);flex-wrap:nowrap}
 .item .t{min-width:0;flex:1 1 auto}
 .item>.row,.item>.btn{flex:none}
+.item .stat.close{margin-top:6px}
+.item .stat.close .lbl{font-size:11.5px}
 @media (max-width:460px){.item{flex-wrap:wrap}.item>.row,.item>.btn{margin-left:54px}}
 .sheet .choices button{border:1.5px solid var(--line-strong);background:var(--surface);position:relative;padding-right:34px}
 .sheet .choices button::after{content:"›";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--muted)}

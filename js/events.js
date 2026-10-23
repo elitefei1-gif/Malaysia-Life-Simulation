@@ -83,11 +83,76 @@ const EV=[
     ['Confront them privately',()=>{if(roll('cha')>.55){S.job.lvl+=1;return 'Your boss apologises and credits you at the next meeting.';}bump('hap',-3);return 'It gets frosty. You\'re left off the next project.';}],['Let it go',()=>{bump('hap',-3);return 'You keep quiet, but you remember.';}],['Start job hunting',()=>{qFront(jobModal());return '';}]]},
   {id:'headhunt',c:a=>!!S.job&&a>=25&&a<=52&&!JOBS[S.job.id].noEpf,t:'Headhunter on LinkedIn',x:'A headhunter offers you the same role at a competitor with 20% more pay.',ch:[
     ['Take the offer',()=>{S.job.bonus=(S.job.bonus||1)*1.2;bump('hap',2);log('Switched to a competitor for a 20% raise.');return 'New office, new badge, fatter payslip.';}],['Stay loyal',()=>{S.job.lvl+=1;return 'Your boss hears about it and puts you up for promotion sooner.';}]]},
+  // Closeness with parents (parRel) and children (k.rel). FP / FK hold the parent / child a pop-up is about.
+  {id:'par_recipe',c:a=>a>=14&&a<=40&&parRel()>=70&&livePar().some(p=>p.role==='Mother'),once:1,t:'The family recipe',
+   x:()=>`Your mum says it is time you learned her ${{malay:'rendang',chinese:'bak kut teh',indian:'fish curry',iban:'manok pansoh',kadazan:'hinava'}[S.culture]||'curry'}. "Nobody else knows how I make it."`,ch:[
+    ['Learn it properly',()=>{bump('cre',2);bump('hap',3);parBump(4);return 'Three tries, one burnt pot and a lot of laughing. Now it is yours to pass on.';}],
+    ['Ask her to send a WhatsApp voice note',()=>{bump('hap',1);return 'You get a 14-minute voice note. You listen to it twice and never cook it.';}]]},
+  {id:'par_house',c:a=>a>=25&&a<=40&&parRel()>=70&&S.country==='MY'&&!S.assets.houses.length,once:1,t:'Help with the down payment',
+   x:()=>`${parWho(1)} call${livePar().length>1?'':'s'} you home for a "serious talk". They have been saving quietly for years and want to give you ${fmt(parGift())} for the down payment on your first home.`,ch:[
+    ['Accept, with a big hug',()=>{S.money+=parGift();parBump(3);bump('hap',4);return 'A long hug, a few tears, and a promise to have them over every week.';}],
+    ['Thank them, but say no',()=>{bump('dis',2);parBump(2);return 'They insist, you refuse, and they are secretly proud of you.';}]]},
+  {id:'par_anniv',c:a=>a>=22&&S.parents.every(p=>p.alive)&&S.parenting!=='Divorced'&&parRel()>=55&&S.parents[0].age>=55,once:1,t:'Their 30th anniversary',
+   x:'Your parents\' 30th wedding anniversary is coming up. They say they do not want any fuss.',ch:[
+    ['Throw a surprise dinner',()=>{S.money-=a2c(1500);parBump(10);bump('hap',4);return 'Relatives, old friends and a slideshow of embarrassing photos. Your dad gives a speech nobody expected.';}],
+    ['Send a sticker in the family group',()=>{parBump(-4);return 'Your mum replies with a thumbs up. Your aunt asks why you did not organise anything.';}]]},
+  {id:'par_fight',c:a=>a>=13&&a<=17&&parRel()>=0&&parRel()<60,t:'A shouting match',
+   x:()=>{FP=pick(livePar());return `Your ${momDad(FP)} finds your phone at 2am and your test results on the same day. Voices are raised. Doors are slammed.`;},ch:[
+    ['Apologise the next morning',()=>{FP.rel=clamp(FP.rel+8);bump('dis',1);return 'A plate of nasi lemak is waiting for you on the table. Nothing more needs to be said.';}],
+    ['Ask for a calm talk tonight',()=>{if(roll('cha')>.5){FP.rel=clamp(FP.rel+12);return 'You both say what you really feel. It is the best talk you have had in years.';}FP.rel=clamp(FP.rel-3);return 'It starts calm and ends loud. At least you tried.';}],
+    ['Lock yourself in your room',()=>{FP.rel=clamp(FP.rel-8);bump('hap',-3);return 'A week of silent dinners. Dinner is very, very quiet.';}]]},
+  {id:'par_career',c:a=>a===17&&S.country==='MY'&&parAlive(),once:1,t:'"Be a doctor, ah"',
+   x:()=>`${parWho(1)} ${livePar().length>1?'have':'has'} already told the relatives what you will be: a doctor, a lawyer or an engineer. You are not so sure.`,ch:[
+    ['Promise to try your best',()=>{parBump(6);bump('dis',1);return 'They beam. The pressure is on.';}],
+    ['Tell them you want your own path',()=>{if(roll('cha')>.55){parBump(2);bump('hap',3);return 'It takes a long dinner, but they come round. "Just make sure you can feed yourself."';}parBump(-10);bump('hap',-2);return 'The house goes silent for a week.';}]]},
+  {id:'par_disapprove',c:a=>a>=18&&a<=35&&S.partner&&S.partner.alive!==false&&S.partner.status==='dating'&&parRel()>=0&&parRel()<65,once:1,t:'They don\'t approve',
+   x:()=>`${parWho(1)} ${livePar().length>1?'have':'has'} heard about ${esc(S.partner.name)}. "What does their family do? Where are they from?" The message is clear: end it.`,ch:[
+    ['Bring them home for dinner',()=>{if(!S.partner)return 'That moment has passed.';if(roll('cha')>.5){parBump(8);S.partner.rel=clamp(S.partner.rel+4);return `${esc(S.partner.name)} charms everyone and even helps wash up. "When are they coming again?"`;}parBump(-4);S.partner.rel=clamp(S.partner.rel-4);return 'The dinner is awkward. Very awkward.';}],
+    ['Stand by your partner',()=>{if(!S.partner)return 'That moment has passed.';S.partner.rel=clamp(S.partner.rel+8);parBump(-12);return 'Your partner is touched. Home goes quiet.';}]]},
+  {id:'par_hospital',c:a=>a>=25&&parRel()>=0&&parRel()<40&&livePar().some(p=>p.age>=60),once:1,t:'You hear it from a cousin',
+   x:()=>{FP=pick(livePar().filter(p=>p.age>=60));return `Your cousin mentions that your ${momDad(FP)} was in hospital last week. Nobody told you.`;},ch:[
+    ['Rush home',()=>{S.money-=a2c(400);FP.rel=clamp(FP.rel+15);bump('hap',-2);return `Your ${momDad(FP)} pretends to be annoyed that you came, but cannot stop smiling.`;}],
+    ['Send money for the bills',()=>{S.money-=a2c(1500);FP.rel=clamp(FP.rel+3);return 'The bills are paid. The distance stays.';}],
+    ['Call them next week',()=>{FP.rel=clamp(FP.rel-5);bump('hap',-3);return 'Next week becomes next month.';}]]},
+  {id:'par_balik',c:a=>a>=22&&!S.withParents&&S.country==='MY'&&parAlive(),t:'Balik kampung?',
+   x:()=>`Your ${momDad(FP=pick(livePar()))} calls: "Coming home for ${CULTURES[S.culture].fest} this year or not?"`,ch:[
+    ['Of course',()=>{S.money-=a2c(300);parBump(7);bump('hap',3);return 'Eight hours in the jam, then home cooking and the whole family under one roof.';}],
+    ['Too busy with work this year',()=>{parBump(-7);return `"Never mind lah." It is the way they say it.`;}]]},
+  {id:'k_card',c:a=>liveKids(5,10).some(k=>k.rel>=60),t:'A card for you',
+   x:()=>{FK=pick(liveKids(5,10).filter(k=>k.rel>=60));return `${esc(FK.name)} hands you a crumpled card covered in glitter: "To the best ${S.gender==='M'?'Papa':'Mama'} in the world".`;},ch:[
+    ['Stick it on the fridge',()=>{bump('hap',4);FK.rel=clamp(FK.rel+3);return 'It stays there for years.';}],
+    ['Keep it in your wallet',()=>{bump('hap',5);FK.rel=clamp(FK.rel+3);return 'You will find it again one day, and it will make you cry.';}]]},
+  {id:'k_door',c:a=>liveKids(13,17).some(k=>k.rel<60),t:'A slammed door',
+   x:()=>{FK=pick(liveKids(13,17).filter(k=>k.rel<60));return `${esc(FK.name)} storms upstairs after dinner and slams the bedroom door. Something is wrong, but they will not say what.`;},ch:[
+    ['Knock and talk',()=>{if(roll('cha')>.5){FK.rel=clamp(FK.rel+12);return `It is a friend who betrayed them. You listen. ${esc(FK.name)} hugs you for the first time in months.`;}FK.rel=clamp(FK.rel-2);return '"You wouldn\'t understand!" Maybe next time.';}],
+    ['Take away their phone',()=>{FK.rel=clamp(FK.rel-10);FK.stats.dis=clamp((FK.stats.dis||40)+5);return 'The house is quieter. Colder, too.';}],
+    ['Give them space',()=>{FK.rel=clamp(FK.rel-2);return 'They come down for supper at 11pm. Nobody mentions it.';}]]},
+  {id:'k_vape',c:a=>liveKids(14,17).length>0,once:1,t:'Caught vaping',
+   x:()=>{FK=pick(liveKids(14,17));return `The school calls: ${esc(FK.name)} was caught vaping in the toilet.`;},ch:[
+    ['Talk it through calmly',()=>{FK.rel=clamp(FK.rel+4);FK.stats.dis=clamp((FK.stats.dis||40)+2);return 'They promise to stop. You decide to believe them.';}],
+    ['Ground them for a month',()=>{FK.rel=clamp(FK.rel-8);FK.stats.dis=clamp((FK.stats.dis||40)+6);return 'A month of sulking. But no more vaping.';}],
+    ['Pretend it never happened',()=>{FK.stats.dis=clamp((FK.stats.dis||40)-5);return 'The school calls again next month.';}]]},
+  {id:'k_advice',c:a=>liveKids(22,45).some(k=>k.rel>=65),t:'Asking for advice',
+   x:()=>{FK=pick(liveKids(22,45).filter(k=>k.rel>=65));return `${esc(FK.name)} calls late at night. They have a job offer in Singapore and do not know what to do. "What would you do?"`;},ch:[
+    ['"Go. Chase it."',()=>{FK.rel=clamp(FK.rel+5);bump('hap',2);return 'They go, and video call you every Sunday.';}],
+    ['"Stay close to family."',()=>{FK.rel=clamp(FK.rel+3);return 'They stay, and drop by for dinner every week.';}]]},
+  {id:'k_noshow',c:a=>a>=50&&liveKids(22).some(k=>k.rel<40),t:'An empty seat',
+   x:()=>{FK=pick(liveKids(22).filter(k=>k.rel<40));return `${esc(FK.name)} will not be home for ${CULTURES[S.culture].fest} this year. "Busy with work." It is the third year in a row.`;},ch:[
+    ['Call and say you miss them',()=>{if(roll('cha')>.4){FK.rel=clamp(FK.rel+12);bump('hap',3);return 'A long pause, then: "I miss you too." They come home after all.';}FK.rel=clamp(FK.rel+3);bump('hap',-2);return 'An awkward call. But it is a start.';}],
+    ['Say nothing',()=>{FK.rel=clamp(FK.rel-3);bump('hap',-5);return 'You set one plate less at the table.';}]]},
+  {id:'k_care',c:a=>a>=65&&liveKids(25).some(k=>k.rel>=70),t:'The children take turns',
+   x:()=>`Your children have worked out a rota. Someone drops by every day, and they insist on giving you ${fmt(a2c(500))} a month.`,ch:[
+    ['Let them spoil you',()=>{S.money+=a2c(6000);bump('hap',6);bump('hlt',2);return 'Grandchildren on weekends and someone to check your blood pressure. A good life.';}],
+    ['Insist you are fine on your own',()=>{bump('hap',3);kidBump(-2,liveKids(25));return 'You win the argument. They visit anyway.';}]]},
+  {id:'k_oldfolks',c:a=>a>=72&&liveKids(25).length>0&&liveKids(25).every(k=>k.rel<35),once:1,t:'"A nice place for you"',
+   x:'Your children come together for the first time in years. They have found an old folks\' home in Cheras. "It has nurses and activities. It is for the best."',ch:[
+    ['Agree quietly',()=>{bump('hap',-10);bump('hlt',2);log('Moved into an old folks\' home.','big');return 'The nurses are kind. Visitors are rare.';}],
+    ['Refuse and stay at home',()=>{bump('hap',-4);kidBump(-5,liveKids(25));return 'You stay in the house, alone with the photo albums.';}]]},
   // Cash aid for B40 households: the child sees the family get it, the adult applies. Scheme names follow the real year.
   {id:'bantuan',c:a=>a<18&&S.country==='MY'&&S.year>=2012&&S.group==='B40'&&parAlive(),t:'Bantuan for the family',
    x:()=>`Your family qualifies for ${aidName()} this year. The money lands in your parents' bank account, and there is a long talk at the dinner table about what to do with it.`,ch:[
     ['Ask for new school shoes',()=>{bump('hap',3);return 'New school shoes from Bata. They squeak in the corridor for a week and you love them.';}],
-    ['Tell them to pay the bills first',()=>{bump('dis',1);S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel+4);});return 'The electricity bill is paid on time for once. Your parents are proud of you.';}]]},
+    ['Tell them to pay the bills first',()=>{bump('dis',1);parBump(4);return 'The electricity bill is paid on time for once. Your parents are proud of you.';}]]},
   {id:'bantuan_adult',c:a=>a>=21&&S.country==='MY'&&S.year>=2012&&S.myCitizen&&incomeMonthly()<5000*infl()&&netWorth()<300000*infl(),t:'Bantuan approved',
    x:()=>`Your application for ${aidName()} is approved. ${fmt(Math.round(1200*infl()))} will be paid into your bank account.`+(S.year>=2024?' There is also SARA credit on your MyKad for groceries at the kedai runcit.':''),ch:[
     ['Pay the bills and buy groceries',()=>{S.money+=Math.round(1200*infl());bump('hap',2);return 'Rent paid, rice and cooking oil stocked up. One less thing to worry about this month.';}],
@@ -382,6 +447,8 @@ const WEV=[
 ];
 function workEvent(){const pool=WEV.filter(e=>e.c());if(!pool.length)return;const e=pick(pool);
   q({title:typeof e.t==='function'?e.t():e.t,icon:'ev_'+e.id,tag:'Career',text:typeof e.x==='function'?e.x():e.x,choices:e.ch.map(c=>[c[0],()=>S.job?c[1]():'That no longer matters now.'])});}
+function parWho(cap){const L=livePar(),w=L.length>1?'your parents':'your '+momDad(L[0]);return cap?w[0].toUpperCase()+w.slice(1):w;}
+function parGift(){return Math.round(a2c(S.group==='T20'?100000:S.group==='M40'?30000:8000));}
 function aidName(){const y=S.year;return y<=2018?'BR1M (Bantuan Rakyat 1Malaysia)':y<=2020?'Bantuan Sara Hidup (BSH)':y===2021?'Bantuan Prihatin Rakyat':y===2022?'Bantuan Keluarga Malaysia':'Sumbangan Tunai Rahmah (STR)';}
 function randomEvent(){const a=age();const pool=EV.filter(e=>e.c(a)&&!(e.once&&S.seen.includes(e.id)));if(!pool.length)return;const e=pick(pool);S.seen.push(e.id);
   q({title:e.t,icon:'ev_'+e.id,text:typeof e.x==='function'?e.x():e.x,choices:e.ch.map(c=>[c[0],()=>e.c(age())?c[1]():'That no longer matters now.',...c.slice(2)])});}
