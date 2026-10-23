@@ -235,7 +235,7 @@ function abroadStudyModal(k){const E=S.edu,I=a2c(1),mas=k==='master',M=mas?null:
       return `You hand in your resignation, pack two suitcases and fly to ${C.name}. Back in the lecture hall at ${age()}!`;},
       ()=>S.stats.int>=need&&langOk&&S.money>=fee*I*yrs&&!S.travelBan,`Needs Smarts ${need}+, ${LANG[C.lang]} ${C.need-10}+ and ${fmt(fee*I*yrs)} saved`]);}
   ch.push(['Cancel',null]);
-  return {title:mas?"Master's degree overseas":'Study '+M.name+' overseas',icon:'m_abroad',tag:'Education',text:'Studying overseas full-time means quitting your job. You pay from your own savings, and a foreign degree raises your pay when you come home.',choices:ch};}
+  return {title:mas?"Master's degree overseas":'Study '+M.name+' overseas',icon:'ev_study_abroad',tag:'Education',text:'Studying overseas full-time means quitting your job. You pay from your own savings, and a foreign degree raises your pay when you come home.',choices:ch};}
 function restudyMajorModal(){const ch=Object.entries(MAJORS).filter(([k])=>k!==S.edu.major).map(([k,m])=>{const why=[];if(m.int&&S.stats.int<m.int)why.push('Smarts '+m.int+'+');if(m.cre&&S.stats.cre<m.cre)why.push('Creativity '+m.cre+'+');if(m.ath&&S.stats.ath<m.ath)why.push('Fitness '+m.ath+'+');
     return [m.name,()=>{qFront(restudyModeModal(k));return '';},()=>!why.length,why.length?'Needs '+why.join(', '):m.yrs+' years full-time'];});ch.push(['Cancel',null]);
   return {title:'Choose a degree',icon:'m_uni',tag:'Education',text:'As a mature student, your Smarts matter more than old exam results.',choices:ch};}

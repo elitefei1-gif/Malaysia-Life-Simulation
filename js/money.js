@@ -107,7 +107,7 @@ function applyJob(id){const J=JOBS[id],E=S.edu;S.applied++;
     return `You got the job! You start as ${J.levels[0]}.`+(J.startCost?` You invest ${fmt(J.startCost*infl())} to get the business running.`:'');}
   if(S.applied<4)qFront(jobModal());return `${pick(['After three interviews','After a long wait','Following a tough panel interview'])}, they chose someone else.`;}
 // Reaching the top rank of a career is a big moment, so it gets its own pop-up (and the celebration).
-function topModal(J){return {title:'Top of your field',icon:'m_job',tag:'Career',_party:1,text:`You are promoted to ${esc(J.levels[J.levels.length-1])}, the highest rank there is as a ${esc(J.name)}.`,choices:[['Treat the team to dinner',()=>{bump('cha',2);return 'The whole team toasts you with teh tarik.';}]]};}
+function topModal(J){return {title:'Top of your field',icon:'ev_topjob',tag:'Career',_party:1,text:`You are promoted to ${esc(J.levels[J.levels.length-1])}, the highest rank there is as a ${esc(J.name)}.`,choices:[['Treat the team to dinner',()=>{bump('cha',2);return 'The whole team toasts you with teh tarik.';}]]};}
 function careerTick(fx){if(!S.job)return;const J=JOBS[S.job.id],a=age();S.lastJobId=S.job.id;S.lastJobName=J.name;
   let lp=(fx.layoff.all||0)+(fx.layoff[J.sector]||0);if(J.stable)lp*=.2;
   if(lp>0&&chance(lp)){layoff();return;}
