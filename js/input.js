@@ -20,7 +20,7 @@ const ACT={
   sethome(a){S.home=+a;S.withParents=false;log('Moved into your '+S.assets.houses[+a].name.toLowerCase()+'.');render();save();},
   sellstocks(){S.money+=S.stocks;log('Sold your stock portfolio for '+fmt(S.stocks)+'.');S.stocks=0;render();save();},
   toggleParents(){if(!S.withParents&&!S.parents.some(p=>p.alive))return toast('Your parents have passed away.');S.withParents=!S.withParents;log(S.withParents?'Moved back in with your parents.':'Moved out of your parents\' house. Freedom (and rent)!');render();save();},
-  trip(a){bookTrip(a);},famtrip(a){famTrip(a);},move(a){qFront(moveModal(a));showNext();},pr(){qFront(prModal());showNext();},citizen(){qFront(citModal());showNext();},
+  trip(a){bookTrip(a);},famtrip(a){famTrip(a);},famtime(a){famTime(a);},move(a){qFront(moveModal(a));showNext();},pr(){qFront(prModal());showNext();},citizen(){qFront(citModal());showNext();},
   gohome(){qFront({title:'Return to Malaysia?',icon:'m_abroad',tag:'Travel',text:S.myCitizen?'You\'ll leave your job abroad and start fresh at home.':'As a former Malaysian, you\'ll return on a long-term visit pass.',choices:[['Fly home',()=>{moveTo('MY');return 'Selamat pulang! Welcome home.';}],['Stay',null]]});showNext();},
   propose(){qFront(proposeModal());showNext();},
   breakup(){const p=S.partner;if(!p)return;if(p.status==='married'){S.money*=.5;log('Divorced '+p.name+'.','big');}else log('Broke up with '+p.name+'.');S.partner=null;bump('hap',-8);render();save();},

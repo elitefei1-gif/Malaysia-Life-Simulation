@@ -18,7 +18,7 @@ const ACTS=[
   {id:'parttime',ic:'🧾',label:'Part-time job',sub:'Earn money',ok:a=>a>=16&&!S.job&&!S.retired,run(){const g=a2c(age()<18?2500:4500);S.money+=g;bump('dis',1);bump('hlt',-.5);return 'Weekend shifts at a '+pick(['fast-food outlet','bookstore','café','mall kiosk','car wash'])+'. Earned '+fmt(g)+'.';}},
   {id:'overtime',ic:'💼',label:'Work overtime',sub:'Pay, promotion; health −',ok:()=>!!S.job,run(){S.ot++;bump('hlt',-2);bump('hap',-1);return 'Late nights at the office. Your boss notices.';}},
   {id:'date',ic:'💞',label:()=>married()?'Quality time':'Go on a date',sub:'Relationship',ok:()=>S.partner&&S.partner.alive!==false,run(){const c=a2c(200);if(age()>=18)S.money-=c;S.partner.rel=clamp(S.partner.rel+8+S.stats.cha/12);bump('hap',2);return pick(['Dinner by the river in Melaka.','A movie and late supper.','Pasar malam stroll with satay.','A weekend trip up to Genting.'])+spTurn(S.partner,2,1);}},
-  {id:'kids',ic:'🧒',label:'Time with kids',sub:'Happiness, kids grow',ok:()=>S.kids.some(k=>k.alive!==false&&S.year-k.born<18),run(){S.kids.forEach(k=>{if(S.year-k.born<18){k.stats.int=clamp(k.stats.int+1.5);k.stats.cha=clamp(k.stats.cha+1);}});bump('hap',3);return pick(['Homework help and a trip to the playground.','Family picnic at the lake.','Bedtime stories every night.']);}},
+  {id:'kids',ic:'🧒',label:'Time with kids',sub:'Happiness, kids grow',ok:()=>S.kids.some(k=>k.alive!==false&&S.year-k.born<18),run(){S.kids.forEach(k=>{if(S.year-k.born<18){k.stats.int=clamp(k.stats.int+1.5);k.stats.cha=clamp(k.stats.cha+1);}});kidBump(6,liveKids(0,17));bump('hap',3);return pick(['Homework help and a trip to the playground.','Family picnic at the lake.','Bedtime stories every night.']);}},
   {id:'baby',ic:'🍼',label:'Try for a baby',sub:'Grow the family',ok:a=>married()&&!samePartner()&&a<46&&S.kids.length<8&&!expecting(),run(){
     const p=age()<35?.45:age()<40?.3:.15;
     if(chance(p)){expectKid(S.partner&&S.partner.stats);return 'Good news: a baby is on the way! It is due next year.';}return 'Not this time. Keep trying.';}},
@@ -101,6 +101,22 @@ function meetModal(young,lvl,pre){const adult=young||age()>=18,p=pre||npc(adult?
   return {title:'Someone catches your eye',icon:'m_love',tag:'Love',text:`You meet ${esc(p.name)}, ${p.age}${natTxt(p)?','+natTxt(p):''}, ${jobTxt(p)}.\nChemistry: ${Math.round(compat)}%.${hint}`,
    choices:[['Ask them out',()=>{if(chance(compat/100)){S.partner=p;log('Started dating '+p.name+'.','big');bump('hap',6);return p.name+' says yes! You\'re now dating.';}bump('hap',-3);return p.name+' politely says they\'re not interested.';}],['Stay friends',()=>{S.friends++;return 'You add '+p.name+' to your circle of friends.';}]]};}
 function rndStats(){return {int:RI(30,85),hlt:RI(40,90),cha:RI(30,85),look:RI(30,85),cre:RI(30,85),ath:RI(30,85)};}
+/* ================= closeness with parents and children ================= */
+// rel (0-100) on each parent and child. Old saves have none, so famRel() fills it in on first use.
+const PAR_REL={Loving:75,Strict:55,Relaxed:65,Distant:35};
+function famRel(){for(const p of S.parents)if(p.rel==null)p.rel=S.parenting==='Divorced'?(p.role==='Father'?40:65):PAR_REL[S.parenting]??60;for(const k of S.kids)if(k.rel==null)k.rel=S.year-k.born<1?75:60;}
+const livePar=()=>(famRel(),S.parents.filter(p=>p.alive));
+function parRel(){const L=livePar();return L.length?L.reduce((a,p)=>a+p.rel,0)/L.length:-1;}
+function parBump(d){livePar().forEach(p=>p.rel=clamp(p.rel+d));}
+const liveKids=(lo=0,hi=999)=>(famRel(),S.kids.filter(k=>k.alive!==false&&S.year-k.born>=lo&&S.year-k.born<=hi));
+function kidBump(d,L){(L||liveKids()).forEach(k=>k.rel=clamp(k.rel+d));}
+const momDad=p=>p.role==='Father'?'dad':'mum',sonDau=k=>k.gender==='M'?'son':'daughter';
+let FP=null,FK=null; // the parent / child a family pop-up is about
+function famTime(arg){if(S.ap<1)return;famRel();const P=arg[0]==='p'?S.parents[+arg.slice(1)]:S.kids[+arg.slice(1)];if(!P||P.alive===false)return;S.ap--;
+  P.rel=clamp(P.rel+7+S.stats.cha/15);bump('hap',2);const a=age(),pa=arg[0]==='p',ka=pa?0:S.year-P.born;
+  toast(pa?(a<13?pick(['You help your '+momDad(P)+' in the kitchen.','Your '+momDad(P)+' takes you to the pasar malam.','Kite flying with your '+momDad(P)+'.']):a<18?pick(['Teh tarik and a long talk with your '+momDad(P)+'.','You teach your '+momDad(P)+' how to use TikTok.','A drive around town with your '+momDad(P)+'.']):pick(['Lunch with your '+momDad(P)+'. They tell the same old stories, and you laugh anyway.','You fix your '+momDad(P)+'\'s phone and stay for dinner.','A morning walk in the park with your '+momDad(P)+'.']))
+    :(ka<6?pick(['Bath time, bedtime stories and a lot of giggling with '+P.name+'.','A morning at the playground with '+P.name+'.']):ka<13?pick(['Homework help and ice cream with '+P.name+'.','You teach '+P.name+' to ride a bicycle.']):ka<18?pick(['You drive '+P.name+' to tuition and actually talk the whole way.','Mamak supper with '+P.name+' at midnight.']):pick(['A long phone call with '+P.name+'.',P.name+' comes over for dinner and stays late.'])));
+  render();save();}
 function addKid(other,o){o=o||{};const st=o.adopted?inherit(rndStats(),rndStats()):inherit(S.stats,other||inheritBase());st.dis=RI(20,45);st.hap=RI(55,80);st.luck=RI(20,80);
   const g=pick(['M','F']);const k={name:genName(S.culture,g),gender:g,born:S.year-(o.ageBack||0),stats:st,alive:true,country:S.country,adopted:!!o.adopted,note:o.note||''};
   S.kids.push(k);addAch('parent');log((o.adopted?'Adopted ':'Welcomed ')+k.name+' into the family'+(o.note?' ('+o.note+')':'')+'.','big');bump('hap',o.hap!=null?o.hap:8);

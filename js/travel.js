@@ -25,13 +25,13 @@ function famTripOk(){return age()<18&&S.parents.some(x=>x.alive)&&S.famTripYear!
 function famTrip(id){const T=TRIPS.find(t=>t.id===id);if(!T||!famTripOk()||T.cost>famTripMax())return;
   // B40: even a local trip can be too much some years.
   if(S.group==='B40'&&chance(T.cost>1000?.5:.35)){qFront({title:'Money is tight this year',icon:'m_money',tag:'Family',text:pick([S.parents[0].alive&&'Your dad sits down with the bills and shakes his head. The car needs new tyres and school fees are due. "Maybe next year, okay?"',S.parents[1].alive&&'Your mum says the rent went up again. "We cannot afford a holiday this year. Next year."','Money is short at home. School fees, the electricity bill and a leaking roof all come first. There is nothing left for a trip this year.'].filter(Boolean)),choices:[
-    ['It\'s okay, I understand',()=>{S.famTripYear=S.year;bump('dis',1);S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel+4);});return 'Everyone at home looks relieved. You help out around the house instead.';}],
+    ['It\'s okay, I understand',()=>{S.famTripYear=S.year;bump('dis',1);parBump(4);return 'Everyone at home looks relieved. You help out around the house instead.';}],
     ['Suggest a free day at the beach',()=>{S.famTripYear=S.year;bump('hap',2);bump('cre',1);return 'Nasi lemak in a packet, a mat on the sand and the whole family laughing. Not bad at all.';}],
-    ['Sulk for a week',()=>{S.famTripYear=S.year;bump('hap',-3);S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel-3);});return 'Your friends post their holiday photos. You stare at the ceiling. Everyone at home feels bad.';}]]});showNext();return;}
+    ['Sulk for a week',()=>{S.famTripYear=S.year;bump('hap',-3);parBump(-3);return 'Your friends post their holiday photos. You stare at the ceiling. Everyone at home feels bad.';}]]});showNext();return;}
   qFront({title:'Family holiday: '+T.name,icon:'d_'+T.id,tag:'Travel',text:'Your parents are paying for this one. Pack your bags!',choices:[['Let\'s go',()=>{
     S.famTripYear=S.year;bump('hap',T.hap);if(!S.visited.includes(T.id))S.visited.push(T.id);
     const ab=!['cameron','langkawi'].includes(T.id),g=ab?RI(2,3):1,st=pick([['int','cha'],['cha','cre'],['int','cre']]),gain=st.map(k=>(bump(k,g),STAT_NAMES[k]));
-    S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel+6);});
+    parBump(6);
     let txt='Family trip: '+T.name+'. '+pick(['You ask "are we there yet?" the whole way.','Your dad insists on photos at every single stop.','Your mum packs enough snacks for a month.','You get to stay up late every night.'])+(ab?' Seeing another country opens your mind':' A good break')+' ('+gain.join(', ')+' up).';
     if(chance(.1)){bump('hlt',-2);txt+=' Someone gets food poisoning, but it\'s still a great memory.';}
     log(txt);checkAch();return txt;}],['Maybe another time',null]]});showNext();}
@@ -82,7 +82,7 @@ function buyPet(id){const P=PETS.find(p=>p.id===id),cost=P.price*infl();if(S.mon
 
 /* ================= dynasty ================= */
 function lifeSummary(){const nw=netWorth(),hap=S.hapN?S.hapSum/S.hapN:50;
-  const w=clamp(Math.log10(Math.max(nw/infl(),1))/7*25,0,25),h=clamp(hap/4,0,25),r=clamp((married()||S.partner?.status==='married'?8:0)+Math.min(S.kids.length*3,9)+Math.min(S.friends,8),0,25),ac=clamp(S.ach.length*2.5,0,25);
+  const w=clamp(Math.log10(Math.max(nw/infl(),1))/7*25,0,25),h=clamp(hap/4,0,25),r=clamp((married()||S.partner?.status==='married'?8:0)+Math.min(liveKids().reduce((t,k)=>t+k.rel/20,0),9)+Math.min(S.friends,8),0,25),ac=clamp(S.ach.length*2.5,0,25);
   const real=nw/infl();const score=Math.round(w+h+r+ac);let title='The Everyday Malaysian';const J=S.job||S.lastJob;
   if(S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;}
   if(real>5e6)title='The Tycoon';else if(!S.myCitizen)title='The Malaysian Abroad';else if(S.kids.length>=4)title='The Family Pillar';else if(hap>72)title='The Happy Soul';
