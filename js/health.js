@@ -3,7 +3,7 @@
 /* ================= illness & hospitals (v62) ================= */
 const ILLS=[
   {n:'a bad flu',sev:1},{n:'food poisoning after a dodgy nasi lemak',sev:1},{n:'a sprained ankle',sev:1},{n:'a nasty eye infection',sev:1},{n:'hand, foot and mouth disease',sev:1,maxA:10},{n:'a stomach bug',sev:1},
-  {n:'dengue fever',sev:2},{n:'appendicitis',sev:2},{n:'a broken arm',sev:2},{n:'kidney stones',sev:2,minA:25},{n:'a slipped disc',sev:2,minA:30},{n:'pneumonia',sev:2},{n:'diabetes complications',sev:2,minA:40},
+  {n:'dengue fever',sev:2},{n:'appendicitis',sev:2,once:1},{n:'a broken arm',sev:2},{n:'kidney stones',sev:2,minA:25},{n:'a slipped disc',sev:2,minA:30},{n:'pneumonia',sev:2},{n:'diabetes complications',sev:2,minA:40},
   {n:'a heart attack',sev:3,minA:40},{n:'a stroke',sev:3,minA:45},{n:'cancer',sev:3,minA:25},{n:'kidney failure',sev:3,minA:40},{n:'serious injuries from a road accident',sev:3,minA:16}];
 // Cost in RM by severity, and chance of a full recovery by severity.
 const CARE={gov:{n:'Government hospital',cost:[30,600,4000],ok:[.95,.78,.55],note:'Cheap, but long queues'},
@@ -19,7 +19,8 @@ function pickIll(){const a=age(),pd=pandemicNow();
   if(pd&&chance(.7)){const nm=pd.id==='sars03'?'SARS':pd.id==='covid'?'COVID-19':'the new virus';return {n:nm,sev:a>=60?pick([2,3]):a>=40?pick([1,2,2]):pick([1,1,2]),pand:1};}
   const w=S.stats.hlt<HLT_WEAK?.15:0,r=Math.random();let sev=r<(a<30?.04:a<50?.12:.25)+w?3:r<.4+w?2:1,L;
   // Young children have no life-threatening illness on the list, so drop to the next severity down.
-  while(!(L=ILLS.filter(x=>x.sev===sev&&a>=(x.minA||0)&&a<=(x.maxA||200))).length&&sev>1)sev--;return pick(L);}
+  const had=S.hadIll||[];while(!(L=ILLS.filter(x=>x.sev===sev&&a>=(x.minA||0)&&a<=(x.maxA||200)&&!(x.once&&had.includes(x.n)))).length&&sev>1)sev--;
+  const x=pick(L);if(x&&x.once)S.hadIll=had.concat(x.n);return x;}
 function illModal(il){const a=age(),kid=a<18,s=il.sev-1,abroad=S.country!=='MY';
   const can=k=>!kid||k==='gov'||k==='clinic'||k==='none'||(k==='priv'&&S.birthGroup!=='B40')||(k==='abroad'&&S.birthGroup==='T20');
   const ch=['gov','clinic','priv','abroad','none'].filter(can).map(k=>{const C=CARE[k];
@@ -51,7 +52,7 @@ function treat(il,k,cost,ok,nm){S.money-=cost;const s=il.sev,a=age();if(k!=='non
   log(`${s===3?'Survived':'Struggled with'} ${il.n}; the treatment did not fully work.`,s>=2?'big':'');
   return s===1?'It drags on for weeks before you finally recover.':s===2?'There are complications, and recovery takes months. Your health takes a hit.':'You survive, but only just. Your health may never be quite the same.';}
 function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.filter(k=>k.alive!==false);const n=Math.max(1,living.length+allSpouses().length);
-  const share=prev.will?es.cash*.5+es.cash*.5/n:es.cash/n;const sum=lifeSummary();
+  const share=Math.max(0,prev.will?es.cash*.5+es.cash*.5/n:es.cash/n);const sum=lifeSummary();
   const dyn={...prev.dyn,gen:prev.dyn.gen+1,history:prev.dyn.history.concat([sum])};if(prev.honour)dyn.rep+=3;if(prev.honour==='Tun')dyn.rep+=10;if(prev.dyn.leg&&prev.dyn.leg.wing)dyn.rep+=5;dyn.honParent=prev.honour?1:0;if(prev.pol&&prev.pol.dirty>=3)dyn.rep-=5;
   const a=prev.year-kid.born;
   const st={...kid.stats};const grow=Math.min(a,22);st.int=clamp(st.int+grow*.8);st.ath=clamp(st.ath+grow*.3);st.cha=clamp(st.cha+grow*.4);st.cre=clamp(st.cre+grow*.3);
@@ -76,7 +77,7 @@ function heirFrom(kid){const prev=S;const es=estate();const living=prev.kids.fil
   if(a>=60)ns.retired=true;
   if(a>=28&&chance(.55)){ns.partner=npc(25);ns.partner.age=clamp(a+RI(-3,3),20,99);ns.partner.status='married';ns.partner.rel=65;marryConvert(ns.partner,true);if(a>=32&&chance(.6)){const n=RI(1,2),lo=Math.max(1,a-42),hi=Math.max(lo,a-26);for(let i=0;i<n;i++)newKidSilent(ns,RI(lo,hi));}}
   ns.ap=apFor();
-  log(`${dyn.famLabel||CULTURES[prev.culture].famLabel(prev.famName)}: Generation ${dyn.gen} begins. ${kid.name} (${a}) inherits ${fmt(share)}${prev.will?'':' after '+fmt(es.legal)+' in legal fees and family disputes (no will)'}.`,'big');
+  log(`${dyn.famLabel||CULTURES[prev.culture].famLabel(prev.famName)}: Generation ${dyn.gen} begins. ${kid.name} (${a}) inherits ${fmt(share)}${es.cash<0?' (the estate\'s debts are settled from the estate, not passed on)':prev.will?'':' after '+fmt(es.legal)+' in legal fees and family disputes (no will)'}.`,'big');
   if(ns.assets.houses.length)log('Inherited '+ns.assets.houses.length+' propert'+(ns.assets.houses.length>1?'ies':'y')+'.');
   ns.ach=[];checkAch();return ns;}
 function newKidSilent(ns,ageBack){const st=inherit(ns.stats,ns.partner.stats);st.dis=RI(20,45);st.hap=RI(55,80);st.luck=RI(20,80);const g=pick(['M','F']);

@@ -4,14 +4,14 @@
 function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
   if(a>=18&&S.country==='MY'&&S.dyn.leg&&S.dyn.leg.hall)bump('hap',3); // the whole community comes to the hall you built
   if(chance(.5)&&a>=6&&S.country==='MY'){const o=pick(Object.values(CULTURES).filter(c=>c.fest!==F));log(`Visited a friend's ${o.fest} open house. Ate far too much.`,'festive');bump('cha',1);}
-  if(a<18||(S.edu.track&&!S.job)){const amt=Math.round((a<12?RI(80,300):RI(150,600))*I*(S.group==='T20'?2:S.group==='B40'?.6:1));
+  if(a<18||(a<=25&&S.edu.track&&!S.job)){const amt=Math.round((a<12?RI(80,300):RI(150,600))*I*(S.group==='T20'?2:S.group==='B40'?.6:1));
     q({title:F,icon:'f_'+S.culture,tag:'Festive season',text:`Relatives hand you ${C.gift}. ${fmt(amt)} in total!`,choices:[
       ['Save it in the bank',()=>{S.money+=amt;bump('dis',2);return 'Into the savings account it goes.';}],
-      ['Spend it on snacks and toys',()=>{S.money+=amt*.2;bump('hap',4);return 'Fireworks, sweets and a new toy. Best day ever.';}],
-      ['Give half to your parents',()=>{S.money+=amt*.5;bump('hap',2);bump('cha',1);return 'Your parents are touched.';}]]});return;}
+      [a<13?'Spend it on snacks and toys':'Treat yourself',()=>{S.money+=amt*.2;bump('hap',4);return a<13?'Fireworks, sweets and a new toy. Best day ever.':'New shoes, bubble tea and a movie with friends.';}],
+      ['Give half to your parents',()=>{S.money+=amt*.5;bump('hap',2);bump('cha',1);return 'Your parents are touched.';},()=>parAlive(),'Your parents have passed away']]});return;}
   if(S.country!=='MY'){const fl=COUNTRIES[S.country].flight*I*((fxNow().travel)||1);
     q({title:F+' abroad',icon:'f_'+S.culture,tag:'Festive season',text:`${F} is here and you're far from home in ${ctry().city}.`,choices:[
-      [`Fly home to balik kampung (${fmt(fl)})`,()=>{S.money-=fl;S.homesick=clamp(S.homesick-35);bump('hap',7);return 'Mum\'s cooking, cousins everywhere, and a very full stomach.';}],
+      [`Fly home to balik kampung (${fmt(fl)})`,()=>{S.money-=fl;S.homesick=clamp(S.homesick-35);bump('hap',7);return parAlive()?'Mum\'s cooking, cousins everywhere, and a very full stomach.':'Cousins everywhere, old family recipes and a very full stomach.';}],
       ['Celebrate with fellow Malaysians there',()=>{S.homesick=clamp(S.homesick-12);bump('hap',3);bump('cha',1);return 'A potluck with the Malaysian student association. Someone brought rendang!';}],
       ['Video call the family',()=>{S.homesick=clamp(S.homesick-5);return 'The whole family crowds around the phone to wave.';}]]});return;}
   const ch=[['Balik kampung (brace for the highway jam)',()=>{const jam=RI(4,14);S.money-=300*I;bump('hap',5);return `${jam} hours on the highway, but home cooking and catching up with relatives make it worth it.`;}]];
@@ -289,7 +289,7 @@ const EV_STAGE=[
     ['Ask for a raise',()=>{if(roll('cha')>.55){S.job.bonus=(S.job.bonus||1)*1.08;bump('hap',3);return 'You get an 8% raise!';}bump('hap',-1);return '"Maybe next year." The classic answer.';}],
     ['Ask for more responsibility',()=>{S.job.lvl+=.5;bump('dis',1);return 'You get a new project and a fancier title.';}],
     ['Just say thank you',()=>'A standard 3% increment.']]},
-  {id:'w_house',c:a=>working(a)&&a>=26&&a<=40&&!S.assets.houses.length,once:1,t:'Should you buy a house?',x:'Your friends are all buying condos. Your parents say renting is "throwing money away".',ch:[
+  {id:'w_house',c:a=>working(a)&&a>=26&&a<=40&&!S.assets.houses.length,once:1,t:'Should you buy a house?',x:()=>'Your friends are all buying condos. '+(parAlive()?'Your parents say renting is "throwing money away".':'Your relatives say renting is "throwing money away".'),ch:[
     ['Start house hunting',()=>{shopTab='houses';switchTab('assets');return 'You start scrolling through property listings...';}],
     ['Keep renting and invest',()=>{bump('dis',1);return 'You stay flexible and keep your savings.';}],
     ['Move back home to save',()=>{S.withParents=true;bump('hap',-1);return 'Free rent. Very little privacy.';},()=>S.parents.some(p=>p.alive),'Needs a living parent']]},

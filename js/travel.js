@@ -1,7 +1,8 @@
 'use strict';
 // Moving abroad, travel, assets and dynasty mode.
 /* ================= moving / travel ================= */
-function moveTo(code,study){const was=S.country;S.country=code;S.withParents=code==='MY'&&!married()&&S.parents.some(p=>p.alive);
+function moveTo(code,study){const was=S.country;S.country=code;
+  if(code!=='MY'&&S.pol&&S.pol.seat){const P=S.pol;P.rank=Math.min(P.rank,2);P.seat=null;P.mb=0;log('Gave up your seat to move abroad. A by-election is called.','big');}S.withParents=code==='MY'&&!married()&&S.parents.some(p=>p.alive);
   if(code==='MY'){if(was!=='MY'){if(S.everAbroad>=3&&EDU_RANK[S.edu.level]>=3&&S.myCitizen&&!S.repDone&&!study){S.repDone=1;const b=30000*infl();S.money+=b;log('Returning Expert Programme tax incentive: '+fmt(b)+'.');}
       log('Moved back to Malaysia.','big');}S.yearsAbroad=0;S.homesick=0;S.residency=S.myCitizen?'citizen':'long-term pass';
     if(S.job&&eligible(S.job.id).length)S.job=null;return;}
