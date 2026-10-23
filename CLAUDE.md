@@ -99,7 +99,9 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
   overrides. Use the colour variables (`var(--surface)`, `var(--ink)`, `var(--accent)`…) in new styles rather than
   fixed colours, or the new style will look wrong in Malam (the dark theme). Check new screens in Malam.
 - Settings (`settingsModal()` in `render.js`) holds the theme picker, the home screen icon picker, save backup, sound on/off,
-  the music player button and "Start new family".
+  the music player button, Achievements (a pop-up, `achHtml()`) and "Start new family".
+- Tabs (`TABS` in `icons.js`): Life, Assets (ends with Will & estate, `willPanel()`), Travel, Family (ends with the family tree,
+  `panelDynasty()`).
 - Save backup (Settings): "Copy save code" turns the save into one text code (`saveCode()` / `readCode()` in `fx.js`,
   prefix `MYLIFE1:`); "Restore from code" writes it back. Keep `readCode()` accepting old codes if the save format grows.
 - Home screen icon: `img/icon_kid.png`, `icon_hibiscus.png`, `icon_malam.png` (192×192). The choice is stored in localStorage
