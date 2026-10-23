@@ -445,4 +445,15 @@ body:has(#s-game:not([hidden])){overflow:hidden}
 @media (max-width:385px){.id-money b{font-size:12.5px}.id-money>span{padding:5px 7px}}
 #g-stats .stat{min-width:0}
 #g-stats .stat .lbl{overflow:hidden}
-@media (max-width:400px){#g-stats .stat .lbl .ico{display:none}#g-stats{gap:4px 8px}#g-stats .stat .lbl{font-size:11px}}
+@media (max-width:405px){#g-stats .stat .lbl .ico{display:none}}
+/* v97: more space between a stat's number and the next stat; icons only where there is room for them */
+#g-stats{column-gap:14px}
+#g-stats .stat .lbl>span:last-child{font-size:10.5px;padding-left:4px}
+@media (max-width:600px){#g-stats .stat .lbl{font-size:11px}}
+@media (max-width:370px){#g-stats{column-gap:10px}#g-stats .stat .lbl{font-size:10.5px}}
+/* the number sits at the end of its bar, so the stat's name has the whole width */
+#g-stats .stat{position:relative;gap:2px}
+#g-stats .stat .lbl>span:last-child{position:absolute;right:0;bottom:-3px;padding-left:0;line-height:1}
+#g-stats .stat .bar{margin-right:24px}
+#g-stats{padding-bottom:4px}
+#g-stats .stat .lbl>span:last-child{bottom:-2px}
