@@ -85,6 +85,10 @@ function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)re
     if(S&&S.alive&&!cur)save();location.replace(location.pathname+'?v='+encodeURIComponent(m[1])+location.hash);}).catch(()=>{});}
 window.addEventListener('load',checkUpdate);
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
+// Save backup: the whole save as one text code, so a player can keep it in Notes and restore it on any phone.
+const CODE_TAG='MYLIFE1:';
+function saveCode(){if(S)save();let r;try{r=localStorage.getItem(SAVE_KEY);}catch(e){}if(!r)return '';const b=new TextEncoder().encode(r);let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192));return CODE_TAG+btoa(s);}
+function readCode(c){c=(c||'').replace(/\s+/g,'');if(!c.startsWith(CODE_TAG))return null;try{const s=atob(c.slice(CODE_TAG.length)),b=Uint8Array.from(s,ch=>ch.charCodeAt(0)),o=JSON.parse(new TextDecoder().decode(b));return o&&o.stats&&o.year&&o.birthYear?o:null;}catch(e){return null;}}
 function load(){try{const r=localStorage.getItem(SAVE_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
 

@@ -117,7 +117,7 @@ function floodHit(e){if(S.country!=='MY'){log('Floods hit Malaysia. You donate t
 function preArt(m){try{const k=m&&m.icon,u=k&&icoSrc(k);if(u){const i=new Image();i.src=u;}}catch(e){}}
 function q(m){if(m){MQ.push(m);preArt(m);}}
 function qFront(m){if(m){MQ.unshift(m);preArt(m);}}
-function snap(){return {...S.stats,money:S.money,know:S.know||0};}
+function snap(){return S?{...S.stats,money:S.money,know:S.know||0}:{};}
 function diff(b){const out=[];for(const k in STAT_NAMES){if(k==='luck')continue;const d=Math.round(S.stats[k]-b[k]);if(d)out.push((d>0?'+':'')+d+' '+STAT_NAMES[k]);}
   const dk=Math.round((S.know||0)-(b.know||0));if(dk)out.push((dk>0?'+':'')+dk+' Knowledge');
   const dm=S.money-b.money;if(Math.abs(dm)>=1)out.push((dm>0?'+':'')+fmt(dm));return out;}
