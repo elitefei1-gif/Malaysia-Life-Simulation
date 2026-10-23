@@ -14,11 +14,11 @@ function render(){if(!S)return;fixPartners();warmIcons();
   const C=ctry(),loc=S.country==='MY'?town().name:C.city+', '+C.name;
   setHtml($('#g-head'),`<div class="idcard${honTier()?' hon hon'+honTier():''}">${honTier()?`<i class="hon-em" aria-hidden="true">${['','✦','✶','✷','❂'][honTier()]}</i>`:''}<div class="id-top"><span>Identity card · ${esc(CULTURES[S.dyn.culture||S.culture].famLabel(S.dyn.famName||S.famName))}</span><span>${C.flag} Gen ${S.dyn.gen}</span></div>
     <div class="id-body">${ico(avatarKey(),'lg')}<div class="id-main"><div class="id-name">${S.honour?`<span class="id-hon">${esc(S.honour)}</span> `+esc(S.name):esc(dispName())}</div><div class="id-no">${S.ic}</div><div class="id-meta">${esc(loc)} · ${esc(stageName())}</div></div>
-    <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
+    <div class="id-age"><b>${age()}</b><span>yrs · ${S.year}</span><div class="pips id-pips" id="g-pips" title="Actions left this year"></div>${honTier()?`<b class="hon-tag">${'★'.repeat(honTier())}</b>`:''}</div></div>
     <div class="id-money"><span>Cash <b id="id-cash" class="${S.money<0?'neg':''}">${fmt(S.money)}</b></span><span>Net worth <b class="${netWorth()<0?'neg':''}">${fmt(netWorth())}</b></span><span>Household <b>${S.group}</b></span></div></div>`);
   $('#g-news').innerHTML=S.world.active.map(e=>`<span class="${e.good?'good':''}" title="${esc(e.desc)}">${e.good?'▲':'▼'} ${esc(e.title)}</span>`).join('');
   setHtml($('#g-stats'),['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>{const v=Math.round(S.stats[k]);return `<div class="stat" data-k="${k}"><div class="lbl"><span>${ico('s_'+k,'st')}${STAT_NAMES[k]}${rusty(k)?' <small class="rusty-tag" title="Fading: try '+FADE_HOW[k]+'">rusty</small>':''}${k==='hlt'&&v<HLT_WEAK?` <small class="weak-tag" title="You get sick more often and are at higher risk of dying. Below ${HLT_CRIT} you go to hospital.">${inHosp()?'in hospital':v<HLT_CRIT?'critical':'weak'}</small>`:''}</span><span>${v}</span></div><div class="bar"><i class="${barCls(v)}" style="width:${v}%"></i></div></div>`;}).join(''));
-  $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('')||'<span class="muted" style="font-size:13px">none yet</span>';
+  $('#g-pips').innerHTML=Array.from({length:apFor()},(_,i)=>`<i class="${i<S.ap?'on':''}"></i>`).join('');
   setHtml($('#g-tabs'),TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join(''));
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
   $('#btn-next').disabled=!S.alive;
@@ -122,7 +122,7 @@ function panelMusic(){const t=TRACKS[mpTrack],on=mpOn(),many=TRACKS.length>1,d=t
     <button class="btn small" data-act="mprepeat" aria-pressed="${mpRepeat}">🔁 Repeat ${mpRepeat?'on':'off'}</button></div>
    ${many?`<div class="list">${TRACKS.map((x,i)=>`<div class="item tap mp-row${i===mpTrack?' cur':''}" data-act="mpplay" data-arg="${i}"><span class="mp-n">${i===mpTrack&&on?'🔊':i+1}</span><div class="t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></div><span class="mono muted">${mpTime(x.len)}</span></div>`).join('')}</div>`:''}</div>`;}
 function showScreen(id){['s-title','s-setup','s-birth','s-game','s-end','s-music'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0);bgm();}
-function switchTab(t){tab=t;render();if(t==='music')mpTick();}
+function switchTab(t){tab=t;render();$('#g-panel').scrollTop=0;if(t==='music')mpTick();}
 function renderBirth(){const d=birthDraft,C=CULTURES[d.culture],T=TOWNS[d.town];
   $('#s-birth').innerHTML=`<div class="hero" style="padding-top:8px"><div class="eyebrow">Welcome to the world</div><h1 style="font-size:38px">${esc(setup.nameNow)} is born</h1><p>In ${esc(T.name)}, ${setup.year}. The family's main festival is ${C.fest}.</p></div>
    <div class="parents">${d.parents.map(p=>`<div class="panel"><div class="row">${ico(p.role==='Father'?'father':'mother','lg')}<div><div class="eyebrow">${p.role}</div><h3>${esc(p.name)}</h3></div></div><p class="muted" style="margin:0">${esc(p.job)} · age ${p.age}</p>
