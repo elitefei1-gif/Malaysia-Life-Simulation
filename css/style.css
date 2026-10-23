@@ -416,3 +416,33 @@ h1,h2,h3{font-weight:900}
 /* Six tabs on narrow phones: tighter labels; two rows of three on the smallest screens */
 @media (max-width:440px){.tabs{gap:4px}.tabs button{padding:7px 1px 6px;font-size:11.5px;letter-spacing:-.01em}}
 @media (max-width:350px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* ---- v96 fixed game screen: the ID card, stats, tabs and Next year stay put; only the tab content scrolls ---- */
+body:has(#s-game:not([hidden])){overflow:hidden}
+#s-game:not([hidden]){position:fixed;inset:0;max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:8px;
+  padding:max(8px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));overflow:hidden}
+#s-game>#g-head,#s-game>#g-news,#s-game>#g-stats,#s-game>#g-tabs,#s-game>.yearbar{flex:none}
+#g-panel{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:12px;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 20px),transparent);mask-image:linear-gradient(#000 calc(100% - 20px),transparent)}
+#s-game .yearbar{position:static;margin-top:0;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))}
+#s-game .yearbar .inner>.row:last-child{flex:1 1 auto}
+/* stats: one compact block, 4 across */
+#g-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 10px}
+#g-stats .stat .lbl{font-size:11.5px;gap:4px}
+#g-stats .stat .lbl>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#g-stats .stat .lbl .ico{width:14px;height:14px}
+#g-stats .stat .bar{height:6px}
+/* action dots live in the age badge on the ID card */
+.id-pips{justify-content:center;gap:3px;margin-top:5px}
+.id-pips i{width:8px;height:8px;border:1.5px solid currentColor!important;background:transparent!important;opacity:.95}
+.id-pips i.on{background:currentColor!important}
+/* short phones (e.g. iPhone SE): a slimmer ID card leaves more room for the tab content */
+@media (max-height:700px){#s-game .idcard{padding:10px 12px;gap:6px}#s-game .id-body .ico.lg{width:48px;height:48px}#s-game .id-age b{font-size:28px}#s-game .tabs button{padding:5px 2px 4px}#s-game .tabs button .ico{width:24px;height:24px}}
+#g-stats .stat .lbl>span:first-child{flex:1 1 auto;min-width:0}
+#g-stats .stat .lbl>span:last-child{flex:none;padding-left:2px}
+/* in the compact stats, "rusty" and "weak" become small coloured dots (tap/hover still explains them) */
+#g-stats .rusty-tag,#g-stats .weak-tag{font-size:0;width:7px;height:7px;padding:0;border-radius:50%;flex:none;display:inline-block;margin-left:2px}
+#g-stats .rusty-tag{background:#d08a2a}#g-stats .weak-tag{background:var(--hib)}
+@media (max-width:385px){.id-money b{font-size:12.5px}.id-money>span{padding:5px 7px}}
+#g-stats .stat{min-width:0}
+#g-stats .stat .lbl{overflow:hidden}
+@media (max-width:400px){#g-stats .stat .lbl .ico{display:none}#g-stats{gap:4px 8px}#g-stats .stat .lbl{font-size:11px}}
