@@ -17,7 +17,7 @@ function heatHint(h){return h<15?'Nobody is looking':h<35?'A few rumours':h<60?'
 function honTier(){return {Datuk:1,"Dato'":1,'Datuk Seri':2,"Dato' Sri":2,"Dato' Seri":2,'Dato Seri':2,'Tan Sri':3,'Puan Sri':3,Tun:4}[S.honour]||0;}
 function dispName(){return (S.honour?S.honour+' ':'')+S.name;}
 function giveHonour(t){const rep={Datuk:5,'Datuk Seri':6,'Tan Sri':8,Tun:15}[t]||3;S.honour=t;TT().src='pol';if(S.pol)S.pol.title=t;S.dyn.rep+=rep;addAch('datuk');log(`Conferred the title "${t}".`,'big');
-  q({title:'Royal honour',icon:'m_scholar',tag:'Politics',text:`You are conferred the title of ${t}. From now on, people call you "${t} ${S.name}".`,choices:[['Receive it at the palace',()=>{bump('hap',6);return 'A proud day for the whole family.';}]]});}
+  q({title:'Royal honour',icon:'m_scholar',tag:'Politics',_party:1,text:`You are conferred the title of ${t}. From now on, people call you "${t} ${S.name}".`,choices:[['Receive it at the palace',()=>{bump('hap',6);return 'A proud day for the whole family.';}]]});}
 function setRank(r){const P=S.pol;const was=P.rank;P.rank=r;if(r>was&&r>=3)log('Became '+POL_RANKS[r]+'.','big');
   if(r>=5&&S.job){S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;S.job=null;log('Resigned from your job to serve in government.');}
   if(r>=6)addAch('minister');if(r===8){addAch('pm');P.wasPM=1;}}
@@ -99,7 +99,7 @@ function polTick(){const P=S.pol;
   else{
     if(P.party!=='IND'&&P.rank<2&&S.year%3===0&&S.year-P.joined>=1)q(partyElModal());
     if((P.rank===3||P.rank===4)&&P.seat)q(allocModal());
-    if(P.rank===7&&inGov()&&chance(.1)){setRank(8);log('The Prime Minister resigned. You take over.','big');q({title:'Prime Minister',icon:'m_vote',tag:'Politics',text:'The Prime Minister resigns, and the party picks you to lead the country.',choices:[['Take the oath',()=>'You are sworn in at Istana Negara.']]});}
+    if(P.rank===7&&inGov()&&chance(.1)){setRank(8);log('The Prime Minister resigned. You take over.','big');q({title:'Prime Minister',icon:'m_vote',tag:'Politics',_party:1,text:'The Prime Minister resigns, and the party picks you to lead the country.',choices:[['Take the oath',()=>'You are sworn in at Istana Negara.']]});}
     if(P.party!=='IND'&&P.loy<10&&chance(.5)){P.party='IND';if(P.rank>=5)P.rank=4;log('Sacked from the party.','big');q({title:'Sacked',icon:'m_vote',tag:'Politics',text:'The party supreme council sacks you. You keep your seat for now, as an independent.',choices:[['Fight on alone',()=>'Being an independent is lonely.']]});}
     if(P.rank>=1&&chance(.4))polEvent();}
   if(P.rank>=3&&honTier()<1&&chance(.06))giveHonour('Datuk');

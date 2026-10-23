@@ -55,6 +55,10 @@ The JS files load in the order `index.html` lists them:
 - **Pop-ups:** `q({title, icon, tag, text, choices:[[label, fn, enabledFn?, hint?], ...]})`. A choice
   function returns the result text (or `false` / `'keep'`). The stat and money changes are shown
   automatically.
+- **Celebrations** (petals and confetti, `fxCelebrate` in `fx.js`) are for life-changing events only. A pop-up
+  celebrates when it has `_party:1`. Put that on a big event's own pop-up. Or, when a choice causes the event,
+  make sure its `log(...,'big')` line matches `FX_LIFE` in `fx.js`, and the choice's result celebrates.
+  Never decide this from pop-up wording.
 - **Random events** go in `EV` in `events.js`: `{id, c: age => condition, t: title, x: text, ch: [...]}`.
 - **Old saves must keep working.** Players' games are in localStorage (`SAVE_KEY`). Any new field on `S`
   must work when it's missing. Create it lazily, the way `spouses()` and `TT()` do (`S.x = S.x || ...`), or

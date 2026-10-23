@@ -106,13 +106,15 @@ function applyJob(id){const J=JOBS[id],E=S.edu;S.applied++;
     if(!S.ach.includes('firstJob'))addAch('firstJob');log(`Started work as ${J.levels[0]} (${J.name}).`,'big');bump('hap',4);
     return `You got the job! You start as ${J.levels[0]}.`+(J.startCost?` You invest ${fmt(J.startCost*infl())} to get the business running.`:'');}
   if(S.applied<4)qFront(jobModal());return `${pick(['After three interviews','After a long wait','Following a tough panel interview'])}, they chose someone else.`;}
+// Reaching the top rank of a career is a big moment, so it gets its own pop-up (and the celebration).
+function topModal(J){return {title:'Top of your field',icon:'m_job',tag:'Career',_party:1,text:`You are promoted to ${esc(J.levels[J.levels.length-1])}, the highest rank there is as a ${esc(J.name)}.`,choices:[['Treat the team to dinner',()=>{bump('cha',2);return 'The whole team toasts you with teh tarik.';}]]};}
 function careerTick(fx){if(!S.job)return;const J=JOBS[S.job.id],a=age();S.lastJobId=S.job.id;S.lastJobName=J.name;
   let lp=(fx.layoff.all||0)+(fx.layoff[J.sector]||0);if(J.stable)lp*=.2;
   if(lp>0&&chance(lp)){layoff();return;}
   if(J.maxAge&&a>J.maxAge){S.job=null;log('Retired from professional sport.','big');q({title:'Hanging up your boots',icon:'m_job',tag:'Career',text:'At '+a+' your body can\'t keep up with professional sport.',choices:[['Become a coach',()=>{S.job={id:'coach',level:0,years:0,lvl:0,bonus:1};return 'You start coaching the next generation.';}],['Look for other work',()=>{qFront(jobModal());return '';}]]});return;}
   if(S.job.id==='entrepreneur'&&chance(Math.max(.02,.1-S.stats.cre/1500))){S.job=null;const l=RI(10000,60000)*infl();S.money-=l;log('Your business failed. Lost '+fmt(l)+'.','big');bump('hap',-10);return;}
   S.job.years++;S.job.lvl++;const sc=perfScore(),need=(sc>=78?2:sc>=55?3:4)+S.job.level;
-  if(S.job.level<J.levels.length-1&&S.job.lvl>=need){if(chance((clamp((sc-25)/70+(S.ot>=2?.1:0)+S.dyn.rep/400+(S.stats.luck-50)/400,0,1)*.9+.05)*(1-.12*S.job.level))){S.job.level++;S.job.lvl=0;log('Promoted to '+J.levels[S.job.level]+'!','big');bump('hap',5);if(S.job.level===J.levels.length-1){addAch('boss');S.dyn.rep+=3;}}}
+  if(S.job.level<J.levels.length-1&&S.job.lvl>=need){if(chance((clamp((sc-25)/70+(S.ot>=2?.1:0)+S.dyn.rep/400+(S.stats.luck-50)/400,0,1)*.9+.05)*(1-.12*S.job.level))){S.job.level++;S.job.lvl=0;log('Promoted to '+J.levels[S.job.level]+'!','big');bump('hap',5);if(S.job.level===J.levels.length-1){addAch('boss');S.dyn.rep+=3;q(topModal(J));}}}
   if(sc>=70&&chance(.5)&&(S.job.bonus||1)<1.5)S.job.bonus=Math.min(1.5,(S.job.bonus||1)*(1+Math.min(.03,(sc-65)/500)));
   if(S.country==='MY'&&S.edu.bond>0)S.edu.bond--;}
 function canHop(){const J=S.job&&JOBS[S.job.id];return !!J&&S.country==='MY'&&!J.stable&&!J.noEpf&&S.job.years>=1;}
