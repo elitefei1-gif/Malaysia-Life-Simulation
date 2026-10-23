@@ -22,7 +22,7 @@ function render(){if(!S)return;fixPartners();warmIcons();
   setHtml($('#g-tabs'),TABS.map(([k,l])=>`<button role="tab" data-act="tab" data-arg="${k}" aria-selected="${tab===k}" style="--tc:var(--t-${k})">${ico('t_'+k)}<span>${l}</span></button>`).join(''));
   $('#g-panel').style.setProperty('--tc','var(--t-'+tab+')');
   $('#btn-next').disabled=!S.alive;
-  if(!TABS.some(t=>t[0]===tab))tab='life';const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily,dynasty:panelDynasty}[tab];setHtml($('#g-panel'),P());bgm();}
+  if(tab==='dynasty')tab='family';if(!TABS.some(t=>t[0]===tab))tab='life';const P={life:panelLife,assets:panelAssets,travel:panelTravel,family:panelFamily}[tab];setHtml($('#g-panel'),P());bgm();}
 function panelLife(){const a=age();const acts=ACTS.filter(x=>x.ok(a));
   const actHtml=acts.length?`<div class="acts">${acts.map(x=>`<button class="act" data-act="do" data-arg="${x.id}" ${S.ap>0?'':'disabled'}>${ico('a_'+x.id)}<b>${typeof x.label==='function'?x.label():x.label}</b><small>${typeof x.sub==='function'?x.sub():x.sub}</small></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Babies don\'t have choices yet. Press <b>Next year</b> to grow up.</p>';
   const E=S.edu,J=S.job&&JOBS[S.job.id];
@@ -107,7 +107,7 @@ function panelFamily(){const p=S.partner,a=age();famRel();
    <div class="panel"><h3>Children</h3>${expecting()?`<p style="margin:0">🍼 A baby is on the way, due in ${S.preg.map(x=>x.due).join(' and ')}.</p>`:''}${kids?`<div class="list">${kids}</div>`:'<p class="muted" style="margin:0">No children yet. Get married to try for a baby or adopt.</p>'}</div>
    <div class="panel"><h3>Will & estate</h3><p style="margin:0">${S.will?'✅ You have a will. Your chosen heir receives half your cash plus all property; the rest is split.':'No will yet. Without one, about 15% of your cash estate goes on legal fees and family disputes, and everything is split equally.'}</p>
     ${S.will?'':`<div class="row"><button class="btn small" data-act="will" ${a>=21&&S.money>=1500*infl()?'':'disabled'}>Write a will (${fmt(1500*infl())})</button></div>`}
-    ${S.kids.some(k=>k.alive!==false&&S.year-k.born>=18)?`<div class="row"><button class="btn small" data-act="handover">Pass on wealth early and play as a child</button></div>`:''}</div>`;}
+    ${S.kids.some(k=>k.alive!==false&&S.year-k.born>=18)?`<div class="row"><button class="btn small" data-act="handover">Pass on wealth early and play as a child</button></div>`:''}</div>`+panelDynasty();} // the family tree and achievements live at the end of Family
 function panelDynasty(){const d=S.dyn;const hist=d.history.map(h=>`<div class="gen"><div class="g">Gen ${h.gen}</div><div class="item"><div class="t"><b>${esc(h.name)} · ${esc(h.title)}</b><small>${h.born}–${h.died} (age ${h.age}) · ${esc(h.career)} · net worth <span class="mono">${fmt(h.nw)}</span> · score ${h.score}</small></div></div></div>`).join('');
   return `<div class="panel"><h3>${esc(CULTURES[d.culture||S.culture].famLabel(d.famName))}</h3><dl class="kv"><dt>Generation</dt><dd>${d.gen}</dd><dt>Family reputation</dt><dd>${Math.round(d.rep)}</dd></dl>
    <div class="tree">${hist}<div class="gen"><div class="g">Gen ${d.gen}</div><div class="item"><div class="t"><b>${esc(dispName())} <span class="chip">Now</span></b><small>Born ${S.birthYear} · age ${age()}</small></div></div></div></div></div>

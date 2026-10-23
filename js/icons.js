@@ -126,5 +126,5 @@ const H_KEY={shoplot:'h_shoplot',units:'h_units',ppr:'h_flat',apt:'h_flat',abroa
 function houseKey(h){const k=h.kind||h.id;if(k&&icoSrc('h_'+k))return 'h_'+k;return H_KEY[k]||(/kampung|longhouse/i.test(h.name)?'h_kampung':/luxury/i.test(h.name)?'h_luxcondo':/condo/i.test(h.name)?'h_condo':/bungalow|garden/i.test(h.name)?'h_bungalow':/semi/i.test(h.name)?'h_semid':/terrace/i.test(h.name)?'h_terrace':'h_flat');}
 const C_KEY={Motorcycle:'c_bike',Budget:'c_hatch',Popular:'c_hatch',Sedan:'c_sedan',Executive:'c_sedan',SUV:'c_suv',EV:'c_ev',Luxury:'c_lux',Supercar:'c_super'};
 const carKey=(t,id)=>id&&icoSrc('c_'+id)?'c_'+id:C_KEY[t]||'c_hatch';
-const TABS=[['life','Life'],['assets','Assets'],['travel','Travel'],['family','Family'],['dynasty','Dynasty']];
+const TABS=[['life','Life'],['assets','Assets'],['travel','Travel'],['family','Family']];
 
