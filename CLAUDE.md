@@ -37,7 +37,7 @@ The JS files load in the order `index.html` lists them:
 | `render.js` | Drawing every screen and tab |
 | `fx.js` | Toast, save/load, motion effects, auto-update check |
 | `input.js` | `ACT`: every `data-act="..."` button handler, plus the click and keyboard listeners |
-| `sound.js` | Sound effects (Web Audio) and music |
+| `sound.js` | Sound effects (Web Audio), background music, and the music page player (`TRACKS`) |
 | `boot.js` | Start-up. Must stay last |
 
 ## Rules for the code
@@ -82,10 +82,20 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
    Playwright screenshot.
 5. Commit message format used so far: `Update game to vNN (short player-facing summary of what changed)`.
 
+## Music
+
+- Background music: `music/menu-hangat.mp3`, quiet and looping, follows the mute button (`bgm()` in `sound.js`).
+- Music page: the Music tab in a game, and the 🎵 Music button on the title screen. It plays the songs in
+  `TRACKS` (`sound.js`) in full and pauses the background music while one plays. To add a song, convert it to
+  MP3 (Opus `.m4a` doesn't play on older iPhones), for example
+  `ffmpeg -i in.m4a -map 0:a -c:a libmp3lame -b:a 160k -ar 44100 -map_metadata -1 music/songs/NN-name.mp3`,
+  then add a line to `TRACKS` with its length in seconds (`len`).
+
 ## Offline support (`sw.js`)
 
 `index.html` and the `js/` and `css/` files load from the network first, with the saved copy used when
-offline. Pictures and music are saved on the first visit. The service worker finds which pictures to
+offline. Pictures and background music are saved on the first visit. Music page songs (`music/songs/`)
+are saved only once played, so a first visit stays light. The service worker finds which pictures to
 save by scanning `index.html` and the code files for `img/...` and `music/...` paths. So write picture
 paths out in full (as in `ICON_IMG`), not built from pieces at runtime. Bump the cache names in `sw.js`
 only if the caching scheme itself changes.

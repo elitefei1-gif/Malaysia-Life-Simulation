@@ -16,7 +16,7 @@ self.addEventListener('message',e=>{if(e.data==='warm')e.waitUntil(warm());});
 function isPage(url){if(url.origin!==SCOPE.origin)return false;const p=url.pathname;return p===SCOPE.pathname||p===SCOPE.pathname+'index.html';}
 // Code files are asked for as js/name.js?v=GAME_VERSION, so each version is saved under its own key.
 function isCode(url){return url.origin===SCOPE.origin&&url.pathname.startsWith(SCOPE.pathname)&&/^(js\/[^/]+\.js|css\/[^/]+\.css)$/.test(url.pathname.slice(SCOPE.pathname.length));}
-function isAsset(url){return url.origin===SCOPE.origin&&/\/(img|music)\/[^/]+$/.test(url.pathname);}
+function isAsset(url){return url.origin===SCOPE.origin&&/\/(img|music|music\/songs)\/[^/]+$/.test(url.pathname);}
 function isFont(url){return url.hostname==='fonts.googleapis.com'||url.hostname==='fonts.gstatic.com';}
 
 self.addEventListener('fetch',e=>{const req=e.request;if(req.method!=='GET')return;const url=new URL(req.url);
@@ -75,13 +75,14 @@ function recheck(c,html,urls){const v=(html.match(/const GAME_VERSION='([^']+)'/
     return Promise.all([next(),next(),next(),next()]).then(()=>{if(navigator.onLine!==false)return pc.put(MARK,new Response(v));});}));}
 
 // Save every picture and music file the current page names, skipping ones already saved.
-// Files no longer named are removed so the cache doesn't grow forever.
+// Files no longer named are removed so the cache doesn't grow forever. Songs on the music page (music/songs/)
+// are left out: they're saved only once played, and kept.
 let warming=null;
 function warm(){if(warming)return warming;
   warming=fromPageCache().then(p=>p?p.text():'').then(html=>html?warmCode(html).then(all=>[html,all]):[]).then(([html,all])=>{if(!html)return;
     const want=new Set((all.match(/(?:img|music)\/[A-Za-z0-9_.@-]+\.(?:webp|png|jpg|mp3)/g)||[]).map(p=>new URL(p,SCOPE).href));
     return caches.open(ASSET_CACHE).then(c=>c.keys().then(keys=>{const have=new Set(keys.map(k=>k.url));
-      keys.forEach(k=>{if(!want.has(k.url))c.delete(k);});
+      keys.forEach(k=>{if(!want.has(k.url)&&!k.url.includes('/music/songs/'))c.delete(k);});
       const todo=[...want].filter(u=>!have.has(u));let i=0;
       const next=()=>{if(i>=todo.length)return Promise.resolve();const u=todo[i++];
         return fetch(u,{credentials:'same-origin'}).then(r=>{if(r.ok&&r.status===200)return c.put(u,r);}).catch(()=>{}).then(next);};

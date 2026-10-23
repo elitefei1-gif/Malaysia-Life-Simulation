@@ -46,9 +46,57 @@ function toggleMute(){MUTED=!MUTED;try{localStorage.setItem('my-lifesim-mute',MU
 // Background music: one looping track, a file next to the page. It starts on the first tap (browsers block autoplay) and follows the mute button.
 let BGM=null;
 function bgm(){try{if(!BGM){BGM=new Audio('music/menu-hangat.mp3');BGM.loop=true;BGM.volume=.25;BGM.preload='auto';}
-  if(MUTED||document.hidden)BGM.pause();else{const p=BGM.play();if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+  if(MUTED||document.hidden||mpOn())BGM.pause();else{const p=BGM.play();if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 document.addEventListener('pointerdown',()=>{if(!BGM||BGM.paused)bgm();},{passive:true});
 document.addEventListener('keydown',()=>{if(!BGM)bgm();});
 document.addEventListener('visibilitychange',()=>{if(BGM)bgm();});
+// Music page (v85): songs the player can listen to in full, from the title screen or the Music tab.
+// To add a song, put the .mp3 in music/songs/ and add a line here. Background music pauses while a song plays.
+// Songs aren't saved for offline play up front (they're large); each one is saved the first time it's played.
+const TRACKS=[
+  {id:'title',title:'Emas Harapan',sub:'Title theme',file:'music/songs/01-title-theme.mp3',len:97},
+  {id:'child',title:'Kampung Petang',sub:'Childhood',file:'music/songs/02-childhood.mp3',len:75},
+  {id:'school',title:'School Days',sub:'School',file:'music/songs/03-school-days.mp3',len:99},
+  {id:'uni',title:'Uni Life',sub:'University',file:'music/songs/04-uni-life.mp3',len:163},
+  {id:'work',title:'Working Life',sub:'Career',file:'music/songs/05-working-life.mp3',len:96},
+  {id:'romance',title:'Romance',sub:'Love',file:'music/songs/06-romance.mp3',len:193},
+  {id:'wedding',title:'Wedding',sub:'Love',file:'music/songs/07-wedding.mp3',len:136},
+  {id:'raya',title:'Raya',sub:'Festive season',file:'music/songs/08-raya.mp3',len:103},
+  {id:'cny',title:'Chinese New Year',sub:'Festive season',file:'music/songs/09-cny.mp3',len:96},
+  {id:'politics',title:'Politics',sub:'Election season',file:'music/songs/10-politics.mp3',len:106},
+  {id:'hardship',title:'Hardship',sub:'Hard times',file:'music/songs/11-hardship.mp3',len:193},
+  {id:'golden',title:'Golden Years',sub:'Retirement',file:'music/songs/12-golden-years.mp3',len:178},
+  {id:'legacy',title:'Legacy',sub:'Dynasty',file:'music/songs/13-legacy.mp3',len:218},
+  {id:'rich',title:'Rich Life',sub:'Wealth',file:'music/songs/14-rich-life.mp3',len:184},
+  {id:'hangat',title:'Menu Hangat',sub:'Background music',file:'music/menu-hangat.mp3',len:89},
+];
+let MP=null,mpTrack=0,mpRepeat=false,mpDrag=false;
+const mpOn=()=>!!MP&&!MP.paused;
+const mpDur=()=>MP&&isFinite(MP.duration)?MP.duration:TRACKS[mpTrack].len;
+const mpTime=s=>!isFinite(s)?'–:––':Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function mpAudio(){if(MP)return MP;MP=new Audio();MP.preload='metadata';
+  MP.addEventListener('timeupdate',mpTick);
+  MP.addEventListener('error',()=>{if(!MP.getAttribute('src'))return;MP.pause();toast(navigator.onLine===false?'Connect to the internet to play this song the first time.':'This song could not be loaded. Try again in a moment.');mpRefresh();});
+  MP.addEventListener('play',()=>{bgm();mpRefresh();});MP.addEventListener('pause',()=>{bgm();mpRefresh();});
+  MP.addEventListener('ended',()=>{if(mpTrack<TRACKS.length-1)mpPlay(mpTrack+1);else{MP.currentTime=0;mpRefresh();}});
+  return MP;}
+function mpPlay(i){const t=TRACKS[i];if(!t)return;const a=mpAudio();
+  if(mpTrack!==i||!a.src){mpTrack=i;a.src=t.file;}a.loop=mpRepeat;const p=a.play();if(p&&p.catch)p.catch(()=>{});
+  try{if('mediaSession' in navigator){navigator.mediaSession.metadata=new MediaMetadata({title:t.title,artist:'Malaysian Life Simulator',album:t.sub,artwork:[{src:'img/title-banner.webp',type:'image/webp'}]});
+    navigator.mediaSession.setActionHandler('play',()=>mpPlay(mpTrack));navigator.mediaSession.setActionHandler('pause',()=>MP.pause());
+    navigator.mediaSession.setActionHandler('previoustrack',()=>mpSkip(-1));navigator.mediaSession.setActionHandler('nexttrack',()=>mpSkip(1));}}catch(e){}
+  mpRefresh();}
+function mpToggle(){if(mpOn())MP.pause();else mpPlay(mpTrack);}
+// Back to the start of the song if it's more than 3 seconds in, otherwise the previous song.
+function mpSkip(d){if(d<0&&MP&&MP.currentTime>3){MP.currentTime=0;return;}mpPlay((mpTrack+d+TRACKS.length)%TRACKS.length);}
+function mpSetRepeat(){mpRepeat=!mpRepeat;if(MP)MP.loop=mpRepeat;mpRefresh();}
+function mpRefresh(){if(!$('#s-music').hidden)setHtml($('#music-page'),panelMusic());else if(S&&tab==='music'&&!$('#s-game').hidden)setHtml($('#g-panel'),panelMusic());mpTick();}
+function mpTick(){const d=mpDur(),c=MP?MP.currentTime:0;
+  document.querySelectorAll('.mp-time').forEach(el=>el.textContent=mpTime(c)+' / '+mpTime(d));
+  if(!mpDrag)document.querySelectorAll('.mp-seek').forEach(el=>el.value=d?Math.round(c/d*1000):0);}
+document.addEventListener('input',e=>{if(!e.target.matches('.mp-seek'))return;mpDrag=true;const d=mpDur();
+  document.querySelectorAll('.mp-time').forEach(el=>el.textContent=mpTime(e.target.value/1000*d)+' / '+mpTime(d));});
+document.addEventListener('change',e=>{if(!e.target.matches('.mp-seek'))return;mpDrag=false;const a=mpAudio();
+  if(!a.src){a.src=TRACKS[mpTrack].file;}const go=()=>{a.currentTime=e.target.value/1000*a.duration;mpTick();};if(isFinite(a.duration))go();else a.addEventListener('loadedmetadata',go,{once:true});});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cur&&cur.choices===null)closeModal();});
 
