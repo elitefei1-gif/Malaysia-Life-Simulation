@@ -113,10 +113,11 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
   - Title screen: Emas Harapan. End screen: Legacy.
   - Stage songs from `bgmStage()`: Childhood (0–12), School Days (13–17), Uni Life (studying, no job), Working Life,
     Golden Years (60+ or retired). Politics (a politician who has taken dirty money, `S.pol.dirty`, since the last MACC raid,
-    `S.pol.raidDirty`) and Rich Life (Dato' or very rich) override those, and
+    `S.pol.raidDirty`), Romance (while dating, and the wedding year plus 2 more: `loveSeason()` in `life.js`, decided once a year
+    into `S.bgmLove`) and Rich Life (Dato' or very rich) override those, and
     Hardship overrides everything during jail or hospital.
   - Moment songs from `bgmMoment()` play while their pop-up is open: Raya and Chinese New Year (only the first 5 festivals of
-    each life, counted in `S.festN`), Romance (`Love` tag),
+    each life, counted in `S.festN`),
     Hardship (titles in `MOMENT_TITLE`), and Wedding (set by `cueLog` when a marriage is logged). Then it fades back
     and the stage song resumes where it left off. `cue` in `TRACKS` skips a moment song's intro.
   - A song that can't load (offline and never played) falls back to Menu Hangat, which is always saved offline.
