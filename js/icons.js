@@ -113,7 +113,7 @@ const ICON_EMOJI={b_kopitiam:'☕',b_minimart:'🏪',b_workshop:'🔧',b_factory
   m_love:'💘',m_ring:'💍',m_rip:'🕯️',m_abroad:'🛫',w_pandemic:'🦠',w_flood:'🌊',
   d_cameron:'🍓',d_langkawi:'🏝️',d_bkk:'🛺',d_bali:'🌺',d_taiwan:'🏮',d_korea:'🏯',d_japan:'🗻',d_aus:'🦘',d_maldives:'🐠',d_europe:'🗼',
   ev_bully:'😠',ev_quiz:'🧠',ev_sports:'🏃',ev_skip:'🛍️',ev_crush:'💌',ev_tuition:'✏️',ev_gaming:'🎮',ev_prefect:'🎖️',ev_plkn:'🪖',ev_group:'👥',ev_intern:'🗂️',
-  ev_credit:'😤',ev_headhunt:'📨',ev_mlm:'🤑',ev_macau:'📞',ev_accident:'💥',ev_borrow:'🤲',ev_checkup:'🩺',ev_marathon:'🏅',ev_viral:'📱',ev_durian:'🍈',
+  ev_credit:'😤',ev_headhunt:'📨',ev_mlm:'🤑',ev_bantuan:'🧾',ev_bantuan_adult:'🧾',ev_macau:'📞',ev_accident:'💥',ev_borrow:'🤲',ev_checkup:'🩺',ev_marathon:'🏅',ev_viral:'📱',ev_durian:'🍈',
   ev_burnout:'🥵',ev_oldparents:'👵',ev_reunion:'🥂',ev_startup:'💡',ev_transfer:'🛫',ev_kidwin:'🏆',ev_stray:'🐈',ev_midlife:'🤔',ev_homesick:'🍛',ev_garden:'🌸',ev_grandkid:'🎓',
 };
 /* Culture-specific art: ICON_IMG['key@culture'] (e.g. 'father@chinese') wins over ICON_IMG['key'] for that family. */

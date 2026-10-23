@@ -23,6 +23,11 @@ function citModal(){const C=ctry();return {title:'Become a citizen of '+C.name+'
 function famTripMax(){return S.group==='T20'?Infinity:S.group==='M40'?6000:1500;}
 function famTripOk(){return age()<18&&S.parents.some(x=>x.alive)&&S.famTripYear!==S.year;}
 function famTrip(id){const T=TRIPS.find(t=>t.id===id);if(!T||!famTripOk()||T.cost>famTripMax())return;
+  // B40: even a local trip can be too much some years.
+  if(S.group==='B40'&&chance(T.cost>1000?.5:.35)){qFront({title:'Money is tight this year',icon:'m_money',tag:'Family',text:pick([S.parents[0].alive&&'Your dad sits down with the bills and shakes his head. The car needs new tyres and school fees are due. "Maybe next year, okay?"',S.parents[1].alive&&'Your mum says the rent went up again. "We cannot afford a holiday this year. Next year."','Money is short at home. School fees, the electricity bill and a leaking roof all come first. There is nothing left for a trip this year.'].filter(Boolean)),choices:[
+    ['It\'s okay, I understand',()=>{S.famTripYear=S.year;bump('dis',1);S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel+4);});return 'Everyone at home looks relieved. You help out around the house instead.';}],
+    ['Suggest a free day at the beach',()=>{S.famTripYear=S.year;bump('hap',2);bump('cre',1);return 'Nasi lemak in a packet, a mat on the sand and the whole family laughing. Not bad at all.';}],
+    ['Sulk for a week',()=>{S.famTripYear=S.year;bump('hap',-3);S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel-3);});return 'Your friends post their holiday photos. You stare at the ceiling. Everyone at home feels bad.';}]]});showNext();return;}
   qFront({title:'Family holiday: '+T.name,icon:'d_'+T.id,tag:'Travel',text:'Your parents are paying for this one. Pack your bags!',choices:[['Let\'s go',()=>{
     S.famTripYear=S.year;bump('hap',T.hap);if(!S.visited.includes(T.id))S.visited.push(T.id);
     const ab=!['cameron','langkawi'].includes(T.id),g=ab?RI(2,3):1,st=pick([['int','cha'],['cha','cre'],['int','cre']]),gain=st.map(k=>(bump(k,g),STAT_NAMES[k]));

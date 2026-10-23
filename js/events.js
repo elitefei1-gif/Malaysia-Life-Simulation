@@ -83,6 +83,15 @@ const EV=[
     ['Confront them privately',()=>{if(roll('cha')>.55){S.job.lvl+=1;return 'Your boss apologises and credits you at the next meeting.';}bump('hap',-3);return 'It gets frosty. You\'re left off the next project.';}],['Let it go',()=>{bump('hap',-3);return 'You keep quiet, but you remember.';}],['Start job hunting',()=>{qFront(jobModal());return '';}]]},
   {id:'headhunt',c:a=>!!S.job&&a>=25&&a<=52&&!JOBS[S.job.id].noEpf,t:'Headhunter on LinkedIn',x:'A headhunter offers you the same role at a competitor with 20% more pay.',ch:[
     ['Take the offer',()=>{S.job.bonus=(S.job.bonus||1)*1.2;bump('hap',2);log('Switched to a competitor for a 20% raise.');return 'New office, new badge, fatter payslip.';}],['Stay loyal',()=>{S.job.lvl+=1;return 'Your boss hears about it and puts you up for promotion sooner.';}]]},
+  // Cash aid for B40 households: the child sees the family get it, the adult applies. Scheme names follow the real year.
+  {id:'bantuan',c:a=>a<18&&S.country==='MY'&&S.year>=2012&&S.group==='B40'&&parAlive(),t:'Bantuan for the family',
+   x:()=>`Your family qualifies for ${aidName()} this year. The money lands in your parents' bank account, and there is a long talk at the dinner table about what to do with it.`,ch:[
+    ['Ask for new school shoes',()=>{bump('hap',3);return 'New school shoes from Bata. They squeak in the corridor for a week and you love them.';}],
+    ['Tell them to pay the bills first',()=>{bump('dis',1);S.parents.forEach(x=>{if(x.alive&&x.rel!=null)x.rel=clamp(x.rel+4);});return 'The electricity bill is paid on time for once. Your parents are proud of you.';}]]},
+  {id:'bantuan_adult',c:a=>a>=21&&S.country==='MY'&&S.year>=2012&&S.myCitizen&&incomeMonthly()<5000*infl()&&netWorth()<300000*infl(),t:'Bantuan approved',
+   x:()=>`Your application for ${aidName()} is approved. ${fmt(Math.round(1200*infl()))} will be paid into your bank account.`+(S.year>=2024?' There is also SARA credit on your MyKad for groceries at the kedai runcit.':''),ch:[
+    ['Pay the bills and buy groceries',()=>{S.money+=Math.round(1200*infl());bump('hap',2);return 'Rent paid, rice and cooking oil stocked up. One less thing to worry about this month.';}],
+    ['Treat the family to a makan',()=>{S.money+=Math.round(600*infl());bump('hap',5);bump('cha',1);return 'Ikan bakar by the river for everyone. Half the money is gone, but the whole table is smiling.';}]]},
   {id:'mlm',c:a=>a>=20&&a<=65,once:1,t:'A "business opportunity"',x:'An old schoolmate invites you to a scheme with "guaranteed 30% monthly returns". Just bring in two friends!',ch:[
     ['Invest RM 5,000',()=>{S.money-=a2c(5000);bump('hap',-4);return 'Three months later the founder vanishes. So does your money.';}],['Politely decline',()=>{addAch('scamProof');return 'Guaranteed high returns are a classic sign of a scam. Smart move.';}]]},
   {id:'macau',c:a=>a>=25&&S.country==='MY',once:1,t:'A call from the "police"',x:'A caller says your bank account is linked to money laundering. Transfer your savings to a "safe account" now or be arrested.',ch:[
@@ -373,6 +382,7 @@ const WEV=[
 ];
 function workEvent(){const pool=WEV.filter(e=>e.c());if(!pool.length)return;const e=pick(pool);
   q({title:typeof e.t==='function'?e.t():e.t,icon:'ev_'+e.id,tag:'Career',text:typeof e.x==='function'?e.x():e.x,choices:e.ch.map(c=>[c[0],()=>S.job?c[1]():'That no longer matters now.'])});}
+function aidName(){const y=S.year;return y<=2018?'BR1M (Bantuan Rakyat 1Malaysia)':y<=2020?'Bantuan Sara Hidup (BSH)':y===2021?'Bantuan Prihatin Rakyat':y===2022?'Bantuan Keluarga Malaysia':'Sumbangan Tunai Rahmah (STR)';}
 function randomEvent(){const a=age();const pool=EV.filter(e=>e.c(a)&&!(e.once&&S.seen.includes(e.id)));if(!pool.length)return;const e=pick(pool);S.seen.push(e.id);
   q({title:e.t,icon:'ev_'+e.id,text:typeof e.x==='function'?e.x():e.x,choices:e.ch.map(c=>[c[0],()=>e.c(age())?c[1]():'That no longer matters now.',...c.slice(2)])});}
 
