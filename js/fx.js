@@ -51,6 +51,8 @@ function fxLifeEvent(t){return FX_LIFE.test(t)||(/^Promoted to /.test(t)&&!!S.jo
 // A pop-up celebrates when it has _party: set on the event's own pop-up (baby, graduation, royal honour, Prime
 // Minister, top promotion), or by choose() when the choice just made logged one (wedding, title, seat, jackpot).
 let fxParty=0,fxLast=0;
+// A choice can also retitle its result and swap the picture: getting married shows the wedding, not the proposal.
+let fxArt=null;
 function modalFx(m){if(noFx()||m._fx)return;m._fx=1;const d=m.delta||[];
   if(m._party&&Date.now()-fxLast>4000){fxLast=Date.now();fxCelebrate();}
   const mm=d.find(x=>/^\+RM/.test(x));if(!mm||!S)return;const amt=+mm.replace(/[^\d.]/g,'')*(/M$/.test(mm)?1e6:1);
