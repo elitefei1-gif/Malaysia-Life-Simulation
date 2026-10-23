@@ -11,6 +11,7 @@ function nextYear(){if(cur||!S.alive)return;const yb=S.yStart||snap(),a0=age();
   if(age()>=2)festival();
   if(age()>=5&&chance(.55))randomEvent();
   if(S.job&&age()>=18&&chance(.4))workEvent();}
+  S.bgmLove=loveSeason();
   S.yDelta=['int','hlt','cha','look','cre','ath','dis','hap'].map(k=>[k,S.stats[k]-(yb[k]??S.stats[k])]).filter(x=>Math.abs(x[1])>=.05);S.yStart=snap();
   checkAch();S.hapSum+=S.stats.hap;S.hapN++;S.ot=0;S.trips=0;S.ap=apFor();
   if(age()>=1&&!autoYears&&S.showStmt!==false&&S.lastBreak&&!(S.pol&&S.pol.jail)&&!S.jail)qFront(stmtModal());

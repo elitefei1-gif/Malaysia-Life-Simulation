@@ -44,19 +44,20 @@ function cueLog(t){if(/^Married|life partners/.test(t))bgmEvent='wedding';cue(/^
 function sfx(k){if(MUTED||!SFX[k])return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();PITCH=Math.pow(2,(Math.random()-.5)*.9/12);SFX[k]();}catch(e){}}
 function toggleMute(){MUTED=!MUTED;try{localStorage.setItem('my-lifesim-mute',MUTED?'1':'0');}catch(e){}bgm();}
 // Background music (v86) follows your life: a song for each life stage, and short "moment" songs while their
-// pop-up is open (Raya, CNY, love, wedding, hard times), then it fades back to the stage song where it left off.
+// pop-up is open (Raya, CNY, wedding, hard times), then it fades back to the stage song where it left off.
 // Songs are TRACKS ids. It starts on the first tap (browsers block autoplay) and follows the mute button.
 // bgm() is called on every render, screen change and pop-up, and only acts when the wanted song changes.
 let BGM=null,bgmId=null,bgmNext=null,bgmTimer=null,bgmEvent=null;const BGM_VOL=.25,BGM_POS={},BGM_BAD=new Set();
-const MOMENTS=['raya','cny','romance','wedding','hardship','legacy'];
+const MOMENTS=['raya','cny','wedding','hardship','legacy'];
 const MOMENT_TITLE={'Declared bankrupt':'hardship','Drowning in debt':'hardship','Retrenched':'hardship','"We need to talk"':'hardship','Divorce papers':'hardship',
   'Gone':'hardship','Caught':'hardship','Messages on their phone':'hardship','MACC raid':'hardship','Sacked':'hardship','Rest in peace':'legacy'};
 function bgmMoment(m){if(!m)return null;if(MOMENT_TITLE[m.title])return MOMENT_TITLE[m.title];if(m.icon==='m_rip')return 'hardship';
   if(m.tag==='Festive season')return (S&&S.festN||0)>5?null:/Raya/.test(m.title)?'raya':/Chinese New Year/.test(m.title)?'cny':null;
-  return m.tag==='Love'?'romance':null;}
+  return null;}
 function bgmStage(){const a=age();
   if(S.jail||(S.pol&&S.pol.jail)||inHosp())return 'hardship';
   if(S.pol&&a>=18&&S.pol.dirty>(S.pol.raidDirty||0))return 'politics'; // only once you're corrupt, until a MACC raid or retiring
+  if(S.bgmLove)return 'romance'; // the "falling in love" years, decided once a year in nextYear()
   if(a>=25&&(honTier()||netWorth()>=5e6*infl()))return 'rich';
   if(a>=60||S.retired)return 'golden';
   if(a<=12)return 'child';

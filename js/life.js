@@ -47,6 +47,8 @@ function a2c(n){return n*infl()*(S.country==='MY'?1:ctry().col);}
 function partnerCults(){return Object.keys(CULTURES).filter(c=>PLAYABLE.includes(c)||ICON_IMG['partner_f@'+c]&&ICON_IMG['partner_m@'+c]).flatMap(c=>PLAYABLE.includes(c)?[c,c]:[c]);}
 function samePartner(){return S.partner&&S.partner.gender===S.gender;}
 // Malaysian law: a non-Muslim must convert to marry a Muslim, so a mixed marriage makes the household Malay.
+// Romance plays as the background song while dating and for the first 2 years of marriage (checked once a year).
+function loveSeason(){const p=S.partner;return age()>=16&&!!p&&p.alive!==false&&(p.status==='dating'||(p.status==='married'&&S.year-(p.wedYear??-99)<=2));}
 function marryConvert(p,quiet){if(!p||p.gender===S.gender||!p.culture)return;
   if(S.culture==='malay'&&p.culture!=='malay'){p.origCulture=p.culture;if(CULTURES[p.culture])p.culture='malay';p.convert=1;
     if(!quiet){log(p.name+' converted to Islam to marry you.');q({title:'A new chapter',icon:'spouse_'+(p.gender==='M'?'m':'f'),tag:'Love',text:`Under Malaysian law a non-Muslim must convert to Islam to marry a Muslim. ${esc(p.name)} converts before the nikah, and your household follows Malay customs from now on.`,choices:[['Continue',()=>'']]});}}
@@ -146,7 +148,7 @@ function pregModal(o){const a=age(),p=S.partner,me=S.gender==='F',nm=o.name||'yo
   const ctx=a<18?' You are still in secondary school, and your parents will find out soon.':S.edu.track&&!S.job?' You are still studying.':'';
   const keep=marry=>()=>{expectKid(o.stats,{note:o.how==='affair'?note:marry||married()?'':'born before marriage',hap:3});
     if(a<18){S.know=clamp((S.know||0)*.7);bump('dis',3);bump('hap',-4);}if(S.parenting==='Strict'&&a<25)bump('hap',-6);
-    if(marry&&p){p.status='married';marryConvert(p);S.money-=a2c(5000);addAch('married');log('Married '+p.name+' before the baby arrived.','big');}
+    if(marry&&p){p.status='married';p.wedYear=S.year;marryConvert(p);S.money-=a2c(5000);addAch('married');log('Married '+p.name+' before the baby arrived.','big');}
     else if(p&&!o.fling)p.rel=clamp(p.rel+5);
     return (a<18?'Life changes overnight. ':'')+'The baby is due next year.'+(marry?' You marry in a small ceremony first.':a<18?' Your family will help raise the baby while you finish school.':'')+(o.fling?support():'');};
   const ch=[['Keep the baby',keep(false)]];
@@ -169,7 +171,7 @@ function cheatModal(){const p=S.partner;return {title:'Messages on their phone',
 function inheritBase(){return {int:50,hlt:60,cha:50,look:50,cre:50,ath:50};}
 function proposeModal(){const p=S.partner;const legal=!samePartner()||['UK','AU','US','CA','NZ','DE','TW'].includes(S.country);const I=a2c(1);
   const wed=(lbl,cost,txt)=>[`${lbl} (${fmt(cost*I)})`,()=>{if(!chance(p.rel/100+.15)){p.rel-=15;bump('hap',-6);return p.name+' says they\'re not ready yet. Ouch.';}
-    S.money-=cost*I;p.status='married';marryConvert(p);addAch('married');log('Married '+p.name+'! '+txt,'big');bump('hap',12);S.withParents=false;return 'They said yes! '+txt;}];
+    S.money-=cost*I;p.status='married';p.wedYear=S.year;marryConvert(p);addAch('married');log('Married '+p.name+'! '+txt,'big');bump('hap',12);S.withParents=false;return 'They said yes! '+txt;}];
   if(!legal)return {title:'Pop the question?',icon:'m_ring',tag:'Love',text:`Same-sex marriage isn't legally recognised in Malaysia${S.country!=='MY'?' or here':''}. Many couples commit as life partners, or marry in a country that recognises it (Taiwan, the UK, Australia and others).`,
     choices:[wed('Commit as life partners with a small celebration',3000,'A celebration with close friends.'),wed('Marry abroad in Taiwan',15000,'You marry in Taipei and celebrate with a small group.'),['Not yet',null]]};
   return {title:'Pop the question?',icon:'m_ring',tag:'Love',text:`You and ${esc(p.name)} have been together a while. How do you want to celebrate if they say yes?`,
