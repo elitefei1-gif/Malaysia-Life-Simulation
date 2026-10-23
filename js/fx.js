@@ -71,6 +71,10 @@ function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
 const SKIN_KEY='my-lifesim-skin';
 function skinNow(){return document.documentElement.dataset.skin||'songket';}
 function setSkin(k){if(k==='songket')delete document.documentElement.dataset.skin;else document.documentElement.dataset.skin=k;try{localStorage.setItem(SKIN_KEY,k);}catch(e){}}
+// Home screen icon: the phone reads it when the game is added to the home screen (see the <head> script in index.html).
+const ICON_KEY='my-lifesim-icon',APP_ICONS=[['kid','Kid','img/icon_kid.png'],['hibiscus','Hibiscus','img/icon_hibiscus.png'],['malam','Malam','img/icon_malam.png']];
+function iconNow(){let k;try{k=localStorage.getItem(ICON_KEY);}catch(e){}return APP_ICONS.some(x=>x[0]===k)?k:'kid';}
+function setAppIcon(k){const I=APP_ICONS.find(x=>x[0]===k);if(!I)return;try{localStorage.setItem(ICON_KEY,k);}catch(e){}['ico-apple','ico-fav'].forEach(id=>{const l=document.getElementById(id);if(l)l.href=I[2];});}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();
@@ -81,6 +85,10 @@ function checkUpdate(){if(!/^https?:$/.test(location.protocol)||!window.fetch)re
     if(S&&S.alive&&!cur)save();location.replace(location.pathname+'?v='+encodeURIComponent(m[1])+location.hash);}).catch(()=>{});}
 window.addEventListener('load',checkUpdate);
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
+// Save backup: the whole save as one text code, so a player can keep it in Notes and restore it on any phone.
+const CODE_TAG='MYLIFE1:';
+function saveCode(){if(S)save();let r;try{r=localStorage.getItem(SAVE_KEY);}catch(e){}if(!r)return '';const b=new TextEncoder().encode(r);let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192));return CODE_TAG+btoa(s);}
+function readCode(c){c=(c||'').replace(/\s+/g,'');if(!c.startsWith(CODE_TAG))return null;try{const s=atob(c.slice(CODE_TAG.length)),b=Uint8Array.from(s,ch=>ch.charCodeAt(0)),o=JSON.parse(new TextDecoder().decode(b));return o&&o.stats&&o.year&&o.birthYear?o:null;}catch(e){return null;}}
 function load(){try{const r=localStorage.getItem(SAVE_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
 

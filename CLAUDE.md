@@ -98,7 +98,12 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
 - Theme colours live at the end of `css/style.css` as `html[data-skin="x"]{--bg:…;--accent:…}` plus a few
   overrides. Use the colour variables (`var(--surface)`, `var(--ink)`, `var(--accent)`…) in new styles rather than
   fixed colours, or the new style will look wrong in Malam (the dark theme). Check new screens in Malam.
-- Settings (`settingsModal()` in `render.js`) holds the theme picker, sound on/off and "Start new family".
+- Settings (`settingsModal()` in `render.js`) holds the theme picker, the home screen icon picker, sound on/off and "Start new family".
+- Save backup (Settings): "Copy save code" turns the save into one text code (`saveCode()` / `readCode()` in `fx.js`,
+  prefix `MYLIFE1:`); "Restore from code" writes it back. Keep `readCode()` accepting old codes if the save format grows.
+- Home screen icon: `img/icon_kid.png`, `icon_hibiscus.png`, `icon_malam.png` (192×192). The choice is stored in localStorage
+  (`my-lifesim-icon`) and applied by the `<head>` script in `index.html` (and `setAppIcon()` in `fx.js`). Phones read the icon
+  only when the game is added to the home screen, so changing it means removing and re-adding the shortcut.
   Put any future player settings there too.
 
 ## Music

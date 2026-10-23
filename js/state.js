@@ -117,7 +117,7 @@ function floodHit(e){if(S.country!=='MY'){log('Floods hit Malaysia. You donate t
 function preArt(m){try{const k=m&&m.icon,u=k&&icoSrc(k);if(u){const i=new Image();i.src=u;}}catch(e){}}
 function q(m){if(m){MQ.push(m);preArt(m);}}
 function qFront(m){if(m){MQ.unshift(m);preArt(m);}}
-function snap(){return {...S.stats,money:S.money,know:S.know||0};}
+function snap(){return S?{...S.stats,money:S.money,know:S.know||0}:{};}
 function diff(b){const out=[];for(const k in STAT_NAMES){if(k==='luck')continue;const d=Math.round(S.stats[k]-b[k]);if(d)out.push((d>0?'+':'')+d+' '+STAT_NAMES[k]);}
   const dk=Math.round((S.know||0)-(b.know||0));if(dk)out.push((dk>0?'+':'')+dk+' Knowledge');
   const dm=S.money-b.money;if(Math.abs(dm)>=1)out.push((dm>0?'+':'')+fmt(dm));return out;}
@@ -137,11 +137,11 @@ const ICON_ART={m_ring:'ev_propose',m_cheat:'ev_caught',m_rip:'ev_farewell',f_ma
   m_tadika:'ev_m_tadika',m_primary:'ev_m_primary',m_secondary:'ev_m_secondary',m_spm:'ev_m_spm',m_uni:'ev_degree',m_scholar:'ev_scholar',m_grad:'ev_grad',w_pandemic:'ev_mco',w_flood:'ev_flood'};
 function modalArt(m){if(m.tag==='Politics'&&POL_ART[m.title]&&icoSrc(POL_ART[m.title]))m={...m,icon:POL_ART[m.title]};
   {const k=TITLE_ART[m.title]||ICON_ART[m.icon];if(k&&icoSrc(k))m={...m,icon:k};}if(m.img)return `<div class="m-art"><img class="pic" src="${m.img}" alt=""></div>`;if(m.icon&&/^ev_/.test(m.icon)&&icoSrc(m.icon))return `<div class="m-art"><img class="pic" src="${icoSrc(m.icon)}" alt=""></div>`;if(m.icon&&hasIco(m.icon))return `<div class="m-art">${ico(m.icon)}</div>`;if(m.tag&&TAG_ART[m.tag])return `<div class="m-art"><span class="ico" aria-hidden="true">${TAG_ART[m.tag]}</span></div>`;return '';}
-function drawModal(){const m=cur;if(m.choices&&m.choices.length)cue(m.tag==='World event'?'alert':m.tag==='Festive season'?'festive':m.tag==='Love'?'love':m.tag==='Milestone'?'milestone':'event');else if(m.delta&&m.delta.length){const pos=m.delta.filter(x=>/^[+]/.test(x)).length,neg=m.delta.length-pos;cue(pos>neg?'good':neg>pos?'bad':'event');}const chs=(m.choices||[]).map((c,i)=>{const ok=!c[2]||c[2]();return `<button data-act="choose" data-arg="${i}" ${ok?'':'disabled'}>${c[0]}${c[3]?`<small>${c[3]}</small>`:''}</button>`;}).join('');
+function drawModal(quiet){const m=cur;if(quiet);else if(m.choices&&m.choices.length)cue(m.tag==='World event'?'alert':m.tag==='Festive season'?'festive':m.tag==='Love'?'love':m.tag==='Milestone'?'milestone':'event');else if(m.delta&&m.delta.length){const pos=m.delta.filter(x=>/^[+]/.test(x)).length,neg=m.delta.length-pos;cue(pos>neg?'good':neg>pos?'bad':'event');}const chs=(m.choices||[]).map((c,i)=>{const ok=!c[2]||c[2]();return `<button data-act="choose" data-arg="${i}" ${ok?'':'disabled'}>${c[0]}${c[3]?`<small>${c[3]}</small>`:''}</button>`;}).join('');
   $('#m-sheet').innerHTML=`${m.tag?`<span class="chip tag ${m.tag==='World event'?'warn':m.tag==='Festive season'?'gold':''}">${esc(m.tag)}</span>`:''}${modalArt(m)}<h2 id="m-title">${m.title}</h2><p class="txt">${m.text||''}</p>
    ${m.delta&&m.delta.length?`<div class="delta">${m.delta.map(d=>`<span class="${/^[+]/.test(d)?'pos':'neg'}">${esc(d)}</span>`).join('')}</div>`:''}
    <div class="choices">${chs||'<button data-act="close">Continue</button>'}${chs&&!(m.choices||[]).some(c=>!c[2]||c[2]())?'<button data-act="close">Continue</button>':''}</div>`;
-  $('#modal').hidden=false;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});modalFx(m);bgm();}
+  $('#modal').hidden=false;if(quiet)return;const b=$('#m-sheet button:not(:disabled)');if(b)b.focus({preventScroll:true});modalFx(m);bgm();}
 function choose(i){const c=cur&&cur.choices&&cur.choices[i];if(!c){closeModal();return;}if(c[2]&&!c[2]())return;if(!c[1]){closeModal();return;}
   const b=snap();let out;fxParty=0;fxArt=null;try{out=c[1]();}catch(e){console.error(e);out='';}const party=fxParty&&!MQ.some(x=>x._party),art=fxArt;fxParty=0;fxArt=null;if(out===false){cur=null;return;}if(out==='keep')return;
   const d=S?diff(b):[];if(out||d.length){cur={title:art?art.title:cur.title,tag:cur.tag,icon:art?art.icon:cur.icon,text:out||'Done.',delta:d,choices:null,_party:party};drawModal();}else closeModal();}
