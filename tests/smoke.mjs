@@ -69,7 +69,7 @@ for (let n = 0; n < LIVES; n++) {
         pickEl(heirs).click(); generations++; continue;
       }
       if (!vis('#s-game') && !vis('#modal')) break;
-      if (vis('#modal')) { const bs = [...document.querySelectorAll('#m-sheet button:not(:disabled)')]; if (bs.length) { pickEl(bs).click(); clicks++; continue; } }
+      if (vis('#modal')) { const bs = [...document.querySelectorAll('#m-sheet button:not(:disabled):not([data-act^="abandon"])')]; if (bs.length) { pickEl(bs).click(); clicks++; continue; } }
       const r = rnd();
       if (r < 0.65) {
         // Everything on the game screen except "abandon" (start a different family), which would end the test early.

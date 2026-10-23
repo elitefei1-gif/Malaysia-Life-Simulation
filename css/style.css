@@ -457,3 +457,82 @@ body:has(#s-game:not([hidden])){overflow:hidden}
 #g-stats .stat .bar{margin-right:24px}
 #g-stats{padding-bottom:4px}
 #g-stats .stat .lbl>span:last-child{bottom:-2px}
+
+/* ---- v98 themes: picked in Settings (⚙️), stored in localStorage, applied as <html data-skin="…">. Songket is the default (no attribute). ---- */
+html[data-skin="peranakan"]{--bg:#fdf3f5;--surface:#fff;--surface2:#fdeef2;--card:#fffafb;--ink:#2b2d42;--muted:#7a6874;--line:#f4d6df;--line-strong:#e7b3c4;--accent:#2a9d8f;--accent-soft:#dcf2ef;--hib:#d6457a;--teal-d:#1f7a70;--songket:#f2a7c3;--track:#f6e1e8;--bar1:#2a9d8f;--bar2:#5cc5b8;--btn1:#d6457a;--btn2:#ee7aa5;--btn-glow:rgba(214,69,122,.3);--tab-shadow:#145a52;--sheet:#fffafb;--songket-bg:radial-gradient(circle at 50% 50%,#f2a7c3 0 2.5px,transparent 3px) 0 0/22px 22px,linear-gradient(45deg,transparent 46%,rgba(255,255,255,.35) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(-45deg,transparent 46%,rgba(255,255,255,.35) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(160deg,#2a9d8f,#1f7a70 60%,#18645c)}
+html[data-skin="peranakan"] body{background:var(--bg)}
+html[data-skin="peranakan"] .idcard:not(.hon){background:var(--card)}
+html[data-skin="peranakan"] .bar{background:var(--track)}
+html[data-skin="peranakan"] .bar i,html[data-skin="peranakan"] .bar i.lv4{background:linear-gradient(90deg,var(--bar1),var(--bar2))}
+html[data-skin="peranakan"] .tabs button{background:var(--surface)}
+html[data-skin="peranakan"] .tabs button[aria-selected="true"]{background:var(--teal-d);color:#fff;box-shadow:0 3px 0 var(--tab-shadow)}
+html[data-skin="peranakan"] .yearbar .nextbtn{background:linear-gradient(90deg,var(--btn1),var(--btn2));box-shadow:0 8px 20px var(--btn-glow)}
+html[data-skin="peranakan"] .yearbar{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+html[data-skin="peranakan"] #modal .sheet{background:radial-gradient(circle at 50% 50%,#f2a7c3 0 2.5px,transparent 3px) 0 0/22px 22px repeat-x,linear-gradient(45deg,transparent 46%,rgba(242,167,195,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(-45deg,transparent 46%,rgba(242,167,195,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(var(--teal-d),var(--teal-d)) 0 0/100% 22px no-repeat,var(--sheet)}
+html[data-skin="malam"]{--bg:#0f1a24;--surface:#182634;--surface2:#1f3142;--card:#182634;--ink:#eef3f7;--muted:#9fb1c1;--line:#2a3f52;--line-strong:#3b556b;--accent:#3cc6b0;--accent-ink:#06201b;--accent-soft:#16352f;--hib:#ff6b81;--teal-d:#0b6e66;--songket:#d9a93f;--track:#2a3f52;--bar1:#2bb39f;--bar2:#5be0c9;--btn1:#e0475e;--btn2:#ff6b81;--btn-glow:rgba(255,107,129,.25);--tab-shadow:#06403b;--sheet:#152331;--up:#4fd18a;--down:#ff7a88;color-scheme:dark;--songket-bg:radial-gradient(circle at 50% 50%,#d9a93f 0 2.5px,transparent 3px) 0 0/22px 22px,linear-gradient(45deg,transparent 46%,rgba(217,169,63,.4) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(-45deg,transparent 46%,rgba(217,169,63,.4) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(160deg,#0a1520,#0f1a24 60%,#132331)}
+html[data-skin="malam"] body{background:var(--bg)}
+html[data-skin="malam"] .idcard:not(.hon){background:var(--card)}
+html[data-skin="malam"] .bar{background:var(--track)}
+html[data-skin="malam"] .bar i,html[data-skin="malam"] .bar i.lv4{background:linear-gradient(90deg,var(--bar1),var(--bar2))}
+html[data-skin="malam"] .tabs button{background:var(--surface)}
+html[data-skin="malam"] .tabs button[aria-selected="true"]{background:var(--teal-d);color:#fff;box-shadow:0 3px 0 var(--tab-shadow)}
+html[data-skin="malam"] .yearbar .nextbtn{background:linear-gradient(90deg,var(--btn1),var(--btn2));box-shadow:0 8px 20px var(--btn-glow)}
+html[data-skin="malam"] .yearbar{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+html[data-skin="malam"] #modal .sheet{background:radial-gradient(circle at 50% 50%,#d9a93f 0 2.5px,transparent 3px) 0 0/22px 22px repeat-x,linear-gradient(45deg,transparent 46%,rgba(217,169,63,.55) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(-45deg,transparent 46%,rgba(217,169,63,.55) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(var(--teal-d),var(--teal-d)) 0 0/100% 22px no-repeat,var(--sheet)}
+html[data-skin="kampung"]{--bg:#f3f1e3;--surface:#fffdf4;--surface2:#ecebd5;--card:#fffdf4;--ink:#2f2a1e;--muted:#6f6a52;--line:#ddd7b8;--line-strong:#c9bf8f;--accent:#4f7d2b;--accent-soft:#e3edd2;--hib:#b5542a;--teal-d:#5a3e22;--songket:#c8a15a;--track:#e6e1c6;--bar1:#5c8f2e;--bar2:#8cbf4f;--btn1:#b5542a;--btn2:#d9793f;--btn-glow:rgba(181,84,42,.3);--tab-shadow:#3b2814;--sheet:#fffdf4;--songket-bg:radial-gradient(circle at 50% 50%,#c8a15a 0 2.5px,transparent 3px) 0 0/22px 22px,linear-gradient(45deg,transparent 46%,rgba(200,161,90,.45) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(-45deg,transparent 46%,rgba(200,161,90,.45) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(160deg,#6b4a2a,#5a3e22 60%,#4a3219)}
+html[data-skin="kampung"] body{background:var(--bg)}
+html[data-skin="kampung"] .idcard:not(.hon){background:var(--card)}
+html[data-skin="kampung"] .bar{background:var(--track)}
+html[data-skin="kampung"] .bar i,html[data-skin="kampung"] .bar i.lv4{background:linear-gradient(90deg,var(--bar1),var(--bar2))}
+html[data-skin="kampung"] .tabs button{background:var(--surface)}
+html[data-skin="kampung"] .tabs button[aria-selected="true"]{background:var(--teal-d);color:#fff;box-shadow:0 3px 0 var(--tab-shadow)}
+html[data-skin="kampung"] .yearbar .nextbtn{background:linear-gradient(90deg,var(--btn1),var(--btn2));box-shadow:0 8px 20px var(--btn-glow)}
+html[data-skin="kampung"] .yearbar{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+html[data-skin="kampung"] #modal .sheet{background:radial-gradient(circle at 50% 50%,#c8a15a 0 2.5px,transparent 3px) 0 0/22px 22px repeat-x,linear-gradient(45deg,transparent 46%,rgba(200,161,90,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(-45deg,transparent 46%,rgba(200,161,90,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(var(--teal-d),var(--teal-d)) 0 0/100% 22px no-repeat,var(--sheet)}
+html[data-skin="batik"]{--bg:#eef3fb;--surface:#fff;--surface2:#e5edf9;--card:#fff;--ink:#14213d;--muted:#5b6a86;--line:#cfdcf1;--line-strong:#a9bfe3;--accent:#1d4e9e;--accent-soft:#dbe6f7;--hib:#2a58b8;--teal-d:#16357a;--songket:#f0b44c;--track:#dbe5f5;--bar1:#2563c9;--bar2:#5b8fe6;--btn1:#16357a;--btn2:#2a58b8;--btn-glow:rgba(22,53,122,.3);--tab-shadow:#0c2050;--sheet:#fff;--songket-bg:radial-gradient(circle at 50% 50%,#f0b44c 0 2.5px,transparent 3px) 0 0/22px 22px,linear-gradient(45deg,transparent 46%,rgba(255,255,255,.3) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(-45deg,transparent 46%,rgba(255,255,255,.3) 47% 53%,transparent 54%) 0 0/22px 22px,linear-gradient(160deg,#1d4e9e,#16357a 60%,#102a63)}
+html[data-skin="batik"] body{background:var(--bg)}
+html[data-skin="batik"] .idcard:not(.hon){background:var(--card)}
+html[data-skin="batik"] .bar{background:var(--track)}
+html[data-skin="batik"] .bar i,html[data-skin="batik"] .bar i.lv4{background:linear-gradient(90deg,var(--bar1),var(--bar2))}
+html[data-skin="batik"] .tabs button{background:var(--surface)}
+html[data-skin="batik"] .tabs button[aria-selected="true"]{background:var(--teal-d);color:#fff;box-shadow:0 3px 0 var(--tab-shadow)}
+html[data-skin="batik"] .yearbar .nextbtn{background:linear-gradient(90deg,var(--btn1),var(--btn2));box-shadow:0 8px 20px var(--btn-glow)}
+html[data-skin="batik"] .yearbar{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+html[data-skin="batik"] #modal .sheet{background:radial-gradient(circle at 50% 50%,#f0b44c 0 2.5px,transparent 3px) 0 0/22px 22px repeat-x,linear-gradient(45deg,transparent 46%,rgba(240,180,76,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(-45deg,transparent 46%,rgba(240,180,76,.6) 47% 53%,transparent 54%) 0 0/22px 22px repeat-x,linear-gradient(var(--teal-d),var(--teal-d)) 0 0/100% 22px no-repeat,var(--sheet)}
+/* Malam: dark surfaces need a few extra touches */
+html[data-skin="malam"] #modal{background:rgba(2,8,14,.65)}
+html[data-skin="malam"] .panel{background:#111e2a;border-color:#24384a}
+html[data-skin="malam"] .act,html[data-skin="malam"] .item{background:#203447;border:1.5px solid #6f93b5;box-shadow:0 2px 0 #0a141d}
+html[data-skin="malam"] .act:disabled{opacity:.55}
+html[data-skin="malam"] .panel h3,html[data-skin="malam"] .panel h2,html[data-skin="malam"] .sheet h2,html[data-skin="malam"] .hero h1,html[data-skin="malam"] .id-name,
+html[data-skin="malam"] .id-money b,html[data-skin="malam"] .idcard:not(.hon) .id-top{color:#f5e6c4}
+html[data-skin="malam"] .ap-pill{background:#3a1f2a;color:#ff9aab}
+html[data-skin="malam"] .delta span.pos,html[data-skin="malam"] .sl.up{background:#163a33;border-color:#2a6b5e;color:#7fe3c9}
+html[data-skin="malam"] .delta span.neg,html[data-skin="malam"] .sl.dn{background:#3a1f2a;border-color:#6b3445;color:#ff9aab}
+html[data-skin="malam"] .sl.rs{background:#3a2e1a;border-color:#6b5530;color:#f0c27a}
+html[data-skin="malam"] .rusty-tag{background:#3a2e1a;color:#f0c27a}html[data-skin="malam"] .weak-tag{background:#3a1f2a;color:#ff9aab}
+html[data-skin="malam"] #fx .fx-lbl,html[data-skin="malam"] #fx .fx-wallet{background:#182634;color:#eef3f7}
+html[data-skin="malam"] .btn.danger{color:#ff8a96}
+html[data-skin="malam"] img.ico,html[data-skin="malam"] .ico{background-color:#1f3142}
+/* Batik Biru: the age badge is indigo with a gold rim */
+html[data-skin="batik"] .idcard:not(.hon) .id-age{background:linear-gradient(160deg,#1d4e9e,#16357a);border:2px solid var(--songket)}
+html[data-skin="batik"] .ap-pill{background:#e5edf9;color:#16357a}
+/* Settings panel */
+.gear{border:0;background:none;padding:0 0 0 6px;font-size:15px;line-height:1;cursor:pointer;vertical-align:middle}
+.set-h{font:900 13px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 8px}
+.skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-bottom:6px}
+.skin{display:grid;gap:6px;justify-items:start;text-align:left;padding:10px;border-radius:14px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);font:800 13px/1.2 var(--f-body);cursor:pointer}
+.skin[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.skin .sw{display:flex}.skin .sw i{width:22px;height:22px;border-radius:50%;border:2px solid var(--surface);margin-right:-6px}
+.skin small{font-weight:600;color:var(--muted);font-size:11px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+html[data-skin="malam"] #g-panel h3{color:#f5e6c4}
+html[data-skin="malam"] .yearbar .nextbtn,html[data-skin="malam"] .nextbtn{color:#fff}
+/* the ⚙️ sits beside "Gen 1" without pushing the family name onto a second line */
+.id-top{gap:8px;align-items:center}
+.id-top>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.id-top>span:last-child{flex:none;white-space:nowrap;display:inline-flex;align-items:center}
+.gear{font-size:14px;padding-left:6px;margin:-4px 0}
+/* three theme cards per row so Settings fits on one phone screen */
+.skins{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.skin{padding:8px;font-size:12.5px}.skin .sw i{width:18px;height:18px}

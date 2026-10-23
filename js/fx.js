@@ -68,6 +68,9 @@ function yearFx(a0){if(noFx()||!S||!S.alive||age()===a0)return;
   nw.animate([{transform:'rotateX(-90deg)',opacity:0},{transform:'none',opacity:1}],{duration:400,delay:1000,fill:'both'});}
 let tt;function toast(t){sfx('locked');const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600);}
 function barCls(v){return v<30?'lv1':v<50?'lv2':v<75?'lv3':'lv4';}
+const SKIN_KEY='my-lifesim-skin';
+function skinNow(){return document.documentElement.dataset.skin||'songket';}
+function setSkin(k){if(k==='songket')delete document.documentElement.dataset.skin;else document.documentElement.dataset.skin=k;try{localStorage.setItem(SKIN_KEY,k);}catch(e){}}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 /* ---- auto-update: home-screen web apps on iPhone can keep showing an old cached copy ---- */
 const VERSION_LABEL='v'+GAME_VERSION.split('.').pop();

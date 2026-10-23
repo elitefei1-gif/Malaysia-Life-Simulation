@@ -90,6 +90,17 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
    Playwright screenshot.
 5. Commit message format used so far: `Update game to vNN (short player-facing summary of what changed)`.
 
+## Themes and Settings
+
+- Five colour themes: Songket (default), Peranakan, Malam (night), Kampung, Batik Biru. The player picks one in
+  **Settings** (⚙️ on the ID card and on the title screen). It's stored in localStorage (`my-lifesim-skin`) and
+  applied as `<html data-skin="…">` by a tiny script in `<head>`, so there's no flash of the default colours.
+- Theme colours live at the end of `css/style.css` as `html[data-skin="x"]{--bg:…;--accent:…}` plus a few
+  overrides. Use the colour variables (`var(--surface)`, `var(--ink)`, `var(--accent)`…) in new styles rather than
+  fixed colours, or the new style will look wrong in Malam (the dark theme). Check new screens in Malam.
+- Settings (`settingsModal()` in `render.js`) holds the theme picker, sound on/off and "Start new family".
+  Put any future player settings there too.
+
 ## Music
 
 - Background music (`bgm()` in `sound.js`) follows the player's life, quiet and looping, and follows the mute button:
