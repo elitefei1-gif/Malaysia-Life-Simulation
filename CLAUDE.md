@@ -112,9 +112,11 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
 - Background music (`bgm()` in `sound.js`) follows the player's life, quiet and looping, and follows the mute button:
   - Title screen: Emas Harapan. End screen: Legacy.
   - Stage songs from `bgmStage()`: Childhood (0–12), School Days (13–17), Uni Life (studying, no job), Working Life,
-    Golden Years (60+ or retired). Politics (politician) and Rich Life (Dato' or very rich) override those, and
+    Golden Years (60+ or retired). Politics (a politician who has taken dirty money, `S.pol.dirty`, since the last MACC raid,
+    `S.pol.raidDirty`) and Rich Life (Dato' or very rich) override those, and
     Hardship overrides everything during jail or hospital.
-  - Moment songs from `bgmMoment()` play while their pop-up is open: Raya, Chinese New Year, Romance (`Love` tag),
+  - Moment songs from `bgmMoment()` play while their pop-up is open: Raya and Chinese New Year (only the first 5 festivals of
+    each life, counted in `S.festN`), Romance (`Love` tag),
     Hardship (titles in `MOMENT_TITLE`), and Wedding (set by `cueLog` when a marriage is logged). Then it fades back
     and the stage song resumes where it left off. `cue` in `TRACKS` skips a moment song's intro.
   - A song that can't load (offline and never played) falls back to Menu Hangat, which is always saved offline.

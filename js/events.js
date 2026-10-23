@@ -1,7 +1,7 @@
 'use strict';
 // Festivals, random events, life-stage events, achievements and death.
 /* ================= festivals ================= */
-function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;
+function festival(){const C=cult(),a=age(),I=infl(),F=C.fest;if(a<2)return;S.festN=(S.festN||0)+1; // festive music plays for the first 5 festivals of each life
   if(a>=18&&S.country==='MY'&&S.dyn.leg&&S.dyn.leg.hall)bump('hap',3); // the whole community comes to the hall you built
   if(chance(.5)&&a>=6&&S.country==='MY'){const o=pick(Object.values(CULTURES).filter(c=>c.fest!==F));log(`Visited a friend's ${o.fest} open house. Ate far too much.`,'festive');bump('cha',1);}
   if(a<18||(a<=25&&S.edu.track&&!S.job)){const amt=Math.round((a<12?RI(80,300):RI(150,600))*I*(S.group==='T20'?2:S.group==='B40'?.6:1));

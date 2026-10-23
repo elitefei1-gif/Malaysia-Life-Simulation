@@ -105,7 +105,7 @@ function polTick(){const P=S.pol;
   if(P.rank>=3&&honTier()<1&&chance(.06))giveHonour('Datuk');
   else if((P.rank>=6||P.mb)&&honTier()===1&&chance(.12))giveHonour(P.mb?'Datuk Seri':'Tan Sri');
   else if(P.rank>=6&&honTier()===2&&chance(.1))giveHonour('Tan Sri');}
-function raidModal(){const P=S.pol,I=infl();const seized=Math.max(0,S.money)*.35;S.money-=seized;P.heat=Math.max(0,P.heat-30);log('MACC raided your home. Seized: '+fmt(seized)+'.','big');
+function raidModal(){const P=S.pol,I=infl();P.raidDirty=P.dirty;const seized=Math.max(0,S.money)*.35;S.money-=seized;P.heat=Math.max(0,P.heat-30);log('MACC raided your home. Seized: '+fmt(seized)+'.','big');
   const trial=lawyer=>()=>{const plead=lawyer==='plead';if(lawyer==='top')S.money-=800000*I;if(lawyer==='normal')S.money-=100000*I;
     const r=Math.random(),acq=lawyer==='top'?.35:lawyer==='normal'?.15:0,dnaa=plead?0:inGov()?.3:.1;
     if(r<acq){P.heat=10;S.dyn.rep-=2;log('Acquitted of corruption charges.','big');return 'The judge acquits you. Your supporters cheer outside the court.';}
