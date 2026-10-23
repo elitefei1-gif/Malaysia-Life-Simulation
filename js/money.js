@@ -72,7 +72,7 @@ function fortuneModal(amt){return {title:'A fortune to manage',icon:'m_money',ta
   ['Treat yourself',()=>{tab='assets';shopTab='lux';return 'Watches, cars, a yacht. They are in Assets → Shop → Luxury.';}],
   ['Leave it in the bank for now',()=>'Slow and safe.']]};}
 function familyCoModal(){const v=RI(1500000,4000000)*infl();const n=(S.dyn.famName||S.famName)+' Holdings';
-  return {title:'The family company',icon:'b_family',tag:'Money',text:`Your parents' company, ${esc(n)}, is worth about ${fmt(v)}. Your relatives ask whether you will take it over or sell your share to them.`,choices:[
+  return {title:'The family company',icon:'b_family',tag:'Money',text:`Your late parents' company, ${esc(n)}, is worth about ${fmt(v)}. Your relatives ask whether you will take it over or sell your share to them.`,choices:[
     ['Take over the company',()=>{wealthInit();S.assets.biz.push({id:'family',name:n,where:town().name,price:v,value:v});log(`Took over ${n}, the family company.`,'big');return 'You sit in your father\'s old chair for the first time. Everyone is watching.';}],
     ['Sell your share to your relatives',()=>{const c=v*.45;S.money+=c;log(`Sold your share of ${n} for ${fmt(c)}.`,'big');return `Your relatives pay you ${fmt(c)}. Less than it is worth, but no headaches.`;}]]};}
 
@@ -80,7 +80,8 @@ function familyCoModal(){const v=RI(1500000,4000000)*infl();const n=(S.dyn.famNa
 function meets(o){for(const k in o)if(S.stats[k]<o[k])return false;return true;}
 function eligible(id){const J=JOBS[id],r=J.req||{},a=age(),E=S.edu,why=[];
   if(r.edu){if(EDU_RANK[E.level]<EDU_RANK[r.edu]){if(!(r.orStat&&meets(r.orStat)))why.push(EDU_LABEL[r.edu]);}
-    else if(r.major&&E.level==='degree'&&!r.major.includes(E.major)&&['doctor','lawyer'].includes(id))why.push('Degree in '+r.major.map(m=>MAJORS[m].name).join(' / ')+' (licensed profession)');}
+    else if(r.major&&E.level==='degree'&&!r.major.includes(E.major)&&['doctor','lawyer','engineer','accountant'].includes(id))why.push('Degree in '+r.major.map(m=>MAJORS[m].name).join(' / ')+' (licensed profession)');}
+  if(id==='nurse'&&E.level==='degree'&&!['med','sport'].includes(E.major))why.push('A nursing or health qualification (licensed profession)');
   if(r.stat)for(const k in r.stat)if(S.stats[k]<r.stat[k])why.push(STAT_NAMES[k]+' '+r.stat[k]+'+');
   if(r.car&&!S.assets.cars.length)why.push('A vehicle');
   if(J.startCost&&S.money<J.startCost*infl())why.push(fmt(J.startCost*infl())+' capital');
@@ -287,13 +288,14 @@ function babyAskModal(p){const same=samePartner(),wed=married();
     [same?'Yes, let\'s adopt':'Yes, let\'s try',yes],
     ['Not yet',()=>{S.babyAsked=false;if(S.partner!==p)return '';p.rel=clamp(p.rel-8);return `${esc(p.name)} looks disappointed but agrees to wait.`;}],
     ['Never',()=>{S.babyAsked=false;if(S.partner!==p)return '';p.rel=clamp(p.rel-20);return `${esc(p.name)} goes very quiet. This could become a big problem.`;}]]};}
-function parentsTick(){for(const p of S.parents){if(!p.alive)continue;p.age++;
+function parentsTick(){if(S.withParents&&age()>=18&&!parAlive())S.withParents=false;for(const p of S.parents){if(!p.alive)continue;p.age++;
   if(p.age>62&&chance(Math.pow((p.age-55)/45,3)*.5*(S.dyn.leg&&S.dyn.leg.dial?.85:1))){p.alive=false;const a=age();
     let amt=S.group==='T20'?RI(300000,3000000):S.group==='M40'?RI(40000,300000):RI(0,30000);amt*=infl()/2;
     const lastOne=!S.parents.some(x=>x.alive);if(a<18||p.handedOver)amt=0;
     log(`Your ${p.role.toLowerCase()} ${p.name} passed away at ${p.age}.`,'big');bump('hap',-15);
     let txt=`Your ${p.role.toLowerCase()}, ${esc(p.name)}, passed away at ${p.age}.`;
     if(amt>0){S.money+=amt;txt+=`\nYou inherit ${fmt(amt)}.`;if(amt>=400000*infl()&&a>=21)S.fortune=amt;}
+    if(lastOne&&S.withParents&&a>=18){S.withParents=false;txt+='\nThe family home is sold to settle the estate, so you will need a place of your own.';}
     if(lastOne&&town().kampung&&a>=18){S.assets.houses.push({name:'Family kampung house',where:town().name,value:180000*infl(),price:180000*infl(),loanLeft:0,pay:0,country:'MY',landed:1});txt+='\nThe family kampung house passes to you.';}
     q({title:'Farewell',icon:'m_rip',text:txt,choices:[['Hold the funeral',()=>'Relatives come from all over to pay their respects.']]});if(S.fortune){if(S.group==='T20'&&chance(.45))q(familyCoModal());q(fortuneModal(S.fortune));S.fortune=0;}}}}
 function petsTick(){S.assets.pets=S.assets.pets.filter(p=>{p.age++;if(p.age>=p.life){log(`Your ${p.kind.toLowerCase()} ${p.name} passed away.`,'big');bump('hap',-5);return false;}return true;});}

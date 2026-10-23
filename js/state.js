@@ -3,6 +3,7 @@
 /* ================= state ================= */
 let S=null, MQ=[], cur=null, tab='life', shopTab='houses', autoYears=0, setup={gender:'M',culture:'random',year:'2000',pref:'opp',poly:'law'}, birthDraft=null;
 const age=()=>S.year-S.birthYear;
+const parAlive=()=>S.parents.some(p=>p.alive);
 const infl=()=>Math.pow(1.03,S.year-2025);
 const cult=()=>CULTURES[S.culture];
 const isBumi=()=>BUMI.includes(S.origCulture||S.culture);
