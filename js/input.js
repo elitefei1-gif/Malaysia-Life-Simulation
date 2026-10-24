@@ -75,6 +75,9 @@ const ACT={
   b.addEventListener('pointercancel',()=>{d=null;b.classList.remove('drag');bubPlace();});
   document.addEventListener('pointerdown',e=>{if(!$('#statpop').hidden&&!e.target.closest('#statpop,#sbub'))statPop(false);},true);
   addEventListener('resize',()=>{if(S)bubPlace();});})();
+// Volume sliders: change as you drag; a sound effect plays when you let go so you can hear the new level.
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.vol;if(!k)return;setVol(k,e.target.value/100);const l=$('#vol-'+k);if(l)l.textContent=e.target.value+'%';});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.vol==='sfx')sfx('tap');});
 document.addEventListener('click',e=>{const seg=e.target.closest('[data-seg] button');if(seg){if(seg.disabled)return;const box=seg.parentElement;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===seg));setup[box.dataset.seg]=seg.dataset.v;return;}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(!f)return;
   const act=b.dataset.act,m0=S&&S.money,ch=act==='choose'&&cur&&cur.choices&&cur.choices[+b.dataset.arg];

@@ -99,6 +99,7 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
   overrides. Use the colour variables (`var(--surface)`, `var(--ink)`, `var(--accent)`…) in new styles rather than
   fixed colours, or the new style will look wrong in Malam (the dark theme). Check new screens in Malam.
 - Settings (`settingsModal()` in `render.js`) holds the theme picker, the home screen icon picker, save backup, sound on/off,
+  Music and Sound effects volume sliders (`VOL` / `setVol()` in `sound.js`, saved in localStorage `my-lifesim-vol`),
   the music player button, Achievements (a pop-up, `achHtml()`) and "Start new family".
 - Tabs (`TABS` in `icons.js`): Life, Assets (ends with Will & estate, `willPanel()`), Travel, Family (ends with the family tree,
   `panelDynasty()`).
