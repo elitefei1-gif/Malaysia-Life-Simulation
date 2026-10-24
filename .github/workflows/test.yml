@@ -6,7 +6,8 @@ on:
   pull_request:
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    # Pinned: Playwright's browser install fails on the Ubuntu 26 image that ubuntu-latest moved to in October 2026.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
