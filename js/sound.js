@@ -61,7 +61,7 @@ function bgmMoment(m){if(!m)return null;if(MOMENT_TITLE[m.title])return MOMENT_T
 function bgmStage(){const a=age();
   if(S.jail||(S.pol&&S.pol.jail)||inHosp())return 'hardship';
   if(S.pol&&a>=18&&S.pol.dirty>(S.pol.raidDirty||0))return 'politics'; // only once you're corrupt, until a MACC raid or retiring
-  if(S.bgmLove)return 'romance'; // the "falling in love" years, decided once a year in nextYear()
+  if(S.bgmLove===S.year)return 'romance'; // set when you spend the night with your partner; back to normal next year
   if(a>=25&&(honTier()||netWorth()>=5e6*infl()))return 'rich';
   if(a>=60||S.retired)return 'golden';
   if(a<=12)return 'child';
