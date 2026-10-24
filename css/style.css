@@ -607,3 +607,37 @@ html[data-skin="malam"] .t-quote{color:#dbe4ec}
 @media (max-width:350px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* ---- v116 pop-ups: the songket band stays on top while the pop-up scrolls, so pictures and text slide under it ---- */
 #modal .sheet::before{content:"";position:sticky;top:-40px;z-index:3;flex:none;height:40px;margin:-40px -18px -14px;background:inherit;animation:none}
+/* ---- v117 shop: showroom shelves and the showroom pop-up ---- */
+:root{--show-bg:radial-gradient(circle at 50% 70%,color-mix(in srgb,var(--songket,#e7b84a) 14%,var(--surface)),color-mix(in srgb,var(--songket,#e7b84a) 42%,var(--surface)))}
+.shoptabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 2px;padding:2px}
+.shoptabs button{flex:none;display:flex;align-items:center;gap:6px;padding:6px 12px 6px 7px;border-radius:99px;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--ink);font:800 13px var(--f-body)}
+.shoptabs button .ico{width:24px;height:24px;border:0;background:none}
+.shoptabs button[aria-pressed="true"]{background:var(--teal-d);color:#fff;border-color:var(--songket)}
+.shelf h4{margin:6px 0 6px;font:900 14px var(--f-body);color:var(--teal-d);display:flex;justify-content:space-between;align-items:baseline}
+.shelf h4 small{font:700 12px var(--f-body);color:var(--muted)}
+.srow{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:2px 2px 6px;margin:0 -2px}
+.mcard{flex:0 0 46%;scroll-snap-align:start;display:flex;flex-direction:column;text-align:left;padding:0;border-radius:16px;overflow:hidden;border:2px solid var(--songket,var(--line-strong));background:var(--surface);color:var(--ink);position:relative;cursor:pointer}
+.mcard .pic{height:96px;display:grid;place-items:center;background:var(--show-bg)}
+.mcard .pic .ico{width:86px;height:86px;border:0;background:none;font-size:52px}
+.mcard .tag,.sr-pic .tag{position:absolute;top:6px;left:6px;z-index:1;background:var(--hib,var(--accent));color:#fff;font:900 9px/1.7 var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:0 7px;border-radius:99px}
+.mcard .b{padding:7px 9px 9px;display:grid;gap:1px}.mcard b{font:900 13px/1.15 var(--f-display)}
+.mcard .pr{font:800 13.5px var(--f-mono);color:var(--teal-d)}.mcard small{font-size:10.5px;color:var(--muted)}
+.mcard.off{opacity:.55}
+#showroom{position:fixed;inset:0;z-index:60;background:rgba(8,26,30,.6);display:grid;place-items:end center}
+#showroom[hidden]{display:none}
+.sr-card{width:100%;max-width:520px;max-height:92vh;max-height:92dvh;overflow:auto;border-radius:26px 26px 0 0;background:var(--surface);color:var(--ink);border:3px solid var(--songket,var(--line-strong));border-bottom:0;animation:fxPop .35s cubic-bezier(.2,1.3,.4,1)}
+.sr-pic{position:relative;height:230px;display:grid;place-items:center;background:var(--show-bg)}
+.sr-pic>.ico{width:200px;height:200px;border:0;background:none;font-size:120px}
+.sr-pic .tag{top:14px;left:14px;font-size:11px;padding:0 10px}
+.sr-nav,.sr-x{position:absolute;border:0;border-radius:50%;background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--teal-d);font:900 24px/1 var(--f-body);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.sr-nav{top:50%;transform:translateY(-50%);width:42px;height:42px}.sr-nav.l{left:10px}.sr-nav.r{right:10px}
+.sr-x{top:10px;right:10px;width:34px;height:34px;font-size:16px}
+.sr-b{padding:14px 18px 22px;display:grid;gap:6px}
+.sr-cnt{font-size:12px;color:var(--muted);text-align:center}
+.sr-b h2{margin:0;font:900 24px/1.15 var(--f-display);color:var(--teal-d)}.sr-sub{font-size:14px;color:var(--muted)}
+.sr-kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.sr-kv div{background:var(--surface2);border-radius:12px;padding:8px 10px;font-size:12px;color:var(--muted)}.sr-kv b{display:block;font:800 16px var(--f-mono);color:var(--ink)}
+.sr-note{margin:2px 0 0;font-size:13.5px;line-height:1.45}
+.sr-acts{display:grid;gap:8px;margin-top:6px}.sr-acts .btn{padding:13px;font-size:16px;font-weight:800}.sr-acts .btn small{display:block;font-size:12px;font-weight:600;opacity:.85}
+html[data-skin="malam"] .shelf h4,html[data-skin="malam"] .sr-b h2,html[data-skin="malam"] .mcard .pr{color:#f5e6c4}
+.mcard .pr.txt{font:800 12.5px/1.25 var(--f-body)}

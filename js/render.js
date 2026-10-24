@@ -50,16 +50,66 @@ function logHtml(){const groups=[];for(let i=S.log.length-1;i>=0&&groups.length<
 function willPanel(){const a=age();return `<div class="panel"><h3>Will & estate</h3><p style="margin:0">${S.will?'✅ You have a will. Your chosen heir receives half your cash plus all property; the rest is split.':'No will yet. Without one, about 15% of your cash estate goes on legal fees and family disputes, and everything is split equally.'}</p>
     ${S.will?'':`<div class="row"><button class="btn small" data-act="will" ${a>=21&&S.money>=1500*infl()?'':'disabled'}>Write a will (${fmt(1500*infl())})</button></div>`}
     ${S.kids.some(k=>k.alive!==false&&S.year-k.born>=18)?`<div class="row"><button class="btn small" data-act="handover">Pass on wealth early and play as a child</button></div>`:''}</div>`;}
+/* ================= shop: showroom shelves (v117) ================= */
+// Every shop item as one record. The shelves and the showroom pop-up both draw from this; buying still goes
+// through the old handlers (buyhouse, buycar, ...), so prices, loans and rules live in one place.
+const SHOP_TABS=[['houses','Property','h_terrace'],['cars','Vehicles','c_axia'],['pets','Pets','p_kcat'],['biz','Business','b_kopitiam'],['lux','Luxury','l_rolex'],['inv','Invest','i_gold']];
+function shopItems(k){const I=infl(),a=age(),fx=fxNow(),act=(label,name,arg,ok,why)=>({label,name,arg,ok:!!ok,why:ok?'':why||''});
+  if(k==='houses'){const r=rate(fx),yrs=Math.max(5,Math.min(35,70-a)),C=ctry();return houseList().map((H,i)=>{const p=H.price*I*bumiDisc(H),bl=H.cond&&!H.cond();
+    return {g:H.country?'Homes in '+C.city:H.lux?'Luxury homes':H.price<=400000?'Starter homes':H.landed?'Landed homes':'Condominiums',tag:H.lux?'Luxury':H.landed?'Landed':'Strata',
+      name:H.name,sub:H.where,img:houseKey(H),price:p,mo:amort(p*.9,r,yrs)/12,moNote:`10% down, ${yrs} years at ${(r*100).toFixed(1)}%`,off:bl||a<18,
+      note:a<18?'You need to be 18 to buy property.':bl?H.why:'You pay 10% down plus about 3% in fees. Property not lived in is rented out (~3.5% of its value a year).',
+      acts:[act('See payment options','buyhouse',i,!bl&&a>=18)]};});}
+  if(k==='cars'){const G={Motorcycle:'Two wheels',Budget:'Everyday cars',Popular:'Everyday cars',Sedan:'Family & SUV',SUV:'Family & SUV',EV:'Electric',Executive:'Luxury & dream',Luxury:'Luxury & dream',Supercar:'Luxury & dream'};
+    return CARS.filter(c=>S.year>=c.from&&(!c.to||S.year<=c.to)).map(c=>{const p=c.price*I*(S.country==='MY'?1:ctry().col*.8),ok=a>=(c.minAge||18);
+      return {g:G[c.type]||'Cars',tag:c.ev?'Electric':c.type,name:c.name,sub:c.type+(c.ev?' · electric':''),img:carKey(c.type,c.id),price:p,mo:p*.9*1.27/9/12,moNote:'Hire purchase: 10% down, 9 years at 3% flat',
+        off:!ok,note:ok?'Models appear and disappear with their real launch years.':`You need to be ${c.minAge||18} to drive this.`,acts:[act('See payment options','buycar',c.id,ok)]};});}
+  if(k==='pets'){const G={kcat:'Cats',persian:'Cats',bsh:'Cats',mutt:'Dogs',golden:'Dogs',shihtzu:'Dogs',betta:'Fish',arowana:'Fish',koi:'Fish'};
+    return PETS.map(P=>({g:G[P.id]||'Small pets & birds',tag:P.price?'For sale':'Adopt',name:P.name,sub:P.landed?'Needs a landed home':'Fine in any home',img:'p_'+P.id,price:P.price*I,free:!P.price,
+      kv2:['Upkeep',fmt(P.cost*I)+'/yr'],off:a<8,note:a<8?'Your parents say you can have a pet from age 8.':P.id==='arowana'?'Said to bring good luck.':P.id==='merbok'?'Merbok singing contests are a big deal in the kampung.':`Lives ${P.life[0]}–${P.life[1]} years.`,
+      acts:[act(P.price?'Buy':'Adopt','buypet',P.id,a>=8)]}));}
+  if(k==='biz')return BIZ.map(B=>{const p=B.price*I,ok=a>=21&&S.money>=p;return {g:'Businesses for sale',tag:'Business',name:B.name,sub:B.where,img:'b_'+B.id,price:p,
+    kv2:['Usual profit',`${Math.round((B.yld-.02)*100)}–${Math.round((B.yld+.02)*100)}% a year`],off:!ok,note:'Profit swings every year. Your stats help, and a day job or living abroad means paying a manager.',
+    acts:[act('Buy','buybiz',B.id,ok,a<21?'Age 21+':'Needs '+fmt(p))]};});
+  if(k==='lux')return LUX.map(L=>{const p=L.price*I,ok=a>=L.min&&S.money>=p;return {g:'Luxury',tag:L.dep>0?'Loses value':'Holds value',name:L.name,sub:L.dep>0?'Loses value over time':'Holds its value',img:'l_'+L.id,price:p,
+    kv2:['Upkeep',fmt(p*L.up)+'/yr'],off:!ok,note:'Luxury makes you happier and better-looking, and people notice.',acts:[act('Buy','buylux',L.id,ok,a<L.min?'Age '+L.min+'+':'Needs '+fmt(p))]};});
+  wealthInit();const v=S.inv,chunk=Math.max(0,S.money*.25),inv=(id,name,sub,val,ok,why)=>({g:'Investments',tag:val>0?'You hold':'Invest',name,sub,img:'i_'+id,price:null,
+    kv1:['You hold',fmt(val)],kv2:['Next invest',fmt(chunk)],card:[val>0?fmt(val)+' held':'Not invested yet','Invest '+fmt(chunk)+' at a time'],off:!ok,note:ok?'Each Invest puts in a quarter of your cash.':why,
+    acts:[act('Invest '+fmt(chunk),'invest',id,ok&&chunk>=1000,'Needs at least '+fmt(4000)+' in cash'),...(val>0?[act('Cash out','cashout',id,1)]:[])]});
+  return [inv('gold','Gold','Often rises when stocks fall',v.gold,a>=18,'Age 18+'),
+    inv('safe','Bond fund','Private banker · about 4% a year',v.safe,bankerOk(),'Private banking needs a net worth of '+fmt(2e6*I)),
+    inv('risky','Growth fund','Private banker · can beat the market or crash',v.risky,bankerOk(),'Private banking needs a net worth of '+fmt(2e6*I)),
+    {g:'Investments',tag:'Startups',name:'Angel investing',sub:fmt(250000*I)+' per startup',img:'i_angel',price:null,kv1:['Backing',v.angel.length?v.angel.length+' startup'+(v.angel.length>1?'s':''):'None'],kv2:['Per startup',fmt(250000*I)],card:[v.angel.length?'Backing '+v.angel.length:'Not invested yet',fmt(250000*I)+' per startup'],
+      off:!angelOk(),note:angelOk()?'Most startups fail. A few sell for many times the money.'+(v.angel.length?' Backing: '+v.angel.map(x=>esc(x.name)).join(', ')+'.':''):'Needs a net worth of '+fmt(3e6*I),
+      acts:[act('Back a startup','angel','',angelOk()&&S.money>=250000*I,'Needs '+fmt(250000*I))]}];}
+const shopPrice=x=>x.card?x.card[0]:x.free?'Free':fmt(x.price);
+const shopSub=x=>x.card?x.card[1]:x.mo!=null?fmt(x.mo)+'/mo':x.kv2?x.kv2[0].toLowerCase()+' '+x.kv2[1]:'';
+function shopShelves(){const L=shopItems(shopTab),gs=[...new Set(L.map(x=>x.g))];
+  return gs.map(g=>{const ix=L.map((x,i)=>x.g===g?i:-1).filter(i=>i>=0);return `<div class="shelf"><h4>${esc(g)}<small>${ix.length}${ix.length>2?' · swipe ›':''}</small></h4><div class="srow">${ix.map(i=>{const x=L[i];
+    return `<button class="mcard${x.off?' off':''}" data-act="showroom" data-arg="${i}"><span class="tag">${esc(x.tag)}</span><span class="pic">${ico(x.img)}</span><span class="b"><b>${esc(x.name)}</b><span class="pr${x.card&&!/^-?RM/.test(x.card[0])?' txt':''}">${shopPrice(x)}</span><small>${shopSub(x)}</small></span></button>`;}).join('')}</div></div>`;}).join('');}
+// The showroom: one item big, with ‹ › (or a swipe) to the next. It sits on top of the game, outside the pop-up queue.
+let SR=-1;
+function showroomHtml(){const L=shopItems(shopTab),n=L.length;if(SR<0||!n)return '';SR=Math.min(SR,n-1);const x=L[SR];
+  const kv=[x.price!=null?['Price',x.free?'Free':fmt(x.price)]:x.kv1,x.mo!=null?['Monthly (loan)',fmt(x.mo)]:x.kv2].filter(Boolean);
+  return `<div class="sr-card" data-act="srnoop"><div class="sr-pic"><span class="tag">${esc(x.tag)}</span>${ico(x.img)}
+    ${n>1?`<button class="sr-nav l" data-act="srnav" data-arg="-1" aria-label="Previous">‹</button><button class="sr-nav r" data-act="srnav" data-arg="1" aria-label="Next">›</button>`:''}
+    <button class="sr-x" data-act="srclose" aria-label="Close">✕</button></div>
+    <div class="sr-b"><div class="sr-cnt">${SR+1} of ${n}${n>1?' · swipe for more':''}</div><h2>${esc(x.name)}</h2><div class="sr-sub">${esc(x.sub)}</div>
+    <div class="sr-kv">${kv.map(([k,v])=>`<div>${k}<b>${v}</b></div>`).join('')}</div>${x.moNote&&x.mo!=null?`<small class="muted">${x.moNote}</small>`:''}
+    ${x.note?`<p class="sr-note">${x.off?'🔒 ':''}${x.note}</p>`:''}
+    <div class="sr-acts">${x.acts.map((A,j)=>`<button class="btn ${j?'':'primary'}" data-act="srgo" data-arg="${j}" ${A.ok?'':'disabled'}>${A.label}${A.ok||!A.why?'':`<small>${A.why}</small>`}</button>`).join('')}</div></div></div>`;}
+function showroom(i){let el=$('#showroom');if(!el){el=document.createElement('div');el.id='showroom';el.dataset.act='srclose';document.body.appendChild(el);
+    let x0=null;el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+    el.addEventListener('touchend',e=>{if(x0==null)return;const d=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(d)>50)srNav(d<0?1:-1);},{passive:true});}
+  SR=i;el.innerHTML=showroomHtml();el.hidden=SR<0;}
+function srNav(d){const n=shopItems(shopTab).length;if(SR<0||n<2)return;showroom((SR+d+n)%n);sfx('tap');}
+function srClose(){SR=-1;const el=$('#showroom');if(el)el.hidden=true;}
+function srGo(j){const A=shopItems(shopTab)[SR]?.acts[j];if(!A||!A.ok)return;srClose();ACT[A.name](String(A.arg));}
 function panelAssets(){const I=infl(),fx=fxNow();wealthInit();
   const houses=S.assets.houses.map((h,i)=>`<div class="item">${ico(houseKey(h))}<div class="t"><b>${esc(h.name)} ${i===S.home&&h.country===S.country?'<span class="chip">Home</span>':'<span class="chip gold">Rented out</span>'}</b><small>${esc(h.where)} · value <span class="mono">${fmt(h.value)}</span>${h.loanLeft>0?` · loan left <span class="mono">${fmt(h.loanLeft)}</span>`:''}</small></div><div class="row">${i!==S.home&&h.country===S.country&&!h.rental?`<button class="btn small" data-act="sethome" data-arg="${i}">Move in</button>`:''}${h.loanLeft>0?`<button class="btn small" data-act="payhouse" data-arg="${i}" ${S.money>=h.loanLeft?'':'disabled'}>Pay off loan (${fmt(h.loanLeft)})</button>`:''}<button class="btn small danger" data-act="sellhouse" data-arg="${i}">Sell</button></div></div>`).join('');
   const cars=S.assets.cars.map((c,i)=>`<div class="item">${ico(carKey(c.type,c.id))}<div class="t"><b>${esc(c.name)}</b><small>${c.type}${c.ev?' · EV':''} · value <span class="mono">${fmt(c.value)}</span>${c.loanLeft>0?` · loan left <span class="mono">${fmt(c.loanLeft)}</span>`:''}</small></div><div class="row">${c.loanLeft>0?`<button class="btn small" data-act="paycar" data-arg="${i}" ${S.money>=c.loanLeft*.92?'':'disabled'}>Pay off loan (${fmt(c.loanLeft*.92)})</button>`:''}<button class="btn small danger" data-act="sellcar" data-arg="${i}">Sell</button></div></div>`).join('');
   const pets=S.assets.pets.map(p=>`<div class="item">${ico('p_'+p.id)}<div class="t"><b>${esc(p.name)}</b><small>${esc(p.kind)} · ${p.age} yr${p.age===1?'':'s'} old</small></div></div>`).join('');
   const homeStatus=homeOk()?`Living in your own ${esc(S.assets.houses[S.home].name.toLowerCase())}.`:S.withParents?'Living with your parents (rent-free).':S.country==='MY'?'Renting a place.':'Renting in '+esc(ctry().city)+'.';
-  let shop='';
-  if(shopTab==='houses')shop=houseList().map((H,i)=>{const p=H.price*I*bumiDisc(H);const blocked=H.cond&&!H.cond();return `<div class="item">${ico(houseKey(H))}<div class="t"><b>${esc(H.name)}${H.landed?' <span class="chip">Landed</span>':''}${H.lux?' <span class="chip gold">Luxury</span>':''}</b><small>${esc(H.where)} · <span class="mono">${fmt(p)}</span>${blocked?' · '+esc(H.why):''}</small></div><button class="btn small" data-act="buyhouse" data-arg="${i}" ${blocked||age()<18?'disabled':''}>View</button></div>`;}).join('');
-  if(shopTab==='cars')shop=CARS.filter(c=>S.year>=c.from&&(!c.to||S.year<=c.to)).map(c=>{const p=c.price*I*(S.country==='MY'?1:ctry().col*.8);return `<div class="item">${ico(carKey(c.type,c.id))}<div class="t"><b>${esc(c.name)}</b><small>${c.type}${c.ev?' · electric':''} · <span class="mono">${fmt(p)}</span></small></div><button class="btn small" data-act="buycar" data-arg="${c.id}" ${age()<(c.minAge||18)?'disabled':''}>View</button></div>`;}).join('')+`<p class="muted" style="margin:0;font-size:12.5px">Models appear and disappear with real launch years. Prices are approximate and scale with inflation.</p>`;
-  if(['biz','lux','inv'].includes(shopTab))shop=wealthShop(shopTab);
-  if(shopTab==='pets')shop=PETS.map(P=>`<div class="item">${ico('p_'+P.id)}<div class="t"><b>${esc(P.name)}</b><small>${P.price?'<span class="mono">'+fmt(P.price*I)+'</span>':'Free'} · upkeep <span class="mono">${fmt(P.cost*I)}</span>/yr${P.landed?' · needs a landed home':''}${P.id==='arowana'?' · said to bring luck':''}${P.id==='merbok'?' · singing contests':''}</small></div><button class="btn small" data-act="buypet" data-arg="${P.id}" ${age()<8?'disabled':''}>${P.price?'Buy':'Adopt'}</button></div>`).join('');
   return `<div class="panel"><h3>Balance sheet</h3><dl class="kv">
     <dt>Cash</dt><dd class="mono ${S.money<0?'neg':''}">${fmt(S.money)}</dd><dt>EPF / KWSP</dt><dd class="mono">${fmt(S.epf)}</dd>
     <dt>Stocks & unit trusts</dt><dd class="mono">${fmt(S.stocks)} ${S.stocks>0?'<button class="btn small" data-act="sellstocks">Sell all</button>':''}</dd>
@@ -70,9 +120,9 @@ function panelAssets(){const I=infl(),fx=fxNow();wealthInit();
     ${S.showStmt===false?'<div class="row"><button class="btn small" data-act="stmton">Show the money summary every year</button></div>':''}
     <p class="muted" style="margin:0;font-size:13px">${homeStatus} ${age()>=18&&S.country==='MY'&&!homeOk()?`<button class="btn small" data-act="toggleParents">${S.withParents?'Move out':'Move back home'}</button>`:''}</p></div>
    ${houses||cars||pets||wealthOwned()?`<div class="panel"><h3>What you own</h3><div class="list">${houses}${cars}${wealthOwned()}${pets}</div></div>`:''}
-   <div class="panel"><h3>Shop</h3><div class="subtabs seg">${['houses','cars','pets','biz','lux','inv'].map(k=>`<button data-act="shop" data-arg="${k}" aria-pressed="${shopTab===k}">${{houses:'Property',cars:'Vehicles',pets:'Pets',biz:'Business',lux:'Luxury',inv:'Investments'}[k]}</button>`).join('')}</div>
-   ${age()<16?'<p class="muted" style="margin:0">You\'re too young to buy most things. Pets need your parents\' OK (age 8+).</p>':''}<div class="list">${shop}</div>
-   <p class="muted" style="margin:0;font-size:12.5px">Loan rate: ${(rate(fx)*100).toFixed(1)}%. Property not lived in is rented out (~3.5% of value a year).</p></div>`+willPanel();}
+   <div class="panel"><h3>Shop</h3><div class="shoptabs">${SHOP_TABS.map(([k,n,ic])=>`<button data-act="shop" data-arg="${k}" aria-pressed="${shopTab===k}">${ico(ic)}${n}</button>`).join('')}</div>
+   ${age()<16?'<p class="muted" style="margin:0">You\'re too young to buy most things. Pets need your parents\' OK (age 8+).</p>':''}${shopShelves()}
+   <p class="muted" style="margin:0;font-size:12.5px">Tap anything to see it in the showroom. Loan rate: ${(rate(fx)*100).toFixed(1)}%.</p></div>`+willPanel();}
 function panelTravel(){const I=infl(),fx=fxNow(),C=ctry(),abroad=S.country!=='MY';
   const tripOk=!(age()<16||(S.trips||0)>=2||inHosp());const trips=TRIPS.map(T=>`<div class="item trip${tripOk?' tap" data-act="trip" data-arg="'+T.id:''}">${ico('d_'+T.id)}<div class="t"><b>${esc(T.name)}</b><small>${fmt(T.cost*I*(fx.travel||1))} · 😊 +${T.hap}${S.visited.includes(T.id)?' · ✓ Visited':''}</small></div><button class="btn small" data-act="trip" data-arg="${T.id}" ${age()<16||(S.trips||0)>=2?'disabled':''}>Go</button></div>`).join('');
   const moves=Object.entries(COUNTRIES).filter(([k])=>k!=='MY'&&k!==S.country).map(([k,X])=>{const why=moveCheck(k);return `<div class="item"><span class="ico" aria-hidden="true">${X.flag}</span><div class="t"><b>${X.flag} ${X.city}, ${X.name}</b><small>Pay ~${X.sal}× · cost of living ~${X.col}× · ${LANG[X.lang]} ${X.need}+${X.anyJob?' · any job':' · degree'}${X.maxAge?' · under '+X.maxAge:''}${X.lottery?' · visa lottery':''}${why.length?' · <span class="neg">Needs '+esc(why.join(', '))+'</span>':''}</small></div><button class="btn small" data-act="move" data-arg="${k}" ${why.length||S.ap<1||S.edu.track?'disabled':''}>Apply</button></div>`;}).join('');

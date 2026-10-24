@@ -102,6 +102,10 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
   the music player button, Achievements (a pop-up, `achHtml()`) and "Start new family".
 - Tabs (`TABS` in `icons.js`): Life, Assets (ends with Will & estate, `willPanel()`), Travel, Family (ends with the family tree,
   `panelDynasty()`).
+- Shop (Assets tab): `shopItems(tab)` in `render.js` describes every item once (shelf group, tag, price, monthly, note, buy
+  actions). `shopShelves()` draws swipeable shelves; tapping a card opens the showroom pop-up (`showroom()`, outside the pop-up
+  queue), whose buttons call the usual handlers (`buyhouse`, `buycar`, `buypet`, `buybiz`, `buylux`, `invest`...). Add new shop
+  items to their table (`HOUSES`, `CARS`, `PETS`, `BIZ`, `LUX`) and they appear automatically.
 - Save backup (Settings): "Copy save code" turns the save into one text code (`saveCode()` / `readCode()` in `fx.js`,
   prefix `MYLIFE1:`); "Restore from code" writes it back. Keep `readCode()` accepting old codes if the save format grows.
 - Home screen icon: `img/icon_kid.png`, `icon_hibiscus.png`, `icon_malam.png` (192×192). The choice is stored in localStorage
