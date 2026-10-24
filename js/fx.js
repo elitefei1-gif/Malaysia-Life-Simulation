@@ -29,7 +29,8 @@ function actFx(id,src,b,pre){if(noFx()||!src)return;const LAND=750,from=fxCtr(sr
     bar.style.transition='none';bar.style.width=Math.max(0,v0)+'%';num.textContent=v0;void bar.offsetWidth;
     setTimeout(()=>{bar.style.transition='width .7s cubic-bezier(.2,1.3,.4,1)';bar.style.width=v1+'%';num.textContent=v1;fxPulse(num,'fx-tick');fxPulse(st,'fx-glow');},v1>v0?LAND:250);
     if(v1>v0)ups.push([k,v1-v0,st]);}
-  for(const [,,st] of ups){const to=fxCtr(st.querySelector('.bar').getBoundingClientRect());for(let j=0;j<3;j++){fxFly(parts[n%parts.length],'fx-emo',from,to,120+n*70);n++;}}
+  const bub=$('#sbub'),popOpen=!$('#statpop').hidden;if(ups.length&&bub&&!popOpen)setTimeout(()=>fxPulse(bub,'fx-glow'),LAND);
+  for(const [,,st] of ups){const to=fxCtr((popOpen||!bub?st.querySelector('.bar'):bub).getBoundingClientRect());for(let j=0;j<3;j++){fxFly(parts[n%parts.length],'fx-emo',from,to,120+n*70);n++;}}
   const dm=S.money-b.money,cash=$('#id-cash');
   if(dm>=1&&cash){const to=fxCtr(cash.getBoundingClientRect());for(let j=0;j<6;j++)fxFly('RM','fx-coin',from,to,120+j*80);
     cash.textContent=fmt(b.money);setTimeout(()=>{cash.textContent=fmt(S.money);fxPulse(cash,'fx-tick');fxPulse(cash.parentElement,'fx-glow');},LAND+300);}
