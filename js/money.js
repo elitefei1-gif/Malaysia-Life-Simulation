@@ -143,7 +143,7 @@ function finances(fx){const a=age(),I=infl(),E=S.edu,col=colNow(fx);let inc=0,ex
       if(v)log(`Your ${h.name.toLowerCase().replace(/ \(to rent out\)/,'')} in ${h.where} sat empty this year. No rent.`);
       else if(bad){EX('Repairs after a bad tenant',h.value*.03);log(`A bad tenant skipped rent and trashed your ${h.name.toLowerCase().replace(/ \(to rent out\)/,'')} in ${h.where}.`);}
       else IN('Rental income',h.value*(h.rental?.052:.035));}
-    EX('Property upkeep and tax',h.value*(h.rental?.006:.004));
+    EX('Property upkeep and tax',(h.price||h.value)*(h.rental?.006:.004)); // based on the price paid, so it stays the same each year (like cukai taksiran)
     if(h.loanLeft>0){const r=rate(fx),it=h.loanLeft*r,pay=Math.min(h.pay,h.loanLeft+it);h.loanLeft=Math.max(0,h.loanLeft+it-pay);EX('Home loan',pay);}});
   const student=!!E.track,mar=married();
   const kidsN=S.kids.filter(k=>k.alive!==false&&S.year-k.born<22).length;
