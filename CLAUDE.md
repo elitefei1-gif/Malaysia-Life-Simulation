@@ -102,6 +102,9 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
   the music player button, Achievements (a pop-up, `achHtml()`) and "Start new family".
 - Tabs (`TABS` in `icons.js`): Life, Assets (ends with Will & estate, `willPanel()`), Travel, Family (ends with the family tree,
   `panelDynasty()`).
+- Stats bubble (v118): the 8 stats live in a floating round bubble (`#sbub`) instead of on the game screen. `statBubble()` in
+  `render.js` shows the lowest stat's picture with a ring filled to its value and a red count of stats under 35. Tap opens
+  `#statpop` (which holds `#g-stats`); drag moves it, snapping to the nearest side (saved in localStorage `my-lifesim-bubble`).
 - Shop (Assets tab): `shopItems(tab)` in `render.js` describes every item once (shelf group, tag, price, monthly, note, buy
   actions). `shopShelves()` draws swipeable shelves; tapping a card opens the showroom pop-up (`showroom()`, outside the pop-up
   queue), whose buttons call the usual handlers (`buyhouse`, `buycar`, `buypet`, `buybiz`, `buylux`, `invest`...). Add new shop

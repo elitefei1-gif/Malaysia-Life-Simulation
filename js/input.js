@@ -67,6 +67,14 @@ const ACT={
     try{localStorage.setItem(SAVE_KEY,JSON.stringify(o));}catch(e){toast('Could not save on this phone.');return 'keep';}S=null;MQ=[];cur=null;$('#modal').hidden=true;showScreen('s-title');toast('Save restored: '+(o.name||'your family')+'. Tap Continue.');return false;}],['Cancel',null]]});showNext();},smute(){toggleMute();settingsRedraw();},
   abandonEnd(){clearSave();S=null;$('#btn-continue').hidden=true;showScreen('s-setup');},
 };
+// Stats bubble: tap opens the full stats, drag moves it (it snaps to the nearest side and remembers where).
+(()=>{let d=null;const b=$('#sbub');b.addEventListener('pointerdown',e=>{d={x:e.clientX,y:e.clientY,moved:false};b.setPointerCapture(e.pointerId);});
+  b.addEventListener('pointermove',e=>{if(!d)return;if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.moved=true;statPop(false);b.classList.add('drag');b.style.left=(e.clientX-32)+'px';b.style.top=(e.clientY-32)+'px';});
+  b.addEventListener('pointerup',e=>{if(!d)return;const m=d.moved;d=null;b.classList.remove('drag');if(!m){statPop();return;}
+    try{localStorage.setItem(BUB_KEY,JSON.stringify({side:e.clientX<innerWidth/2?'l':'r',y:(e.clientY-32)/innerHeight}));}catch(err){}bubPlace();});
+  b.addEventListener('pointercancel',()=>{d=null;b.classList.remove('drag');bubPlace();});
+  document.addEventListener('pointerdown',e=>{if(!$('#statpop').hidden&&!e.target.closest('#statpop,#sbub'))statPop(false);},true);
+  addEventListener('resize',()=>{if(S)bubPlace();});})();
 document.addEventListener('click',e=>{const seg=e.target.closest('[data-seg] button');if(seg){if(seg.disabled)return;const box=seg.parentElement;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===seg));setup[box.dataset.seg]=seg.dataset.v;return;}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(!f)return;
   const act=b.dataset.act,m0=S&&S.money,ch=act==='choose'&&cur&&cur.choices&&cur.choices[+b.dataset.arg];
