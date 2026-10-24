@@ -47,8 +47,6 @@ function a2c(n){return n*infl()*(S.country==='MY'?1:ctry().col);}
 function partnerCults(){return Object.keys(CULTURES).filter(c=>PLAYABLE.includes(c)||ICON_IMG['partner_f@'+c]&&ICON_IMG['partner_m@'+c]).flatMap(c=>PLAYABLE.includes(c)?[c,c]:[c]);}
 function samePartner(){return S.partner&&S.partner.gender===S.gender;}
 // Malaysian law: a non-Muslim must convert to marry a Muslim, so a mixed marriage makes the household Malay.
-// Romance plays as the background song while dating and for the first 2 years of marriage (checked once a year).
-function loveSeason(){const p=S.partner;return age()>=16&&!!p&&p.alive!==false&&(p.status==='dating'||(p.status==='married'&&S.year-(p.wedYear??-99)<=2));}
 function marryConvert(p,quiet){if(!p||p.gender===S.gender||!p.culture)return;
   if(S.culture==='malay'&&p.culture!=='malay'){p.origCulture=p.culture;if(CULTURES[p.culture])p.culture='malay';p.convert=1;
     if(!quiet){log(p.name+' converted to Islam to marry you.');q({title:'A new chapter',icon:'spouse_'+(p.gender==='M'?'m':'f'),tag:'Love',text:`Under Malaysian law a non-Muslim must convert to Islam to marry a Muslim. ${esc(p.name)} converts before the nikah, and your household follows Malay customs from now on.`,choices:[['Continue',()=>'']]});}}

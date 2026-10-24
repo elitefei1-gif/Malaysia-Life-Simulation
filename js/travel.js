@@ -102,7 +102,7 @@ function expectKid(other,o){(S.preg=S.preg||[]).push({other,o:o||{},due:S.year+1
 function birthsTick(){const L=S.preg||[];if(!L.length)return;S.preg=L.filter(x=>x.due>S.year);
   L.filter(x=>x.due<=S.year).forEach(x=>{if(x.o.note==='born before marriage'&&married())x.o.note='';addKid(x.other,x.o);});}
 function nightModal(who){const p=who||S.partner,wed=p!==S.partner||married();
-  const go=safe=>()=>{if(p.alive===false||S.partner!==p&&!spouses().includes(p)||S.ap<1)return '';S.ap--;p.rel=clamp(p.rel+(safe?6:8));bump('hap',5);bump('hlt',1);
+  const go=safe=>()=>{if(p.alive===false||S.partner!==p&&!spouses().includes(p)||S.ap<1)return '';S.ap--;S.bgmLove=S.year;p.rel=clamp(p.rel+(safe?6:8));bump('hap',5);bump('hlt',1);
     let t=pick(['Dinner, a bottle of wine, and the lights go off.','A quiet night in, just the two of you.','You both cancel your plans and stay in.'])+' The rest of the night stays between you.'+spTurn(p,3);
     if(!safe&&canConceive(p)&&chance(wed?.3:.2)){qFront(wed?{title:'Big news',icon:'m_preg',tag:'Family',text:`A few weeks later, ${esc(p.name)} has a positive pregnancy test!`,choices:[['Celebrate',()=>{expectKid(p.stats);return 'The baby is due next year. Time to get the nursery ready!';}]]}:pregModal({stats:p.stats,name:p.name}));}
     log('Spent the night with '+p.name+'.');return t;};
