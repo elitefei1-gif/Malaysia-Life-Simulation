@@ -52,7 +52,7 @@ function toggleMute(){MUTED=!MUTED;try{localStorage.setItem('my-lifesim-mute',MU
 // Songs are TRACKS ids. It starts on the first tap (browsers block autoplay) and follows the mute button.
 // bgm() is called on every render, screen change and pop-up, and only acts when the wanted song changes.
 let BGM=null,bgmId=null,bgmNext=null,bgmTimer=null,bgmEvent=null;const bgmV=()=>.25*VOL.music,BGM_POS={},BGM_BAD=new Set();
-const MOMENTS=['raya','cny','wedding','hardship','legacy'];
+const MOMENTS=['raya','cny','wedding','hardship']; // Legacy is also the 70+ stage song, so it resumes where it left off
 const MOMENT_TITLE={'Declared bankrupt':'hardship','Drowning in debt':'hardship','Retrenched':'hardship','"We need to talk"':'hardship','Divorce papers':'hardship',
   'Gone':'hardship','Caught':'hardship','Messages on their phone':'hardship','MACC raid':'hardship','Sacked':'hardship','Rest in peace':'legacy'};
 function bgmMoment(m){if(!m)return null;if(MOMENT_TITLE[m.title])return MOMENT_TITLE[m.title];if(m.icon==='m_rip')return 'hardship';
@@ -60,6 +60,7 @@ function bgmMoment(m){if(!m)return null;if(MOMENT_TITLE[m.title])return MOMENT_T
   return null;}
 function bgmStage(){const a=age();
   if(S.jail||(S.pol&&S.pol.jail)||inHosp())return 'hardship';
+  if(a>=70)return 'legacy'; // the last chapter of life
   if(S.pol&&a>=18&&S.pol.dirty>(S.pol.raidDirty||0))return 'politics'; // only once you're corrupt, until a MACC raid or retiring
   if(S.bgmLove===S.year)return 'romance'; // set when you spend the night with your partner; back to normal next year
   if(a>=25&&(honTier()||netWorth()>=5e6*infl()))return 'rich';

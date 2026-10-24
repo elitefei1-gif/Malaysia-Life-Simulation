@@ -124,7 +124,7 @@ File names are case-sensitive on GitHub Pages. The play-test fails if the code n
   - Stage songs from `bgmStage()`: Childhood (0–12), School Days (13–17), Uni Life (studying, no job), Working Life,
     Golden Years (60+ or retired). Politics (a politician who has taken dirty money, `S.pol.dirty`, since the last MACC raid,
     `S.pol.raidDirty`), Romance (from "Spend the night" with a partner until the end of that year: `S.bgmLove` holds the year) and Rich Life (Dato' or very rich) override those, and
-    Hardship overrides everything during jail or hospital.
+    Hardship overrides everything during jail or hospital. From age 70, Legacy replaces all of them (except Hardship).
   - Moment songs from `bgmMoment()` play while their pop-up is open: Raya and Chinese New Year (only the first 5 festivals of
     each life, counted in `S.festN`),
     Hardship (titles in `MOMENT_TITLE`), and Wedding (set by `cueLog` when a marriage is logged). Then it fades back
