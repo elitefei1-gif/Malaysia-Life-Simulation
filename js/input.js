@@ -17,7 +17,7 @@ const ACT={
   jobs(){qFront(jobModal());showNext();},
   quit(){if(!S.job)return;log('Quit your job as '+JOBS[S.job.id].name+'.','big');S.lastJobId=S.job.id;S.lastJobName=JOBS[S.job.id].name;S.job=null;render();save();},
   retire(){retire();render();save();},
-  shop(a){shopTab=a;render();},buyhouse(a){buyHouse(+a);},sellhouse(a){sellHouse(+a);},buycar(a){buyCar(a);},sellcar(a){sellCar(+a);},buypet(a){buyPet(a);},
+  shop(a){shopTab=a;srClose();render();},showroom(a){showroom(+a);},srnav(a){srNav(+a);},srclose(){srClose();},srnoop(){},srgo(a){srGo(+a);},buyhouse(a){buyHouse(+a);},sellhouse(a){sellHouse(+a);},buycar(a){buyCar(a);},sellcar(a){sellCar(+a);},buypet(a){buyPet(a);},
   sethome(a){S.home=+a;S.withParents=false;log('Moved into your '+S.assets.houses[+a].name.toLowerCase()+'.');render();save();},
   sellstocks(){S.money+=S.stocks;log('Sold your stock portfolio for '+fmt(S.stocks)+'.');S.stocks=0;render();save();},
   toggleParents(){if(!S.withParents&&!S.parents.some(p=>p.alive))return toast('Your parents have passed away.');S.withParents=!S.withParents;log(S.withParents?'Moved back in with your parents.':'Moved out of your parents\' house. Freedom (and rent)!');render();save();},
