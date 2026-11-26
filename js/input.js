@@ -11,7 +11,10 @@ const ACT={
   startLife(){S=freshState(birthDraft,{name:setup.nameNow,gender:setup.gender,pref:setup.pref,birthYear:+setup.year});S.polyRule=setup.poly||'law';birthDraft=null;MQ=[];cur=null;tab='life';
     log(`Born in ${TOWNS[S.town].name} to ${S.parents[0].name} and ${S.parents[1].name}.`,'big');if(S.traits.length)log('Born with a special trait: '+S.traits.join(', ')+'.');
     if(S.parenting==='Divorced')log('Your parents separated when you were a baby.');worldTick();S.ap=0;save();showScreen('s-game');render();},
-  tab(a){switchTab(a);},mute(){toggleMute();render();},do(a){doAct(a);},next(){autoYears=0;nextYear();},
+  tab(a){switchTab(a);},mute(){toggleMute();render();},do(a){doAct(a);},next(go){if(!go&&S&&S.alive&&!cur&&S.ap>0&&ACTS.some(x=>x.ok(age()))){const n=S.ap;qFront({title:'Actions left this year',tag:'Reminder',
+    text:`You still have ${n} action${n>1?'s':''} left. Unused actions don't carry over to next year.`,choices:[['Use them first',null],
+    ['Go to next year anyway',()=>{cur=null;$('#modal').hidden=true;setTimeout(()=>ACT.next(1),0);return false;}]]});showNext();return;}
+    autoYears=0;nextYear();},
   auto(){if(cur||!S.alive)return;autoYears=5;runAuto();},
   choose(a){choose(+a);},close(){closeModal();},
   jobs(){qFront(jobModal());showNext();},
